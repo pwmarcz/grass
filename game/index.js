@@ -127,11 +127,6 @@ function moveMobile(mob, x, y) {
 
   mob.x = x;
   mob.y = y;
-
-  mapSprites[mob.y][mob.x].alpha = 1;
-  mob.x = x;
-  mob.y = y;
-  mapSprites[mob.y][mob.x].alpha = 0;
 }
 
 function redrawMobile(mob, distance) {
