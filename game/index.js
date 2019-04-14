@@ -9,9 +9,7 @@ let app = new PIXI.Application({
   width: mapW * TILE_SIZE,
   height: mapH * TILE_SIZE,
 });
-document.body.appendChild(app.view);
-
-let keys = {};
+document.getElementById('app').appendChild(app.view);
 
 PIXI.loader
 .add('tileset.auto.png')
@@ -34,22 +32,54 @@ function setup() {
     const sprite = new PIXI.Sprite(tileTextures[mobiles[m].tile]);
     mobiles[m].sprite = sprite;
     app.stage.addChild(sprite);
-    moveMobile(mobiles[m], mobiles[m].x, mobiles[m].y);
+    redrawMobile(mobiles[m], 0);
   }
   app.renderer.render(app.stage);
   app.ticker.add(gameLoop);
 
-  keys.up = keyboard('ArrowUp');
-  keys.down = keyboard('ArrowDown');
-  keys.left = keyboard('ArrowLeft');
-  keys.right = keyboard('ArrowRight');
+  window.addEventListener('keydown', keyDown, false);
+  window.addEventListener('keyup', keyUp, false);
 }
 
 let frameNum = 0;
-const FRAMES_PER_TURN = 15;
+const FRAMES_PER_TURN = 7;
+
+let keys = {};
+let commands = {}, prevCommands = {};
+const CAPTURED_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+
+function keyDown(event) {
+  if (CAPTURED_KEYS.indexOf(event.key) !== -1) {
+    event.preventDefault();
+
+    if (!keys[event.key]) {
+      keys[event.key] = true;
+      commands[event.key] = true;
+    }
+  }
+}
+
+function keyUp(event) {
+  if (CAPTURED_KEYS.indexOf(event.key) !== -1) {
+    event.preventDefault();
+
+    if (keys[event.key]) {
+      keys[event.key] = false;
+      if (prevCommands[event.key]) {
+        commands[event.key] = false;
+      }
+    }
+  }
+}
 
 function gameLoop(delta) {
   frameNum += delta;
+
+  const distance = (frameNum % FRAMES_PER_TURN) / FRAMES_PER_TURN;
+  for (const m in mobiles) {
+    redrawMobile(mobiles[m], distance);
+  }
+
   while (frameNum > FRAMES_PER_TURN) {
     frameNum -= FRAMES_PER_TURN;
     turn();
@@ -58,27 +88,50 @@ function gameLoop(delta) {
 
 function turn() {
   const mob = mobiles.player;
-  if (keys.up.isDown) {
+
+  redrawMobile(mob, 1);
+  mob.oldX = mob.x;
+  mob.oldY = mob.y;
+
+  prevCommands = Object.assign({}, commands);
+
+  if (commands.ArrowUp) {
     moveMobile(mob, mob.x, mob.y - 1);
-  } else if (keys.down.isDown) {
+  } else if (commands.ArrowDown) {
     moveMobile(mob, mob.x, mob.y + 1);
-  } else if (keys.left.isDown) {
+  } else if (commands.ArrowLeft) {
     moveMobile(mob, mob.x - 1, mob.y);
-  } else if (keys.right.isDown) {
+  } else if (commands.ArrowRight) {
     moveMobile(mob, mob.x + 1, mob.y);
   }
+
+  commands = Object.assign({}, keys);
 }
 
 function moveMobile(mob, x, y) {
   const newTile = map[y][x];
-  if (['FLOOR', 'GRASS', 'GRASS_TALL', 'DOOR_OPEN'].indexOf(newTile) === -1) {
+  if (tiles[newTile].pass === false) {
     return;
   }
+
+  mob.x = x;
+  mob.y = y;
 
   mapSprites[mob.y][mob.x].alpha = 1;
   mob.x = x;
   mob.y = y;
-  mob.sprite.x = mob.x * TILE_SIZE;
-  mob.sprite.y = mob.y * TILE_SIZE;
   mapSprites[mob.y][mob.x].alpha = 0;
+}
+
+function redrawMobile(mob, distance) {
+  if (mob.x == mob.oldX && mob.y == mob.oldY) {
+    mob.sprite.x = mob.x * TILE_SIZE;
+    mob.sprite.y = mob.y * TILE_SIZE;
+    mapSprites[mob.y][mob.x].alpha = 0;
+  } else {
+    mob.sprite.x = ((1 - distance) * mob.oldX + distance * mob.x) * TILE_SIZE;
+    mob.sprite.y = ((1 - distance) * mob.oldY + distance * mob.y) * TILE_SIZE;
+    mapSprites[mob.oldY][mob.oldX].alpha = distance;
+    mapSprites[mob.y][mob.x].alpha = 1 - distance;
+  }
 }

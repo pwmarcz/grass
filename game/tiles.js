@@ -1,18 +1,18 @@
 const tiles = {
-  EMPTY: { id: 20 },
+  EMPTY: { id: 20, pass: false },
   FLOOR: { id: 23 },
-  WALL: { id: 21 },
-  WOOD: { id: 30 },
+  WALL: { id: 21, pass: false },
+  WOOD: { id: 30, pass: false },
   GRASS: { id: 22 },
   GRASS_TALL: { id: 13 },
 
-  TREE_A: { id: 11 },
-  TREE_B: { id: 12 },
+  TREE_A: { id: 11, pass: false },
+  TREE_B: { id: 12, pass: false },
 
-  DOOR_CLOSED: { id: 31 },
+  DOOR_CLOSED: { id: 31, pass: false },
   DOOR_OPEN: { id: 32 },
 
-  WATER_DEEP: { id: 33 },
+  WATER_DEEP: { id: 33, pass: false },
   WATER_SHALLOW: { id: 34 },
 
   STAIR_UP: { id: 40 },
