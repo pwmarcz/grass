@@ -22,14 +22,16 @@ const tiles = {
   GOLD: { id: 0 },
 };
 
+const TILE_SIZE = 32;
+
 const tileTextures = {};
 
 function prepareTextures() {
-  const baseTexture = PIXI.utils.TextureCache['tileset.png'];
+  const baseTexture = PIXI.utils.TextureCache['tileset.auto.png'];
   for (const tile in tiles) {
     const id = tiles[tile].id;
     const x = id % 10, y = Math.floor(id / 10);
-    const frame = new PIXI.Rectangle(32 * x, 32 * y, 32, 32);
+    const frame = new PIXI.Rectangle(TILE_SIZE * x, TILE_SIZE * y, TILE_SIZE, TILE_SIZE);
     const texture = new PIXI.Texture(baseTexture, frame);
     tileTextures[tile] = texture;
   }

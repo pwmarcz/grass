@@ -1,32 +1,18 @@
 
-const map = [
-  ['WALL', 'WALL', 'WALL', 'WALL', 'WALL'],
-  ['WALL', 'FLOOR', 'FLOOR', 'FLOOR', 'WALL'],
-  ['WALL', 'FLOOR', 'FLOOR', 'FLOOR', 'WALL'],
-  ['WALL', 'FLOOR', 'FLOOR', 'FLOOR', 'WALL'],
-  ['WALL', 'WALL', 'WALL', 'WALL', 'WALL'],
-];
+const { map, mobiles } = loadMap();
 const mapW = map.length;
 const mapH = map[0].length;
 
 let mapSprites = [];
 
-let mobiles = {
-  player: {
-    x: 2, y: 2,
-    tile: 'HUMAN',
-    sprite: null,
-  }
-};
-
 let app = new PIXI.Application({
-  width: 320, 
-  height: 320,
+  width: mapW * TILE_SIZE, 
+  height: mapH * TILE_SIZE,
 });
 document.body.appendChild(app.view);
 
 PIXI.loader
-.add('tileset.png')
+.add('tileset.auto.png')
 .load(setup);
 
 function setup() {
@@ -36,16 +22,16 @@ function setup() {
     for (let x = 0; x < mapH; x++) {
       const tile = map[y][x];
       const sprite = new PIXI.Sprite(tileTextures[tile]);
-      sprite.x = x * 32;
-      sprite.y = y * 32;
+      sprite.x = x * TILE_SIZE;
+      sprite.y = y * TILE_SIZE;
       app.stage.addChild(sprite);
       mapSprites[y][x] = sprite;
     }
   }
   for (const m in mobiles) {    
     const sprite = new PIXI.Sprite(tileTextures[mobiles[m].tile]);
-    sprite.x = mobiles[m].x * 32;
-    sprite.y = mobiles[m].y * 32;
+    sprite.x = mobiles[m].x * TILE_SIZE;
+    sprite.y = mobiles[m].y * TILE_SIZE;
     app.stage.addChild(sprite);
     mapSprites[mobiles[m].y][mobiles[m].x].alpha = 0;
   }
