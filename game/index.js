@@ -109,7 +109,18 @@ function turn() {
 }
 
 function moveMobile(mob, x, y) {
+  if (x < 0 || x >= mapW || y < 0 || y >= mapH) {
+    return;
+  }
+
   const newTile = map[y][x];
+
+  if (newTile == 'DOOR_CLOSED') {
+    map[y][x] = 'DOOR_OPEN';
+    mapSprites[y][x].texture = tileTextures['DOOR_OPEN'];
+    return;
+  }
+
   if (tiles[newTile].pass === false) {
     return;
   }
