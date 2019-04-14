@@ -41,8 +41,9 @@ function setup() {
   window.addEventListener('keyup', keyUp, false);
 }
 
-let frameNum = 0;
-const FRAMES_PER_TURN = 7;
+let time = 0, timeLogic = 0;
+
+const MOVEMENT_TIME = 10;
 
 let keys = {};
 let commands = {}, prevCommands = {};
@@ -73,25 +74,33 @@ function keyUp(event) {
 }
 
 function gameLoop(delta) {
-  frameNum += delta;
+  time += delta;
 
-  const distance = (frameNum % FRAMES_PER_TURN) / FRAMES_PER_TURN;
-  for (const m in mobiles) {
-    redrawMobile(mobiles[m], distance);
+  while (timeLogic < Math.floor(time)) {
+    timeLogic++;
+    turn(timeLogic);
   }
 
-  while (frameNum > FRAMES_PER_TURN) {
-    frameNum -= FRAMES_PER_TURN;
-    turn();
+  for (const m in mobiles) {
+    redrawMobile(mobiles[m], time);
   }
 }
 
 function turn() {
   const mob = mobiles.player;
 
-  redrawMobile(mob, 1);
-  mob.oldX = mob.x;
-  mob.oldY = mob.y;
+  if (mob.action) {
+    if (timeLogic < mob.action.timeEnd) {
+      return;
+    }
+
+    if (mob.action.type == 'MOVE') {
+      redrawMobile(mob, timeLogic);
+      mob.x = mob.action.x;
+      mob.y = mob.action.y;
+    }
+    mob.action = null;
+  }
 
   prevCommands = Object.assign({}, commands);
 
@@ -118,6 +127,11 @@ function moveMobile(mob, x, y) {
   if (newTile == 'DOOR_CLOSED') {
     map[y][x] = 'DOOR_OPEN';
     mapSprites[y][x].texture = tileTextures['DOOR_OPEN'];
+    mob.action = {
+      type: 'OPEN_DOOR',
+      timeStart: timeLogic,
+      timeEnd: timeLogic + 5,
+    }
     return;
   }
 
@@ -125,19 +139,26 @@ function moveMobile(mob, x, y) {
     return;
   }
 
-  mob.x = x;
-  mob.y = y;
+  mob.action = {
+    type: 'MOVE',
+    x,
+    y,
+    timeStart: timeLogic,
+    timeEnd: timeLogic + MOVEMENT_TIME,
+  }
 }
 
-function redrawMobile(mob, distance) {
-  if (mob.x == mob.oldX && mob.y == mob.oldY) {
+function redrawMobile(mob, time) {
+  if (mob.action && mob.action.type == 'MOVE') {
+    const distance = (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
+
+    mob.sprite.x = ((1 - distance) * mob.x + distance * mob.action.x) * TILE_SIZE;
+    mob.sprite.y = ((1 - distance) * mob.y + distance * mob.action.y) * TILE_SIZE;
+    mapSprites[mob.y][mob.x].alpha = distance;
+    mapSprites[mob.action.y][mob.action.x].alpha = 1 - distance;
+  } else {
     mob.sprite.x = mob.x * TILE_SIZE;
     mob.sprite.y = mob.y * TILE_SIZE;
     mapSprites[mob.y][mob.x].alpha = 0;
-  } else {
-    mob.sprite.x = ((1 - distance) * mob.oldX + distance * mob.x) * TILE_SIZE;
-    mob.sprite.y = ((1 - distance) * mob.oldY + distance * mob.y) * TILE_SIZE;
-    mapSprites[mob.oldY][mob.oldX].alpha = distance;
-    mapSprites[mob.y][mob.x].alpha = 1 - distance;
   }
 }

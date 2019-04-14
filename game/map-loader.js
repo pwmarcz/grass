@@ -17,8 +17,6 @@ function loadMap() {
 
       if (tile === 'HUMAN') {
         mobiles['player'] = {
-          oldX: x,
-          oldY: y,
           x, y,
           tile: 'HUMAN',
           sprite: null,
