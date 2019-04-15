@@ -46,30 +46,19 @@ let time = 0, timeLogic = 0;
 const MOVEMENT_TIME = 10;
 
 let keys = {};
-let commands = {}, prevCommands = {};
 const CAPTURED_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
 
 function keyDown(event) {
   if (CAPTURED_KEYS.indexOf(event.key) !== -1) {
     event.preventDefault();
-
-    if (!keys[event.key]) {
-      keys[event.key] = true;
-      commands[event.key] = true;
-    }
+    keys[event.key] = true;
   }
 }
 
 function keyUp(event) {
   if (CAPTURED_KEYS.indexOf(event.key) !== -1) {
     event.preventDefault();
-
-    if (keys[event.key]) {
-      keys[event.key] = false;
-      if (prevCommands[event.key]) {
-        commands[event.key] = false;
-      }
-    }
+    keys[event.key] = false;
   }
 }
 
@@ -101,20 +90,15 @@ function turn() {
     }
     mob.action = null;
   }
-
-  prevCommands = Object.assign({}, commands);
-
-  if (commands.ArrowUp) {
+  if (keys.ArrowUp) {
     moveMobile(mob, mob.x, mob.y - 1);
-  } else if (commands.ArrowDown) {
+  } else if (keys.ArrowDown) {
     moveMobile(mob, mob.x, mob.y + 1);
-  } else if (commands.ArrowLeft) {
+  } else if (keys.ArrowLeft) {
     moveMobile(mob, mob.x - 1, mob.y);
-  } else if (commands.ArrowRight) {
+  } else if (keys.ArrowRight) {
     moveMobile(mob, mob.x + 1, mob.y);
   }
-
-  commands = Object.assign({}, keys);
 }
 
 function moveMobile(mob, x, y) {
