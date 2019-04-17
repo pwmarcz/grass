@@ -1,4 +1,6 @@
-import {tiles} from './tiles.js';
+import { tiles } from './tiles.js';
+
+/* global TileMaps */
 
 export function loadMap() {
   const tilesById = {};

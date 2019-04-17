@@ -1,0 +1,18 @@
+{
+    "extends": "eslint:recommended",
+    "env": {
+        "browser": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {
+        }
+    },
+    "rules": {
+        "semi": "error"
+    },
+    "globals": {
+        "PIXI": true
+    }
+}

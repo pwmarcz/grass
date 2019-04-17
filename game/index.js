@@ -117,7 +117,7 @@ function moveMobile(mob, x, y) {
       type: 'OPEN_DOOR',
       timeStart: timeLogic,
       timeEnd: timeLogic + 5,
-    }
+    };
     return;
   }
 
@@ -131,7 +131,7 @@ function moveMobile(mob, x, y) {
     y,
     timeStart: timeLogic,
     timeEnd: timeLogic + MOVEMENT_TIME,
-  }
+  };
 }
 
 function redrawMobile(mob, time) {
