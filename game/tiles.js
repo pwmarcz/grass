@@ -19,6 +19,8 @@ export const tiles = {
   STAIR_DOWN: { id: 41 },
 
   HUMAN: { id: 10 },
+  GOBLIN: { id: 1 },
+
   GOLD: { id: 0 },
 };
 
