@@ -41,7 +41,7 @@ function getAiCommand(m) {
 
   const dx = Math.floor(Math.random() * 3) - 1;
   const dy = Math.floor(Math.random() * 3) - 1;
-  if (dx != 0 || dy != 0) {
+  if (dx !== 0 || dy !== 0) {
     return { type: 'MOVE', dx, dy };
   }
   return null;

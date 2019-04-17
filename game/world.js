@@ -79,7 +79,7 @@ export class World {
 
     const newTile = this.map[y][x];
 
-    if (newTile == 'DOOR_CLOSED') {
+    if (newTile === 'DOOR_CLOSED') {
       this.map[y][x] = 'DOOR_OPEN';
       this.redrawMap(x, y, this.time);
       mob.action = {
@@ -131,10 +131,10 @@ export class World {
   findMobile(x, y) {
     for (const m in this.mobiles) {
       const mob = this.mobiles[m];
-      if (mob.x == x && mob.y == y) {
+      if (mob.x === x && mob.y === y) {
         return mob;
       }
-      if (mob.action && mob.action.type == 'MOVE' && mob.action.x == x && mob.action.y == y) {
+      if (mob.action && mob.action.type === 'MOVE' && mob.action.x === x && mob.action.y === y) {
         return mob;
       }
     }

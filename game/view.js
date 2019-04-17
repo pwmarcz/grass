@@ -65,13 +65,13 @@ export class View {
       actionTime = (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
     }
 
-    if (mob.action && mob.action.type == 'MOVE') {
+    if (mob.action && mob.action.type === 'MOVE') {
       sprite.x = TILE_SIZE * lerp(mob.x, mob.action.x, actionTime);
       sprite.y = TILE_SIZE * lerp(mob.y, mob.action.y, actionTime);
 
       this.mapSprites[mob.y][mob.x].alpha = actionTime;
       this.mapSprites[mob.action.y][mob.action.x].alpha = 1 - actionTime;
-    } else if (mob.action && mob.action.type == 'ATTACK') {
+    } else if (mob.action && mob.action.type === 'ATTACK') {
       let distance;
       if (actionTime <= ATTACK_START_TIME) {
         distance = actionTime / ATTACK_START_TIME * ATTACK_DISTANCE;

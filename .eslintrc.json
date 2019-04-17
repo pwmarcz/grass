@@ -11,6 +11,7 @@
     },
     "rules": {
         "semi": "error",
+        "eqeqeq": "error",
         "no-unused-vars": ["warn", { "args": "none" }]
     },
     "globals": {
