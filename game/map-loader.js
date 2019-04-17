@@ -23,7 +23,6 @@ export function loadMap() {
         mobiles['player'] = {
           x, y,
           tile: 'HUMAN',
-          sprite: null,
         };
         tile = 'FLOOR';
       }

@@ -10,7 +10,8 @@
         }
     },
     "rules": {
-        "semi": "error"
+        "semi": "error",
+        "no-unused-vars": ["warn", { "args": "none" }]
     },
     "globals": {
         "PIXI": true
