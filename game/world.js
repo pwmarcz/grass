@@ -1,6 +1,9 @@
 import { tiles } from './tiles.js';
 
-const MOVEMENT_TIME = 10;
+const MOVEMENT_TIME= {
+  'HUMAN': 10,
+  'GOBLIN': 20,
+};
 
 export class World {
   constructor(map, mobiles) {
@@ -22,9 +25,16 @@ export class World {
     this.redrawMap = handler;
   }
 
-  turn(command) {
+  turn(commands) {
     this.time++;
-    const mob = this.mobiles.player;
+
+    for (const m in this.mobiles) {
+      this.turnMobile(m, commands);
+    }
+  }
+
+  turnMobile(m, commands) {
+    const mob = this.mobiles[m];
 
     if (mob.action) {
       if (this.time < mob.action.timeEnd) {
@@ -39,18 +49,26 @@ export class World {
       mob.action = null;
     }
 
+    const command = commands[m];
     if (command) {
       switch (command.type) {
         case 'MOVE':
           this.moveMobile(mob, mob.x + command.dx, mob.y + command.dy);
+          break;
+        case 'REST':
+          mob.action = {
+            type: 'REST',
+            timeStart: this.time,
+            timeEnd: this.time + command.dt,
+          };
           break;
       }
     }
   }
 
   moveMobile(mob, x, y) {
-    if (x < 0 || x >= this.mapW || y < 0 || y >= this.mapH) {
-      return;
+    if (!this.inBounds(x, y)) {
+      return false;
     }
 
     const newTile = this.map[y][x];
@@ -66,7 +84,7 @@ export class World {
       return;
     }
 
-    if (tiles[newTile].pass === false) {
+    if (!this.canMove(x, y)) {
       return;
     }
 
@@ -75,7 +93,34 @@ export class World {
       x,
       y,
       timeStart: this.time,
-      timeEnd: this.time + MOVEMENT_TIME,
+      timeEnd: this.time + MOVEMENT_TIME[mob.tile],
     };
+  }
+
+  canMove(x, y) {
+    if (!this.inBounds(x, y)) {
+      return false;
+    }
+
+    const newTile = this.map[y][x];
+
+    if (tiles[newTile].pass === false) {
+      return false;
+    }
+
+    for (const m in this.mobiles) {
+      const mob = this.mobiles[m];
+      if (mob.x == x && mob.y == y) {
+        return false;
+      }
+      if (mob.action && mob.action.type == 'MOVE' && mob.action.x == x && mob.action.y == y) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  inBounds(x, y) {
+    return  0 <= x && x < this.mapW && 0 <= y && y < this.mapH;
   }
 }

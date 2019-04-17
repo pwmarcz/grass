@@ -27,6 +27,14 @@ export function loadMap() {
         tile = 'FLOOR';
       }
 
+      if (tile === 'GOBLIN') {
+        mobiles['goblin'] = {
+          x, y,
+          tile: 'GOBLIN',
+        };
+        tile = 'FLOOR';
+      }
+
       map[y][x] = tile;
     }
   }
