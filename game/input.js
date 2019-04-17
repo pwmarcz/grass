@@ -1,4 +1,19 @@
-const CAPTURED_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+const CAPTURED_KEYS = [
+  'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+  '1', '2', '3', '4', '5', '6', '7', '8', '9',
+  'y', 'u', 'h', 'j', 'k', 'l', 'b', 'n'
+];
+
+const MOVEMENT_KEYS = [
+  {keys: ['ArrowLeft', 'h', '4'], dx: -1, dy: 0},
+  {keys: ['ArrowRight', 'l', '6'], dx: 1, dy: 0},
+  {keys: ['ArrowUp', 'k', '8'], dx: 0, dy: -1},
+  {keys: ['ArrowDown', 'j', '2'], dx: 0, dy: 1},
+  {keys: ['y', '7'], dx: -1, dy: -1},
+  {keys: ['u', '9'], dx: 1, dy: -1},
+  {keys: ['b', '1'], dx: -1, dy: 1},
+  {keys: ['n', '3'], dx: 1, dy: 1},
+];
 
 export class Input {
   constructor() {
@@ -25,16 +40,13 @@ export class Input {
   }
 
   getCommand() {
-    if (this.keys.ArrowUp) {
-      return {type: 'MOVE', dx: 0, dy: -1};
-    } else if (this.keys.ArrowDown) {
-      return {type: 'MOVE', dx: 0, dy: 1};
-    } else if (this.keys.ArrowLeft) {
-      return {type: 'MOVE', dx: -1, dy: 0};
-    } else if (this.keys.ArrowRight) {
-      return {type: 'MOVE', dx: 1, dy: 0};
+    for (const {keys, dx, dy} of MOVEMENT_KEYS) {
+      for (const key of keys) {
+        if (this.keys[key]) {
+          return {type: 'MOVE', dx, dy};
+        }
+      }
     }
-
     return null;
   }
 }
