@@ -1,9 +1,11 @@
 import { tiles } from './tiles.js';
 
-const MOVEMENT_TIME= {
+const MOVEMENT_TIME = {
   'HUMAN': 10,
   'GOBLIN': 20,
 };
+
+const ATTACK_TIME = 45;
 
 export class World {
   constructor(map, mobiles) {
@@ -41,11 +43,15 @@ export class World {
         return;
       }
 
-      if (mob.action.type == 'MOVE') {
-        this.redrawMobile('player', this.time);
+      switch (mob.action.type) {
+        case 'MOVE':
+        this.redrawMobile(m, this.time);
         mob.x = mob.action.x;
         mob.y = mob.action.y;
+        break;
       }
+
+      this.redrawMobile(m, this.time);
       mob.action = null;
     }
 
@@ -84,6 +90,17 @@ export class World {
       return;
     }
 
+    if (this.findMobile(x, y)) {
+      mob.action = {
+        type: 'ATTACK',
+        x,
+        y,
+        timeStart: this.time,
+        timeEnd: this.time + ATTACK_TIME,
+      };
+      return;
+    }
+
     if (!this.canMove(x, y)) {
       return;
     }
@@ -108,16 +125,20 @@ export class World {
       return false;
     }
 
+    return true;
+  }
+
+  findMobile(x, y) {
     for (const m in this.mobiles) {
       const mob = this.mobiles[m];
       if (mob.x == x && mob.y == y) {
-        return false;
+        return mob;
       }
       if (mob.action && mob.action.type == 'MOVE' && mob.action.x == x && mob.action.y == y) {
-        return false;
+        return mob;
       }
     }
-    return true;
+    return null;
   }
 
   inBounds(x, y) {

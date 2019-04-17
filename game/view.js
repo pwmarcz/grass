@@ -1,5 +1,12 @@
 import { TILE_SIZE, tileTextures, prepareTextures } from './tiles.js';
 
+const ATTACK_DISTANCE = 0.3;
+const ATTACK_START_TIME = 0.1;
+
+function lerp(a, b, t) {
+  return a * (1 - t) + b * t;
+}
+
 export class View {
   constructor(world) {
     this.world = world;
@@ -52,16 +59,34 @@ export class View {
   redrawMobile(m, time) {
     const mob = this.world.mobiles[m];
     const sprite = this.mobileSprites[m];
-    if (mob.action && mob.action.type == 'MOVE') {
-      const distance = (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
 
-      sprite.x = ((1 - distance) * mob.x + distance * mob.action.x) * TILE_SIZE;
-      sprite.y = ((1 - distance) * mob.y + distance * mob.action.y) * TILE_SIZE;
-      this.mapSprites[mob.y][mob.x].alpha = distance;
-      this.mapSprites[mob.action.y][mob.action.x].alpha = 1 - distance;
+    let actionTime;
+    if (mob.action) {
+      actionTime = (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
+    }
+
+    if (mob.action && mob.action.type == 'MOVE') {
+      sprite.x = TILE_SIZE * lerp(mob.x, mob.action.x, actionTime);
+      sprite.y = TILE_SIZE * lerp(mob.y, mob.action.y, actionTime);
+
+      this.mapSprites[mob.y][mob.x].alpha = actionTime;
+      this.mapSprites[mob.action.y][mob.action.x].alpha = 1 - actionTime;
+    } else if (mob.action && mob.action.type == 'ATTACK') {
+      let distance;
+      if (actionTime <= ATTACK_START_TIME) {
+        distance = actionTime / ATTACK_START_TIME * ATTACK_DISTANCE;
+      } else {
+        distance = (1 - (actionTime - ATTACK_START_TIME) / (1 - ATTACK_START_TIME)) * ATTACK_DISTANCE;
+      }
+
+      sprite.x = TILE_SIZE * lerp(mob.x, mob.action.x, distance);
+      sprite.y = TILE_SIZE * lerp(mob.y, mob.action.y, distance);
+
+      this.mapSprites[mob.y][mob.x].alpha = 0;
     } else {
       sprite.x = mob.x * TILE_SIZE;
       sprite.y = mob.y * TILE_SIZE;
+
       this.mapSprites[mob.y][mob.x].alpha = 0;
     }
   }
