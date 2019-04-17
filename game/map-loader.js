@@ -1,4 +1,6 @@
-function loadMap() {
+import {tiles} from './tiles.js';
+
+export function loadMap() {
   const tilesById = {};
   for (const tile in tiles) {
     tilesById[tiles[tile].id] = tile;
@@ -30,3 +32,5 @@ function loadMap() {
 
   return { map, mobiles };
 }
+
+loadMap();

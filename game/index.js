@@ -1,3 +1,5 @@
+import { loadMap } from './map-loader.js';
+import { tiles, TILE_SIZE, tileTextures, prepareTextures } from './tiles.js';
 
 const { map, mobiles } = loadMap();
 const mapW = map.length;

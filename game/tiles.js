@@ -1,4 +1,4 @@
-const tiles = {
+export const tiles = {
   EMPTY: { id: 20, pass: false },
   FLOOR: { id: 23 },
   WALL: { id: 21, pass: false },
@@ -22,11 +22,11 @@ const tiles = {
   GOLD: { id: 0 },
 };
 
-const TILE_SIZE = 32;
+export const TILE_SIZE = 32;
 
-const tileTextures = {};
+export const tileTextures = {};
 
-function prepareTextures() {
+export function prepareTextures() {
   const baseTexture = PIXI.utils.TextureCache['tileset.auto.png'];
   for (const tile in tiles) {
     const id = tiles[tile].id;
