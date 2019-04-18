@@ -4,7 +4,7 @@ import { loadMap } from './map-loader';
 import { View } from './view';
 import { Input } from './input';
 import { World } from './world';
-import { Command } from './types';
+import { Command, CommandType } from './types';
 
 const { map, mobiles } = loadMap();
 
@@ -39,13 +39,13 @@ function gameLoop(delta): void {
 
 function getAiCommand(m: string): Command {
   if (Math.random() < 0.8) {
-    return { type: 'REST', dt: Math.random() * 10 };
+    return { type: CommandType.REST, dt: Math.random() * 10 };
   }
 
   const dx = Math.floor(Math.random() * 3) - 1;
   const dy = Math.floor(Math.random() * 3) - 1;
   if (dx !== 0 || dy !== 0) {
-    return { type: 'MOVE', dx, dy };
+    return { type: CommandType.MOVE, dx, dy };
   }
   return null;
 }

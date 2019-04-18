@@ -1,4 +1,4 @@
-import { Command } from "./types";
+import { Command, CommandType } from "./types";
 
 const CAPTURED_KEYS = [
   'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
@@ -47,7 +47,7 @@ export class Input {
     for (const {keys, dx, dy} of MOVEMENT_KEYS) {
       for (const key of keys) {
         if (this.keys[key]) {
-          return {type: 'MOVE', dx, dy};
+          return {type: CommandType.MOVE, dx, dy};
         }
       }
     }

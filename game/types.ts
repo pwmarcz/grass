@@ -1,12 +1,25 @@
+export enum CommandType {
+  ATTACK = 'ATTACK',
+  MOVE = 'MOVE',
+  REST = 'REST',
+}
+
+export enum ActionType {
+  ATTACK = 'ATTACK',
+  MOVE = 'MOVE',
+  REST = 'REST',
+  OPEN_DOOR = 'OPEN_DOOR',
+}
+
 export interface Command {
-  type: string;
+  type: CommandType;
   dx?: number;
   dy?: number;
   dt?: number;
 }
 
 export interface Action {
-  type: string;
+  type: ActionType;
   timeStart: number;
   timeEnd: number;
   x?: number;

@@ -1,5 +1,5 @@
 import { tiles } from './tiles';
-import { TileGrid, MobileMap, Command, Mobile } from './types';
+import { TileGrid, MobileMap, Command, Mobile, CommandType, ActionType } from './types';
 
 const MOVEMENT_TIME = {
   'HUMAN': 10,
@@ -53,7 +53,7 @@ export class World {
       }
 
       switch (mob.action.type) {
-        case 'MOVE':
+        case ActionType.MOVE:
         this.redrawMobile(m, this.time);
         mob.x = mob.action.x;
         mob.y = mob.action.y;
@@ -67,12 +67,12 @@ export class World {
     const command = commands[m];
     if (command) {
       switch (command.type) {
-        case 'MOVE':
+        case CommandType.MOVE:
           this.moveMobile(mob, mob.x + command.dx, mob.y + command.dy);
           break;
-        case 'REST':
+        case CommandType.REST:
           mob.action = {
-            type: 'REST',
+            type: ActionType.REST,
             timeStart: this.time,
             timeEnd: this.time + command.dt,
           };
@@ -92,7 +92,7 @@ export class World {
       this.map[y][x] = 'DOOR_OPEN';
       this.redrawMap(x, y, this.time);
       mob.action = {
-        type: 'OPEN_DOOR',
+        type: ActionType.OPEN_DOOR,
         timeStart: this.time,
         timeEnd: this.time + 5,
       };
@@ -101,7 +101,7 @@ export class World {
 
     if (this.findMobile(x, y)) {
       mob.action = {
-        type: 'ATTACK',
+        type: ActionType.ATTACK,
         x,
         y,
         timeStart: this.time,
@@ -115,7 +115,7 @@ export class World {
     }
 
     mob.action = {
-      type: 'MOVE',
+      type: ActionType.MOVE,
       x,
       y,
       timeStart: this.time,
@@ -143,7 +143,7 @@ export class World {
       if (mob.x === x && mob.y === y) {
         return mob;
       }
-      if (mob.action && mob.action.type === 'MOVE' && mob.action.x === x && mob.action.y === y) {
+      if (mob.action && mob.action.type === ActionType.MOVE && mob.action.x === x && mob.action.y === y) {
         return mob;
       }
     }
