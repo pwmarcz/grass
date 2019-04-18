@@ -9,6 +9,10 @@ dist: files
 	rm -rf dist
 	yarn build
 
+.PHONY: deploy
+deploy: dist
+	rsync -rva dist/* pwmarcz.pl:homepage/grass/
+
 tiles/tileset.png: tiles/tileset.svg
 	inkscape $< --export-png=$@
 
