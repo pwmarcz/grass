@@ -1,7 +1,9 @@
 import * as PIXI from 'pixi.js';
 import { TILE_SIZE, tileTextures, prepareTextures } from './tiles';
-import tilesetImage from './tileset.auto.png';
 import { World } from './world';
+
+// @ts-ignore
+import tilesetImage from './tileset.auto.png';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;

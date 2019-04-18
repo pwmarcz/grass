@@ -1,4 +1,6 @@
 import * as PIXI from 'pixi.js';
+
+// @ts-ignore
 import tilesetImage from './tileset.auto.png';
 
 export const tiles = {
