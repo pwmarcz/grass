@@ -1,16 +1,17 @@
-import { tiles } from './tiles.js';
+import { tiles } from './tiles';
+import { TileGrid, MobileMap } from './types';
 
-/* global TileMaps */
+declare const TileMaps;
 
-export function loadMap() {
+export function loadMap(): { map: TileGrid; mobiles: MobileMap } {
   const tilesById = {};
   for (const tile in tiles) {
     tilesById[tiles[tile].id] = tile;
   }
 
   const mapData = TileMaps['map'];
-  const map = [];
-  const mobiles = {};
+  const map: TileGrid = [];
+  const mobiles: MobileMap = {};
 
   for (let y = 0; y < mapData.height; y++) {
     map[y] = [];
@@ -21,6 +22,7 @@ export function loadMap() {
 
       if (tile === 'HUMAN') {
         mobiles['player'] = {
+          id: 'player',
           x, y,
           tile: 'HUMAN',
         };
@@ -29,6 +31,7 @@ export function loadMap() {
 
       if (tile === 'GOBLIN') {
         mobiles['goblin'] = {
+          id: 'goblin',
           x, y,
           tile: 'GOBLIN',
         };

@@ -1,16 +1,22 @@
 import * as PIXI from 'pixi.js';
-import { TILE_SIZE, tileTextures, prepareTextures } from './tiles.js';
+import { TILE_SIZE, tileTextures, prepareTextures } from './tiles';
 import tilesetImage from './tileset.auto.png';
+import { World } from './world';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
 
-function lerp(a, b, t) {
+function lerp(a: number, b: number, t: number): number {
   return a * (1 - t) + b * t;
 }
 
 export class View {
-  constructor(world) {
+  world: World;
+  app: PIXI.Application;
+  mapSprites: PIXI.Sprite[][];
+  mobileSprites: Record<string, PIXI.Sprite>;
+
+  constructor(world: World) {
     this.world = world;
     this.app = new PIXI.Application({
       width: this.world.mapW * TILE_SIZE,
@@ -20,11 +26,11 @@ export class View {
     this.mobileSprites = {};
   }
 
-  setup(element, onSuccess) {
+  setup(element: Element, onSuccess: Function): void {
     element.appendChild(this.app.view);
     PIXI.loader
     .add(tilesetImage)
-    .load(() => {
+    .load((): void => {
       prepareTextures();
       this.setupMapSprites();
       this.setupMobileSprites();
@@ -35,7 +41,7 @@ export class View {
     this.world.onRedrawMap(this.redrawMap.bind(this));
   }
 
-  setupMapSprites() {
+  setupMapSprites(): void {
     for (let y = 0; y < this.world.mapW; y++) {
       this.mapSprites[y] = [];
       for (let x = 0; x < this.world.mapH; x++) {
@@ -49,7 +55,7 @@ export class View {
     }
   }
 
-  setupMobileSprites() {
+  setupMobileSprites(): void {
     for (const m in this.world.mobiles) {
       const sprite = new PIXI.Sprite(tileTextures[this.world.mobiles[m].tile]);
       this.mobileSprites[m] = sprite;
@@ -58,11 +64,11 @@ export class View {
     }
   }
 
-  redrawMobile(m, time) {
+  redrawMobile(m: string, time: number): void {
     const mob = this.world.mobiles[m];
     const sprite = this.mobileSprites[m];
 
-    let actionTime;
+    let actionTime: number;
     if (mob.action) {
       actionTime = (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
     }
@@ -74,7 +80,7 @@ export class View {
       this.mapSprites[mob.y][mob.x].alpha = actionTime;
       this.mapSprites[mob.action.y][mob.action.x].alpha = 1 - actionTime;
     } else if (mob.action && mob.action.type === 'ATTACK') {
-      let distance;
+      let distance: number;
       if (actionTime <= ATTACK_START_TIME) {
         distance = actionTime / ATTACK_START_TIME * ATTACK_DISTANCE;
       } else {
@@ -93,11 +99,11 @@ export class View {
     }
   }
 
-  redrawMap(x, y, time) {
+  redrawMap(x: number, y: number, time: number): void {
     this.mapSprites[y][x].texture = tileTextures[this.world.map[y][x]];
   }
 
-  redraw(time) {
+  redraw(time: number): void {
     for (const m in this.world.mobiles) {
       this.redrawMobile(m, time);
     }

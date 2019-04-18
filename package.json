@@ -13,6 +13,7 @@
     "typescript": "^3.4.3"
   },
   "dependencies": {
+    "@types/pixi.js": "^4.8.7",
     "pixi.js": "^4.8.7"
   },
   "scripts": {

@@ -1,9 +1,10 @@
 import './lib/normalize.css';
 
-import { loadMap } from './map-loader.js';
-import { View } from './view.js';
-import { Input } from './input.js';
+import { loadMap } from './map-loader';
+import { View } from './view';
+import { Input } from './input';
 import { World } from './world';
+import { Command } from './types';
 
 const { map, mobiles } = loadMap();
 
@@ -11,18 +12,18 @@ let world = new World(map, mobiles);
 let view = new View(world);
 let input = new Input();
 
-view.setup(document.getElementById('app'), () => {
+view.setup(document.getElementById('app'), (): void => {
   view.app.ticker.add(gameLoop);
   input.setup();
 });
 
 let time = 0;
 
-function gameLoop(delta) {
+function gameLoop(delta): void {
   time += delta;
 
   while (world.time < Math.floor(time)) {
-    const commands = {};
+    const commands: Record<string, Command> = {};
     if (!world.mobiles.player.action) {
       commands.player = input.getCommand();
     }
@@ -36,7 +37,7 @@ function gameLoop(delta) {
 }
 
 
-function getAiCommand(m) {
+function getAiCommand(m: string): Command {
   if (Math.random() < 0.8) {
     return { type: 'REST', dt: Math.random() * 10 };
   }

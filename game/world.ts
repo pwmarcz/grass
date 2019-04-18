@@ -1,4 +1,4 @@
-import { tiles } from './tiles.js';
+import { tiles } from './tiles';
 import { TileGrid, MobileMap, Command, Mobile } from './types';
 
 const MOVEMENT_TIME = {

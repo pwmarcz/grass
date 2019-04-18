@@ -1,3 +1,5 @@
+import { Command } from "./types";
+
 const CAPTURED_KEYS = [
   'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
   '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -16,30 +18,32 @@ const MOVEMENT_KEYS = [
 ];
 
 export class Input {
+  keys: Record<string, boolean>;
+
   constructor() {
     this.keys = {};
   }
 
-  setup() {
+  setup(): void {
     document.addEventListener('keydown', this.keyDown.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
   }
 
-  keyDown(event) {
+  keyDown(event): void {
     if (CAPTURED_KEYS.indexOf(event.key) !== -1) {
       event.preventDefault();
       this.keys[event.key] = true;
     }
   }
 
-  keyUp(event) {
+  keyUp(event): void {
     if (CAPTURED_KEYS.indexOf(event.key) !== -1) {
       event.preventDefault();
       this.keys[event.key] = false;
     }
   }
 
-  getCommand() {
+  getCommand(): Command {
     for (const {keys, dx, dy} of MOVEMENT_KEYS) {
       for (const key of keys) {
         if (this.keys[key]) {

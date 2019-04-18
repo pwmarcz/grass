@@ -31,7 +31,7 @@ export const TILE_SIZE = 32;
 
 export const tileTextures = {};
 
-export function prepareTextures() {
+export function prepareTextures(): void {
   const baseTexture = PIXI.utils.TextureCache[tilesetImage];
   for (const tile in tiles) {
     const id = tiles[tile].id;
