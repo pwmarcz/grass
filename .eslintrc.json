@@ -1,8 +1,13 @@
 {
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
     "env": {
         "browser": true
     },
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
     "parserOptions": {
         "ecmaVersion": 6,
         "sourceType": "module",
@@ -12,6 +17,8 @@
     "rules": {
         "semi": "error",
         "eqeqeq": "error",
-        "no-unused-vars": ["warn", { "args": "none" }]
+        "no-unused-vars": ["warn", { "args": "none" }],
+        "@typescript-eslint/explicit-member-accessibility": "off",
+        "@typescript-eslint/indent": "off"
     }
 }

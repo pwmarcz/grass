@@ -1,4 +1,5 @@
 import { tiles } from './tiles.js';
+import { TileGrid, MobileMap, Command, Mobile } from './types';
 
 const MOVEMENT_TIME = {
   'HUMAN': 10,
@@ -8,26 +9,34 @@ const MOVEMENT_TIME = {
 const ATTACK_TIME = 45;
 
 export class World {
-  constructor(map, mobiles) {
+  map: TileGrid;
+  mobiles: MobileMap;
+  mapW: number;
+  mapH: number;
+  time: number;
+  redrawMobile: Function;
+  redrawMap: Function;
+
+  constructor(map: TileGrid, mobiles: MobileMap) {
     this.map = map;
     this.mobiles = mobiles;
     this.mapH = this.map.length;
     this.mapW = this.map[0].length;
     this.time = 0;
 
-    this.redrawMobile = function() {};
-    this.redrawMap = function() {};
+    this.redrawMobile = function(): void {};
+    this.redrawMap = function(): void {};
   }
 
-  onRedrawMobile(handler) {
+  onRedrawMobile(handler: Function): void {
     this.redrawMobile = handler;
   }
 
-  onRedrawMap(handler) {
+  onRedrawMap(handler: Function): void {
     this.redrawMap = handler;
   }
 
-  turn(commands) {
+  turn(commands: Record<string, Command>): void {
     this.time++;
 
     for (const m in this.mobiles) {
@@ -35,7 +44,7 @@ export class World {
     }
   }
 
-  turnMobile(m, commands) {
+  turnMobile(m: string, commands: Record<string, Command>): void {
     const mob = this.mobiles[m];
 
     if (mob.action) {
@@ -72,9 +81,9 @@ export class World {
     }
   }
 
-  moveMobile(mob, x, y) {
+  moveMobile(mob: Mobile, x: number, y: number): void {
     if (!this.inBounds(x, y)) {
-      return false;
+      return;
     }
 
     const newTile = this.map[y][x];
@@ -114,7 +123,7 @@ export class World {
     };
   }
 
-  canMove(x, y) {
+  canMove(x: number, y: number): boolean {
     if (!this.inBounds(x, y)) {
       return false;
     }
@@ -128,7 +137,7 @@ export class World {
     return true;
   }
 
-  findMobile(x, y) {
+  findMobile(x: number, y: number): Mobile {
     for (const m in this.mobiles) {
       const mob = this.mobiles[m];
       if (mob.x === x && mob.y === y) {
@@ -141,7 +150,7 @@ export class World {
     return null;
   }
 
-  inBounds(x, y) {
+  inBounds(x: number, y: number): boolean {
     return  0 <= x && x < this.mapW && 0 <= y && y < this.mapH;
   }
 }

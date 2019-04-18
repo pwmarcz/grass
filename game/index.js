@@ -3,7 +3,7 @@ import './lib/normalize.css';
 import { loadMap } from './map-loader.js';
 import { View } from './view.js';
 import { Input } from './input.js';
-import { World } from './world.js';
+import { World } from './world';
 
 const { map, mobiles } = loadMap();
 
