@@ -1,4 +1,13 @@
-all: tiles/tileset.png game/tileset.auto.png game/map.auto.js
+.PHONY: all
+all: files dist
+
+.PHONY: files
+files: tiles/tileset.png game/tileset.auto.png game/map.auto.js
+
+.PHONY: dist
+dist: files
+	rm -rf dist
+	yarn build
 
 tiles/tileset.png: tiles/tileset.svg
 	inkscape $< --export-png=$@

@@ -1,3 +1,5 @@
+import './lib/normalize.css';
+
 import { loadMap } from './map-loader.js';
 import { View } from './view.js';
 import { Input } from './input.js';

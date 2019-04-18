@@ -1,3 +1,6 @@
+import * as PIXI from 'pixi.js';
+import tilesetImage from './tileset.auto.png';
+
 export const tiles = {
   EMPTY: { id: 20, pass: false },
   FLOOR: { id: 23 },
@@ -29,7 +32,7 @@ export const TILE_SIZE = 32;
 export const tileTextures = {};
 
 export function prepareTextures() {
-  const baseTexture = PIXI.utils.TextureCache['tileset.auto.png'];
+  const baseTexture = PIXI.utils.TextureCache[tilesetImage];
   for (const tile in tiles) {
     const id = tiles[tile].id;
     const x = id % 10, y = Math.floor(id / 10);

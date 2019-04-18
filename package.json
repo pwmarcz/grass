@@ -1,0 +1,19 @@
+{
+  "name": "grass",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:pwmarcz/grass.git",
+  "author": "Paweł Marczewski <pwmarcz@gmail.com>",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "parcel-bundler": "^1.12.3"
+  },
+  "dependencies": {
+    "pixi.js": "^4.8.7"
+  },
+  "scripts": {
+    "parcel": "parcel game/index.html",
+    "build": "parcel build game/index.html --public-url /grass/"
+  }
+}

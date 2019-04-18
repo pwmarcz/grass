@@ -1,4 +1,6 @@
+import * as PIXI from 'pixi.js';
 import { TILE_SIZE, tileTextures, prepareTextures } from './tiles.js';
+import tilesetImage from './tileset.auto.png';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -21,7 +23,7 @@ export class View {
   setup(element, onSuccess) {
     element.appendChild(this.app.view);
     PIXI.loader
-    .add('tileset.auto.png')
+    .add(tilesetImage)
     .load(() => {
       prepareTextures();
       this.setupMapSprites();
