@@ -29,14 +29,14 @@ export class Input {
     document.addEventListener('keyup', this.keyUp.bind(this));
   }
 
-  keyDown(event): void {
+  keyDown(event: KeyboardEvent): void {
     if (CAPTURED_KEYS.indexOf(event.key) !== -1) {
       event.preventDefault();
       this.keys[event.key] = true;
     }
   }
 
-  keyUp(event): void {
+  keyUp(event: KeyboardEvent): void {
     if (CAPTURED_KEYS.indexOf(event.key) !== -1) {
       event.preventDefault();
       this.keys[event.key] = false;

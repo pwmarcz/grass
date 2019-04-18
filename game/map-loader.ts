@@ -1,10 +1,16 @@
 import { tiles } from './tiles';
 import { TileGrid, Mobile } from './types';
 
-declare const TileMaps;
+declare const TileMaps: {
+  map: {
+    width: number;
+    height: number;
+    layers: {data: number[]}[];
+  };
+};
 
 export function loadMap(): { map: TileGrid; mobiles: Mobile[] } {
-  const tilesById = {};
+  const tilesById: Record<number, string> = {};
   for (const tile in tiles) {
     tilesById[tiles[tile].id] = tile;
   }

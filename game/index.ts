@@ -19,7 +19,7 @@ view.setup(document.getElementById('app'), (): void => {
 
 let time = 0;
 
-function gameLoop(delta): void {
+function gameLoop(delta: number): void {
   time += delta;
 
   while (world.time < Math.floor(time)) {

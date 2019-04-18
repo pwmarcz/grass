@@ -1,7 +1,7 @@
 import { tiles } from './tiles';
 import { TileGrid, Command, Mobile, CommandType, ActionType } from './types';
 
-const MOVEMENT_TIME = {
+const MOVEMENT_TIME: Record<string, number> = {
   'HUMAN': 10,
   'GOBLIN': 20,
 };

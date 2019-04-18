@@ -3,7 +3,12 @@ import * as PIXI from 'pixi.js';
 // @ts-ignore
 import tilesetImage from './tileset.auto.png';
 
-export const tiles = {
+export interface TileMeta {
+  id: number;
+  pass?: boolean;
+}
+
+export const tiles: Record<string, TileMeta> = {
   EMPTY: { id: 20, pass: false },
   FLOOR: { id: 23 },
   WALL: { id: 21, pass: false },
@@ -31,7 +36,7 @@ export const tiles = {
 
 export const TILE_SIZE = 32;
 
-export const tileTextures = {};
+export const tileTextures: Record<string, PIXI.Texture> = {};
 
 export function prepareTextures(): void {
   const baseTexture = PIXI.utils.TextureCache[tilesetImage];
