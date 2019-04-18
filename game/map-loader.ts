@@ -31,6 +31,7 @@ export function loadMap(): { map: TileGrid; mobiles: Mobile[] } {
           id: 'player',
           x, y,
           tile: 'HUMAN',
+          action: null,
         });
         tile = 'FLOOR';
       }
@@ -40,6 +41,7 @@ export function loadMap(): { map: TileGrid; mobiles: Mobile[] } {
           id: 'goblin',
           x, y,
           tile: 'GOBLIN',
+          action: null,
         });
         tile = 'FLOOR';
       }

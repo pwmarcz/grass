@@ -31,7 +31,7 @@ export interface Mobile {
   x: number;
   y: number;
   tile: string;
-  action?: Action;
+  action: Action | null;
 }
 
 export type MobileMap = Record<string, Mobile>;
