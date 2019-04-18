@@ -4,7 +4,7 @@ import { World } from './world';
 
 // @ts-ignore
 import tilesetImage from './tileset.auto.png';
-import { ActionType } from './types';
+import { ActionType, Mobile } from './types';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -59,17 +59,16 @@ export class View {
   }
 
   setupMobileSprites(): void {
-    for (const m in this.world.mobiles) {
-      const sprite = new PIXI.Sprite(tileTextures[this.world.mobiles[m].tile]);
-      this.mobileSprites[m] = sprite;
+    for (const mob of this.world.mobiles) {
+      const sprite = new PIXI.Sprite(tileTextures[mob.tile]);
+      this.mobileSprites[mob.id] = sprite;
       this.app.stage.addChild(sprite);
-      this.redrawMobile(m, 0);
+      this.redrawMobile(mob, 0);
     }
   }
 
-  redrawMobile(m: string, time: number): void {
-    const mob = this.world.mobiles[m];
-    const sprite = this.mobileSprites[m];
+  redrawMobile(mob: Mobile, time: number): void {
+    const sprite = this.mobileSprites[mob.id];
 
     let actionTime: number;
     if (mob.action) {
@@ -107,8 +106,8 @@ export class View {
   }
 
   redraw(time: number): void {
-    for (const m in this.world.mobiles) {
-      this.redrawMobile(m, time);
+    for (const mob of this.world.mobiles) {
+      this.redrawMobile(mob, time);
     }
   }
 }

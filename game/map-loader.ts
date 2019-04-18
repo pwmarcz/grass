@@ -1,9 +1,9 @@
 import { tiles } from './tiles';
-import { TileGrid, MobileMap } from './types';
+import { TileGrid, Mobile } from './types';
 
 declare const TileMaps;
 
-export function loadMap(): { map: TileGrid; mobiles: MobileMap } {
+export function loadMap(): { map: TileGrid; mobiles: Mobile[] } {
   const tilesById = {};
   for (const tile in tiles) {
     tilesById[tiles[tile].id] = tile;
@@ -11,7 +11,7 @@ export function loadMap(): { map: TileGrid; mobiles: MobileMap } {
 
   const mapData = TileMaps['map'];
   const map: TileGrid = [];
-  const mobiles: MobileMap = {};
+  const mobiles: Mobile[] = [];
 
   for (let y = 0; y < mapData.height; y++) {
     map[y] = [];
@@ -21,20 +21,20 @@ export function loadMap(): { map: TileGrid; mobiles: MobileMap } {
       let tile = id === -1 ? 'EMPTY' : tilesById[id];
 
       if (tile === 'HUMAN') {
-        mobiles['player'] = {
+        mobiles.push({
           id: 'player',
           x, y,
           tile: 'HUMAN',
-        };
+        });
         tile = 'FLOOR';
       }
 
       if (tile === 'GOBLIN') {
-        mobiles['goblin'] = {
+        mobiles.push({
           id: 'goblin',
           x, y,
           tile: 'GOBLIN',
-        };
+        });
         tile = 'FLOOR';
       }
 

@@ -24,10 +24,10 @@ function gameLoop(delta): void {
 
   while (world.time < Math.floor(time)) {
     const commands: Record<string, Command> = {};
-    if (!world.mobiles.player.action) {
+    if (!world.mobileMap.player.action) {
       commands.player = input.getCommand();
     }
-    if (!world.mobiles.goblin.action) {
+    if (!world.mobileMap.goblin.action) {
       commands.goblin = getAiCommand('goblin');
     }
     world.turn(commands);

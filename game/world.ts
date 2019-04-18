@@ -1,5 +1,5 @@
 import { tiles } from './tiles';
-import { TileGrid, MobileMap, Command, Mobile, CommandType, ActionType } from './types';
+import { TileGrid, Command, Mobile, CommandType, ActionType } from './types';
 
 const MOVEMENT_TIME = {
   'HUMAN': 10,
@@ -10,16 +10,21 @@ const ATTACK_TIME = 45;
 
 export class World {
   map: TileGrid;
-  mobiles: MobileMap;
+  mobiles: Mobile[];
+  mobileMap: Record<string, Mobile>;
   mapW: number;
   mapH: number;
   time: number;
   redrawMobile: Function;
   redrawMap: Function;
 
-  constructor(map: TileGrid, mobiles: MobileMap) {
+  constructor(map: TileGrid, mobiles: Mobile[]) {
     this.map = map;
     this.mobiles = mobiles;
+    this.mobileMap = {};
+    for (const mob of this.mobiles) {
+      this.mobileMap[mob.id] = mob;
+    }
     this.mapH = this.map.length;
     this.mapW = this.map[0].length;
     this.time = 0;
@@ -39,14 +44,12 @@ export class World {
   turn(commands: Record<string, Command>): void {
     this.time++;
 
-    for (const m in this.mobiles) {
-      this.turnMobile(m, commands);
+    for (const mob of this.mobiles) {
+      this.turnMobile(mob, commands);
     }
   }
 
-  turnMobile(m: string, commands: Record<string, Command>): void {
-    const mob = this.mobiles[m];
-
+  turnMobile(mob: Mobile, commands: Record<string, Command>): void {
     if (mob.action) {
       if (this.time < mob.action.timeEnd) {
         return;
@@ -54,17 +57,17 @@ export class World {
 
       switch (mob.action.type) {
         case ActionType.MOVE:
-        this.redrawMobile(m, this.time);
+        this.redrawMobile(mob, this.time);
         mob.x = mob.action.x;
         mob.y = mob.action.y;
         break;
       }
 
-      this.redrawMobile(m, this.time);
+      this.redrawMobile(mob, this.time);
       mob.action = null;
     }
 
-    const command = commands[m];
+    const command = commands[mob.id];
     if (command) {
       switch (command.type) {
         case CommandType.MOVE:
@@ -138,8 +141,7 @@ export class World {
   }
 
   findMobile(x: number, y: number): Mobile {
-    for (const m in this.mobiles) {
-      const mob = this.mobiles[m];
+    for (const mob of this.mobiles) {
       if (mob.x === x && mob.y === y) {
         return mob;
       }
@@ -151,6 +153,6 @@ export class World {
   }
 
   inBounds(x: number, y: number): boolean {
-    return  0 <= x && x < this.mapW && 0 <= y && y < this.mapH;
+    return 0 <= x && x < this.mapW && 0 <= y && y < this.mapH;
   }
 }
