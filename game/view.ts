@@ -107,11 +107,11 @@ export class View {
     }
 
     if (mob.action && mob.action.type === ActionType.MOVE) {
-      sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.x, actionTime);
-      sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.y, actionTime);
+      sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, actionTime);
+      sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, actionTime);
 
       this.mapSprites[mob.pos.y][mob.pos.x].alpha = actionTime;
-      this.mapSprites[mob.action.y][mob.action.x].alpha = 1 - actionTime;
+      this.mapSprites[mob.action.pos.y][mob.action.pos.x].alpha = 1 - actionTime;
     } else if (mob.action && mob.action.type === ActionType.ATTACK) {
       let distance: number;
       if (actionTime <= ATTACK_START_TIME) {
@@ -120,8 +120,8 @@ export class View {
         distance = (1 - (actionTime - ATTACK_START_TIME) / (1 - ATTACK_START_TIME)) * ATTACK_DISTANCE;
       }
 
-      sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.x, distance);
-      sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.y, distance);
+      sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, distance);
+      sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, distance);
 
       this.mapSprites[mob.pos.y][mob.pos.x].alpha = 0;
     } else {

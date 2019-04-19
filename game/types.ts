@@ -39,8 +39,7 @@ interface PosAction {
   readonly type: ActionType.ATTACK | ActionType.MOVE;
   readonly timeStart: number;
   readonly timeEnd: number;
-  readonly x: number;
-  readonly y: number;
+  readonly pos: Pos;
 }
 
 export type Action = PosAction | SimpleAction;

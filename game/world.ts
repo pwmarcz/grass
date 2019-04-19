@@ -64,7 +64,7 @@ export class World {
       switch (mob.action.type) {
         case ActionType.MOVE:
         this.redrawMobile(mob, this.time);
-        mob.pos = {x: mob.action.x, y: mob.action.y};
+        mob.pos = mob.action.pos;
         if (mob.id === 'player') {
           this.distanceMap = new DistanceMap(this.map, mob.pos.x, mob.pos.y);
         }
@@ -113,8 +113,7 @@ export class World {
     if (this.findMobile(x, y)) {
       mob.action = {
         type: ActionType.ATTACK,
-        x,
-        y,
+        pos: {x, y},
         timeStart: this.time,
         timeEnd: this.time + ATTACK_TIME,
       };
@@ -127,8 +126,7 @@ export class World {
 
     mob.action = {
       type: ActionType.MOVE,
-      x,
-      y,
+      pos: {x, y},
       timeStart: this.time,
       timeEnd: this.time + MOVEMENT_TIME[mob.tile],
     };
@@ -153,7 +151,7 @@ export class World {
       if (mob.pos.x === x && mob.pos.y === y) {
         return mob;
       }
-      if (mob.action && mob.action.type === ActionType.MOVE && mob.action.x === x && mob.action.y === y) {
+      if (mob.action && mob.action.type === ActionType.MOVE && mob.action.pos.x === x && mob.action.pos.y === y) {
         return mob;
       }
     }
