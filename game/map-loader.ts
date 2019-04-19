@@ -52,5 +52,3 @@ export function loadMap(): { map: TileGrid; mobiles: Mobile[] } {
 
   return { map, mobiles };
 }
-
-loadMap();
