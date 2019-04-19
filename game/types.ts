@@ -1,6 +1,6 @@
 export interface Pos {
-  x: number;
-  y: number;
+  readonly x: number;
+  readonly y: number;
 }
 
 export enum CommandType {
@@ -17,38 +17,38 @@ export enum ActionType {
 }
 
 interface DirCommand {
-  type: CommandType.ATTACK | CommandType.MOVE;
-  dx: number;
-  dy: number;
+  readonly type: CommandType.ATTACK | CommandType.MOVE;
+  readonly dx: number;
+  readonly dy: number;
 }
 
 interface TimeCommand {
-  type: CommandType.REST;
-  dt: number;
+  readonly type: CommandType.REST;
+  readonly dt: number;
 }
 
 export type Command = DirCommand | TimeCommand;
 
 interface SimpleAction {
-  type:  ActionType.REST | ActionType.OPEN_DOOR;
-  timeStart: number;
-  timeEnd: number;
+  readonly type: ActionType.REST | ActionType.OPEN_DOOR;
+  readonly timeStart: number;
+  readonly timeEnd: number;
 }
 
 interface PosAction {
-  type: ActionType.ATTACK | ActionType.MOVE;
-  timeStart: number;
-  timeEnd: number;
-  x: number;
-  y: number;
+  readonly type: ActionType.ATTACK | ActionType.MOVE;
+  readonly timeStart: number;
+  readonly timeEnd: number;
+  readonly x: number;
+  readonly y: number;
 }
 
 export type Action = PosAction | SimpleAction;
 
 export interface Mobile {
-  id: string;
+  readonly id: string;
   pos: Pos;
-  tile: string;
+  readonly tile: string;
   action: Action | null;
 }
 
