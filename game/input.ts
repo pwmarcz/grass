@@ -1,5 +1,5 @@
 import { Command, CommandType } from "./types";
-import { View } from "./view";
+import { TILE_SIZE } from "./tiles";
 
 const CAPTURED_KEYS = [
   'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
@@ -20,22 +20,27 @@ const MOVEMENT_KEYS = [
 
 export class Input {
   keys: Record<string, boolean> = {};
-  view: View;
-  goalPos: [number, number] | null =  null;
+  element: Element;
+  mapW: number;
+  mapH: number;
+  goalPos: [number, number] | null = null;
+  highlightPos: [number, number] | null = null;
 
-  constructor(view: View) {
-    this.view = view;
+  constructor(element: Element, mapW: number, mapH: number) {
+    this.element = element;
+    this.mapW = mapW;
+    this.mapH = mapH;
   }
 
   setup(): void {
     document.addEventListener('keydown', this.keyDown.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
-    const element = this.view.element;
-    element.addEventListener('mouseenter', this.mouse.bind(this));
-    element.addEventListener('mousemove', this.mouse.bind(this));
-    element.addEventListener('mouseleave', this.mouse.bind(this));
-    element.addEventListener('click', this.click.bind(this));
-    element.addEventListener('contextmenu', this.rightClick.bind(this));
+
+    this.element.addEventListener('mouseenter', this.mouse.bind(this));
+    this.element.addEventListener('mousemove', this.mouse.bind(this));
+    this.element.addEventListener('mouseleave', this.mouse.bind(this));
+    this.element.addEventListener('click', this.click.bind(this));
+    this.element.addEventListener('contextmenu', this.rightClick.bind(this));
   }
 
   keyDown(event: KeyboardEvent): void {
@@ -65,21 +70,20 @@ export class Input {
 
   mouse(event: Event): void {
     const mouseEvent = event as MouseEvent;
-    const coords = this.view.getCoords(mouseEvent.offsetX, mouseEvent.offsetY);
+    const coords = this.getCoords(mouseEvent.offsetX, mouseEvent.offsetY);
     if (coords) {
       const [x, y] = coords;
-      this.view.highlightPos = [x, y];
+      this.highlightPos = [x, y];
     } else {
-      this.view.highlightPos = null;
+      this.highlightPos = null;
     }
   }
 
   click(event: Event): void {
     const mouseEvent = event as MouseEvent;
-    const coords = this.view.getCoords(mouseEvent.offsetX, mouseEvent.offsetY);
+    const coords = this.getCoords(mouseEvent.offsetX, mouseEvent.offsetY);
     if (coords) {
       this.goalPos = coords;
-      this.view.goalPos = coords;
     }
   }
 
@@ -87,7 +91,16 @@ export class Input {
     event.preventDefault();
     if (this.goalPos) {
       this.goalPos = null;
-      this.view.goalPos = null;
     }
+  }
+
+  getCoords(offsetX: number, offsetY: number): [number, number] | null {
+    const x = Math.floor(offsetX / TILE_SIZE);
+    const y = Math.floor(offsetY / TILE_SIZE);
+    if (!(0 <= x && x < this.mapW &&
+          0 <= y && y < this.mapH)) {
+      return null;
+    }
+    return [x, y];
   }
 }

@@ -16,7 +16,7 @@ if (!appElement || !infoElement) {
 
 let world = new World(map, mobiles);
 let view = new View(world, appElement, infoElement);
-let input = new Input(view);
+let input = new Input(appElement, world.mapW, world.mapH);
 
 view.setup((): void => {
   view.app.ticker.add(gameLoop);
@@ -36,10 +36,7 @@ function gameLoop(delta: number): void {
     if (!player.action) {
       const playerCommand = input.getCommand();
       if (playerCommand) {
-        if (input.goalPos) {
-          input.goalPos = null;
-          view.goalPos = null;
-        }
+        input.goalPos = null;
         commands.player = playerCommand;
       } else if (input.goalPos) {
         triedGoal = true;
@@ -62,9 +59,11 @@ function gameLoop(delta: number): void {
 
     if (triedGoal && !player.action) {
       input.goalPos = null;
-      view.goalPos = null;
     }
   }
+
+  view.goalPos = input.goalPos;
+  view.highlightPos = input.highlightPos;
 
   view.redraw(time);
 }

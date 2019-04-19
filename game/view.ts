@@ -146,16 +146,6 @@ export class View {
     this.redrawGoal();
   }
 
-  getCoords(offsetX: number, offsetY: number): [number, number] | null {
-    const x = Math.floor(offsetX / TILE_SIZE);
-    const y = Math.floor(offsetY / TILE_SIZE);
-    if (!(0 <= x && x < this.world.mapW &&
-          0 <= y && y < this.world.mapH)) {
-      return null;
-    }
-    return [x, y];
-  }
-
   redrawHighlight(): void {
     if (this.highlightPos) {
       const [x, y] = this.highlightPos;
