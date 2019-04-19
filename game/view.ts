@@ -76,9 +76,9 @@ export class View {
   }
 
   setupMapSprites(): void {
-    for (let y = 0; y < this.world.mapW; y++) {
+    for (let y = 0; y < this.world.mapH; y++) {
       this.mapSprites[y] = [];
-      for (let x = 0; x < this.world.mapH; x++) {
+      for (let x = 0; x < this.world.mapW; x++) {
         const tile = this.world.map[y][x];
         const sprite = new PIXI.Sprite(tileTextures[tile]);
         sprite.x = x * TILE_SIZE;
