@@ -66,9 +66,9 @@ export class Input {
     const coords = this.view.getCoords(mouseEvent.offsetX, mouseEvent.offsetY);
     if (coords) {
       const [x, y] = coords;
-      this.view.setHighlight(x, y);
+      this.view.highlightPos = [x, y];
     } else {
-      this.view.clearHighlight();
+      this.view.highlightPos = null;
     }
   }
 }

@@ -45,6 +45,8 @@ export class View {
     this.highlight.lineStyle(1, 0x888888);
     this.highlight.beginFill(0x222222);
     this.highlight.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+    this.highlight.visible = false;
+    this.backLayer.addChild(this.highlight);
 
     this.pathGraphics = new PIXI.Graphics();
     this.frontLayer.addChild(this.pathGraphics);
@@ -131,6 +133,8 @@ export class View {
       this.redrawMobile(mob, time);
     }
     this.redrawHighlight();
+    this.redrawInfo();
+    this.redrawPath();
   }
 
   getCoords(offsetX: number, offsetY: number): [number, number] | null {
@@ -143,34 +147,15 @@ export class View {
     return [x, y];
   }
 
-  setHighlight(x: number, y: number): void {
-    if (!this.highlightPos) {
-      this.backLayer.addChild(this.highlight);
-    }
-    this.highlightPos = [x, y];
-    this.redrawHighlight();
-    this.redrawInfo();
-    this.redrawPath();
-  }
-
-  clearHighlight(): void {
-    if (this.highlightPos) {
-      this.backLayer.removeChild(this.highlight);
-    }
-    this.highlightPos = null;
-    this.redrawHighlight();
-    this.redrawInfo();
-    this.redrawPath();
-  }
-
   redrawHighlight(): void {
-    if (!this.highlightPos) {
-      return;
+    if (this.highlightPos) {
+      const [x, y] = this.highlightPos;
+      this.highlight.x = x * TILE_SIZE;
+      this.highlight.y = y * TILE_SIZE;
+      this.highlight.visible = true;
+    } else {
+      this.highlight.visible = false;
     }
-
-    const [x, y] = this.highlightPos;
-    this.highlight.x = x * TILE_SIZE;
-    this.highlight.y = y * TILE_SIZE;
   }
 
   redrawInfo(): void {
