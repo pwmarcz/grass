@@ -12,7 +12,7 @@ check:
 .PHONY: dist
 dist: files
 	rm -rf dist
-	./node_modules/.bin/parcel build game/index.html --public-url /grass/"
+	./node_modules/.bin/parcel build game/index.html --public-url /grass/
 
 .PHONY: deploy
 deploy: check dist
