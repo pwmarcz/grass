@@ -1,3 +1,8 @@
+export interface Pos {
+  x: number;
+  y: number;
+}
+
 export enum CommandType {
   ATTACK = 'ATTACK',
   MOVE = 'MOVE',

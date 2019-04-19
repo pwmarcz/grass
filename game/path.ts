@@ -1,4 +1,5 @@
 import { tiles } from "./tiles";
+import { Pos } from "./types";
 
 const NEIGHBORS = [
   // Prefer straight lines...
@@ -10,15 +11,15 @@ const NEIGHBORS = [
 ];
 
 function neighbors(x0: number, y0: number, w: number, h: number):
-  [number, number][] {
+  Pos[] {
 
-  const result: [number, number][] = [];
+  const result = [];
   for (const [dx, dy] of NEIGHBORS) {
     const x = x0 + dx;
     const y = y0 + dy;
     const inBounds = 0 <= x && x < w && 0 <= y && y < h;
     if (inBounds) {
-      result.push([x, y]);
+      result.push({x, y});
     }
   }
 
@@ -61,55 +62,52 @@ export class DistanceMap {
 
       this.data[y][x] = dist;
 
-      for (const [x1, y1] of neighbors(x, y, this.w, this.h)) {
-        queue.unshift([x1, y1, dist + 1]);
+      for (const pos of neighbors(x, y, this.w, this.h)) {
+        queue.unshift([pos.x, pos.y, dist + 1]);
       }
     }
   }
 
-  findPath(x: number, y: number): [number, number][] | null {
-    if (this.data[y][x] === -1) {
+  findPath(x0: number, y0: number): Pos[] | null {
+    if (this.data[y0][x0] === -1) {
       return null;
     }
-    const result: [number, number][] = [];
+    const result = [];
 
-    if (this.data[y][x] !== -1) {
-      result.push([x, y]);
-    }
-    while (this.data[y][x] !== 0) {
-      for (const [x1, y1] of neighbors(x, y, this.w, this.h)) {
-        if (this.data[y1][x1] === this.data[y][x] - 1) {
-          x = x1;
-          y = y1;
+    let pos = {x: x0, y: y0};
+    result.push(pos);
+    while (this.data[pos.y][pos.x] !== 0) {
+      for (const pos1 of neighbors(pos.x, pos.y, this.w, this.h)) {
+        if (this.data[pos1.y][pos1.x] === this.data[pos.y][pos.x] - 1) {
+          pos = pos1;
           break;
         }
       }
-      result.push([x, y]);
+      result.push(pos);
     }
 
     result.reverse();
     return result;
   }
 
-  findPathToAdjacent(x: number, y: number): [number, number][] | null {
+  findPathToAdjacent(x: number, y: number): Pos[] | null {
     if (this.data[y][x] !== -1) {
       return this.findPath(x, y);
     }
 
-    let bestDist = -1, bestX = 0, bestY = 0;
-    for (const [x1, y1] of neighbors(x, y, this.w, this.h)) {
-      const dist = this.data[y1][x1];
+    let bestDist = -1, bestPos = null;
+    for (const pos of neighbors(x, y, this.w, this.h)) {
+      const dist = this.data[pos.y][pos.x];
       if (dist !== -1 && (bestDist === -1 || bestDist > dist)) {
         bestDist = dist;
-        bestX = x1;
-        bestY = y1;
+        bestPos = pos;
       }
     }
 
-    if (bestDist !== -1) {
-      const result = this.findPath(bestX, bestY);
+    if (bestPos) {
+      const result = this.findPath(bestPos.x, bestPos.y);
       if (result) {
-        result.push([x, y]);
+        result.push({x, y});
       }
       return result;
     }

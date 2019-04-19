@@ -1,4 +1,4 @@
-import { Command, CommandType } from "./types";
+import { Command, CommandType, Pos } from "./types";
 import { TILE_SIZE } from "./tiles";
 
 const CAPTURED_KEYS = [
@@ -23,8 +23,8 @@ export class Input {
   element: Element;
   mapW: number;
   mapH: number;
-  goalPos: [number, number] | null = null;
-  highlightPos: [number, number] | null = null;
+  goalPos: Pos | null = null;
+  highlightPos: Pos | null = null;
 
   constructor(element: Element, mapW: number, mapH: number) {
     this.element = element;
@@ -70,20 +70,14 @@ export class Input {
 
   mouse(event: Event): void {
     const mouseEvent = event as MouseEvent;
-    const coords = this.getCoords(mouseEvent.offsetX, mouseEvent.offsetY);
-    if (coords) {
-      const [x, y] = coords;
-      this.highlightPos = [x, y];
-    } else {
-      this.highlightPos = null;
-    }
+    this.highlightPos = this.getPos(mouseEvent.offsetX, mouseEvent.offsetY);
   }
 
   click(event: Event): void {
     const mouseEvent = event as MouseEvent;
-    const coords = this.getCoords(mouseEvent.offsetX, mouseEvent.offsetY);
-    if (coords) {
-      this.goalPos = coords;
+    const pos = this.getPos(mouseEvent.offsetX, mouseEvent.offsetY);
+    if (pos) {
+      this.goalPos = pos;
     }
   }
 
@@ -94,13 +88,13 @@ export class Input {
     }
   }
 
-  getCoords(offsetX: number, offsetY: number): [number, number] | null {
+  getPos(offsetX: number, offsetY: number): Pos | null {
     const x = Math.floor(offsetX / TILE_SIZE);
     const y = Math.floor(offsetY / TILE_SIZE);
     if (!(0 <= x && x < this.mapW &&
           0 <= y && y < this.mapH)) {
       return null;
     }
-    return [x, y];
+    return {x, y};
   }
 }

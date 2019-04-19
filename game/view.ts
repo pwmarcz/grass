@@ -5,7 +5,7 @@ import { World } from './world';
 
 // @ts-ignore
 import tilesetImage from './tileset.auto.png';
-import { ActionType, Mobile } from './types';
+import { ActionType, Mobile, Pos } from './types';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -25,9 +25,9 @@ export class View {
   mapSprites: PIXI.Sprite[][] = [];
   mobileSprites: Record<string, PIXI.Sprite> = {};
   highlightGraphics: PIXI.Graphics;
-  highlightPos: [number, number] | null = null;
+  highlightPos: Pos | null = null;
   goalGraphics: PIXI.Graphics;
-  goalPos: [number, number] | null = null;
+  goalPos: Pos | null = null;
   pathGraphics: PIXI.Graphics;
 
   constructor(world: World, element: Element, infoElement: Element) {
@@ -148,9 +148,8 @@ export class View {
 
   redrawHighlight(): void {
     if (this.highlightPos) {
-      const [x, y] = this.highlightPos;
-      this.highlightGraphics.x = x * TILE_SIZE;
-      this.highlightGraphics.y = y * TILE_SIZE;
+      this.highlightGraphics.x = this.highlightPos.x * TILE_SIZE;
+      this.highlightGraphics.y = this.highlightPos.y * TILE_SIZE;
       this.highlightGraphics.visible = true;
     } else {
       this.highlightGraphics.visible = false;
@@ -159,9 +158,8 @@ export class View {
 
   redrawGoal(): void {
     if (this.goalPos) {
-      const [x, y] = this.goalPos;
-      this.goalGraphics.x = x * TILE_SIZE;
-      this.goalGraphics.y = y * TILE_SIZE;
+      this.goalGraphics.x = this.goalPos.x * TILE_SIZE;
+      this.goalGraphics.y = this.goalPos.y * TILE_SIZE;
       this.goalGraphics.visible = true;
     } else {
       this.goalGraphics.visible = false;
@@ -173,7 +171,7 @@ export class View {
     if (!this.highlightPos)
       return;
 
-    const [x, y] = this.highlightPos;
+    const {x, y} = this.highlightPos;
     let tile = this.world.map[y][x];
     const mob = this.world.findMobile(x, y);
     if (mob) {
@@ -192,17 +190,17 @@ export class View {
     if (!this.goalPos)
       return;
 
-    const [x, y] = this.goalPos;
+    const {x, y} = this.goalPos;
     const path = this.world.distanceMap.findPathToAdjacent(x, y);
     if (!path) {
       return;
     }
 
-    const [xStart, yStart] = path[0];
+    const {x: xStart, y: yStart} = path[0];
     this.pathGraphics.lineStyle(5, 0xFFFFFF, 0.3);
     this.pathGraphics.moveTo(TILE_SIZE * (xStart + 0.5), TILE_SIZE * (yStart + 0.5));
-    for (const [x1, y1] of path) {
-      this.pathGraphics.lineTo(TILE_SIZE * (x1 + 0.5), TILE_SIZE * (y1 + 0.5));
+    for (const pos of path) {
+      this.pathGraphics.lineTo(TILE_SIZE * (pos.x + 0.5), TILE_SIZE * (pos.y + 0.5));
     }
   }
 }
