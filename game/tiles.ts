@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import * as redom from 'redom';
 
 // @ts-ignore
 import tilesetImage from './tileset.auto.png';
@@ -47,4 +48,16 @@ export function prepareTextures(): void {
     const texture = new PIXI.Texture(baseTexture, frame);
     tileTextures[tile] = texture;
   }
+}
+
+export function makeTileElement(tile: string): Element {
+  const id = tiles[tile].id;
+  const x = (id % 10) * TILE_SIZE, y = Math.floor(id / 10) * TILE_SIZE;
+
+  return redom.el('span.tile', {
+    style: {
+      backgroundPositionX: -x + 'px',
+      backgroundPositionY: -y + 'px',
+    }
+  });
 }

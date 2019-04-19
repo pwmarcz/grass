@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "@types/pixi.js": "^4.8.7",
+    "@types/redom": "^3.12.1",
     "@typescript-eslint/eslint-plugin": "^1.6.0",
     "@typescript-eslint/parser": "^1.6.0",
     "eslint": "^5.16.0",
@@ -14,6 +15,7 @@
     "typescript": "^3.4.3"
   },
   "dependencies": {
-    "pixi.js": "^4.8.7"
+    "pixi.js": "^4.8.7",
+    "redom": "^3.20.0"
   }
 }

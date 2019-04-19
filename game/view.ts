@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
-import { TILE_SIZE, tileTextures, prepareTextures } from './tiles';
+import * as redom from 'redom';
+import { TILE_SIZE, tileTextures, prepareTextures, makeTileElement } from './tiles';
 import { World } from './world';
 
 // @ts-ignore
@@ -23,7 +24,7 @@ export class View {
   mapSprites: PIXI.Sprite[][] = [];
   mobileSprites: Record<string, PIXI.Sprite> = {};
   highlight: PIXI.Graphics;
-  hasHighlight = false;
+  highlightPos: [number, number] | null = null;
 
   constructor(world: World, element: Element, infoElement: Element) {
     this.world = world;
@@ -123,6 +124,7 @@ export class View {
     for (const mob of this.world.mobiles) {
       this.redrawMobile(mob, time);
     }
+    this.redrawHighlight();
   }
 
   getCoords(offsetX: number, offsetY: number): [number, number] | null {
@@ -136,22 +138,41 @@ export class View {
   }
 
   setHighlight(x: number, y: number): void {
-    if (!this.hasHighlight) {
+    if (!this.highlightPos) {
       this.backLayer.addChild(this.highlight);
-      this.hasHighlight = true;
     }
+    this.highlightPos = [x, y];
+    this.redrawHighlight();
+  }
+
+  redrawHighlight(): void {
+    this.infoElement.innerHTML = '';
+    if (!this.highlightPos) {
+      return;
+    }
+
+    const [x, y] = this.highlightPos;
     this.highlight.x = x * TILE_SIZE;
     this.highlight.y = y * TILE_SIZE;
 
-    const tile = this.world.map[y][x];
-    this.infoElement.textContent = `[${x}, ${y}] ${tile.toLowerCase()}`;
+    let tile = this.world.map[y][x];
+    const mob = this.world.findMobile(x, y);
+    if (mob) {
+      tile = mob.tile;
+    }
+
+    this.infoElement.innerHTML = '';
+    redom.mount(this.infoElement, redom.el('div',
+      makeTileElement(tile),
+      redom.el('span.desc', ` ${tile.toLowerCase()}`),
+    ));
   }
 
   clearHighlight(): void {
-    if (this.hasHighlight) {
+    if (this.highlightPos) {
       this.backLayer.removeChild(this.highlight);
-      this.hasHighlight = false;
     }
-    this.infoElement.textContent = '';
+    this.highlightPos = null;
+    this.redrawHighlight();
   }
 }
