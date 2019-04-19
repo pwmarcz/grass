@@ -35,6 +35,7 @@ export class Input {
     element.addEventListener('mousemove', this.mouse.bind(this));
     element.addEventListener('mouseleave', this.mouse.bind(this));
     element.addEventListener('click', this.click.bind(this));
+    element.addEventListener('contextmenu', this.rightClick.bind(this));
   }
 
   keyDown(event: KeyboardEvent): void {
@@ -79,6 +80,14 @@ export class Input {
     if (coords) {
       this.goalPos = coords;
       this.view.goalPos = coords;
+    }
+  }
+
+  rightClick(event: Event): void {
+    event.preventDefault();
+    if (this.goalPos) {
+      this.goalPos = null;
+      this.view.goalPos = null;
     }
   }
 }
