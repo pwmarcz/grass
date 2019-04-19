@@ -10,6 +10,11 @@
       padding: 1em;
     }
 
+    .container {
+      width: 960px;
+      margin: 0 auto;
+    }
+
     #info {
       height: 35px;
       line-height: 32px;
@@ -35,18 +40,21 @@
 </head>
 
 <body>
-  <div id="info"></div>
-  <div id="app"></div>
+  <div class="container">
+    <h1>Grass</h1>
+    <div id="info"></div>
+    <div id="app"></div>
 
-  <script src="map.auto.js"></script>
-  <script src="index.ts"></script>
-  <p>
-    Controls:
-    <ul>
-      <li>keyboard: arrow keys, numpad, hjkl/yubn</li>
-      <li>mouse: left-click to set goal, right-click to cancel</li>
-    </ul>
-  </p>
+    <script src="map.auto.js"></script>
+    <script src="index.ts"></script>
+    <p>
+      Controls:
+      <ul>
+        <li>keyboard: arrow keys, numpad, hjkl/yubn</li>
+        <li>mouse: left-click to set goal, right-click to cancel</li>
+      </ul>
+    </p>
+  </div>
 </body>
 
 </html>
