@@ -21,10 +21,12 @@ export class View {
   app: PIXI.Application;
   backLayer = new PIXI.Container();
   mapLayer = new PIXI.Container();
+  frontLayer = new PIXI.Container();
   mapSprites: PIXI.Sprite[][] = [];
   mobileSprites: Record<string, PIXI.Sprite> = {};
   highlight: PIXI.Graphics;
   highlightPos: [number, number] | null = null;
+  pathGraphics: PIXI.Graphics;
 
   constructor(world: World, element: Element, infoElement: Element) {
     this.world = world;
@@ -37,11 +39,15 @@ export class View {
     });
     this.app.stage.addChild(this.backLayer);
     this.app.stage.addChild(this.mapLayer);
+    this.app.stage.addChild(this.frontLayer);
 
     this.highlight = new PIXI.Graphics();
     this.highlight.lineStyle(1, 0x888888);
     this.highlight.beginFill(0x222222);
     this.highlight.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+
+    this.pathGraphics = new PIXI.Graphics();
+    this.frontLayer.addChild(this.pathGraphics);
   }
 
   setup(onSuccess: Function): void {
@@ -143,10 +149,21 @@ export class View {
     }
     this.highlightPos = [x, y];
     this.redrawHighlight();
+    this.redrawInfo();
+    this.redrawPath();
+  }
+
+  clearHighlight(): void {
+    if (this.highlightPos) {
+      this.backLayer.removeChild(this.highlight);
+    }
+    this.highlightPos = null;
+    this.redrawHighlight();
+    this.redrawInfo();
+    this.redrawPath();
   }
 
   redrawHighlight(): void {
-    this.infoElement.innerHTML = '';
     if (!this.highlightPos) {
       return;
     }
@@ -154,7 +171,14 @@ export class View {
     const [x, y] = this.highlightPos;
     this.highlight.x = x * TILE_SIZE;
     this.highlight.y = y * TILE_SIZE;
+  }
 
+  redrawInfo(): void {
+    this.infoElement.innerHTML = '';
+    if (!this.highlightPos)
+      return;
+
+    const [x, y] = this.highlightPos;
     let tile = this.world.map[y][x];
     const mob = this.world.findMobile(x, y);
     if (mob) {
@@ -168,11 +192,22 @@ export class View {
     ));
   }
 
-  clearHighlight(): void {
-    if (this.highlightPos) {
-      this.backLayer.removeChild(this.highlight);
+  redrawPath(): void {
+    this.pathGraphics.clear();
+    if (!this.highlightPos)
+      return;
+
+    const [x, y] = this.highlightPos;
+    const path = this.world.distanceMap.findPath(x, y);
+    if (!path) {
+      return;
     }
-    this.highlightPos = null;
-    this.redrawHighlight();
+
+    const [xStart, yStart] = path[0];
+    this.pathGraphics.lineStyle(5, 0xFFFFFF, 0.3);
+    this.pathGraphics.moveTo(TILE_SIZE * (xStart + 0.5), TILE_SIZE * (yStart + 0.5));
+    for (const [x1, y1] of path) {
+      this.pathGraphics.lineTo(TILE_SIZE * (x1 + 0.5), TILE_SIZE * (y1 + 0.5));
+    }
   }
 }

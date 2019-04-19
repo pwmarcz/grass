@@ -1,4 +1,5 @@
 import { tiles } from './tiles';
+import { DistanceMap } from './path';
 import { TileGrid, Command, Mobile, CommandType, ActionType } from './types';
 
 const MOVEMENT_TIME: Record<string, number> = {
@@ -18,6 +19,8 @@ export class World {
   redrawMobile: Function;
   redrawMap: Function;
 
+  distanceMap: DistanceMap;
+
   constructor(map: TileGrid, mobiles: Mobile[]) {
     this.map = map;
     this.mobiles = mobiles;
@@ -28,6 +31,9 @@ export class World {
     this.mapH = this.map.length;
     this.mapW = this.map[0].length;
     this.time = 0;
+
+    const player = this.mobileMap.player;
+    this.distanceMap = new DistanceMap(this.map, player.x, player.y);
 
     this.redrawMobile = function(): void {};
     this.redrawMap = function(): void {};
@@ -60,6 +66,9 @@ export class World {
         this.redrawMobile(mob, this.time);
         mob.x = mob.action.x;
         mob.y = mob.action.y;
+        if (mob.id === 'player') {
+          this.distanceMap = new DistanceMap(this.map, mob.x, mob.y);
+        }
         break;
       }
 
