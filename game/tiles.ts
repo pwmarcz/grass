@@ -9,7 +9,7 @@ export interface TileMeta {
 }
 
 export const tiles: Record<string, TileMeta> = {
-  EMPTY: { id: 20, pass: false },
+  EMPTY: { id: 99, pass: false },
   FLOOR: { id: 23 },
   WALL: { id: 21, pass: false },
   WOOD: { id: 30, pass: false },

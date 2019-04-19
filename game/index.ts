@@ -8,15 +8,17 @@ import { Command, CommandType } from './types';
 
 const { map, mobiles } = loadMap();
 
-let world = new World(map, mobiles);
-let view = new View(world);
-let input = new Input();
-
 const appElement = document.getElementById('app');
-if (!appElement) {
+const infoElement = document.getElementById('info');
+if (!appElement || !infoElement) {
   throw 'app not found';
 }
-view.setup(appElement, (): void => {
+
+let world = new World(map, mobiles);
+let view = new View(world, appElement, infoElement);
+let input = new Input(view);
+
+view.setup((): void => {
   view.app.ticker.add(gameLoop);
   input.setup();
 });

@@ -15,22 +15,36 @@ function lerp(a: number, b: number, t: number): number {
 
 export class View {
   world: World;
+  element: Element;
+  infoElement: Element;
   app: PIXI.Application;
-  mapSprites: PIXI.Sprite[][];
-  mobileSprites: Record<string, PIXI.Sprite>;
+  backLayer = new PIXI.Container();
+  mapLayer = new PIXI.Container();
+  mapSprites: PIXI.Sprite[][] = [];
+  mobileSprites: Record<string, PIXI.Sprite> = {};
+  highlight: PIXI.Graphics;
+  hasHighlight = false;
 
-  constructor(world: World) {
+  constructor(world: World, element: Element, infoElement: Element) {
     this.world = world;
+    this.element = element;
+    this.infoElement = infoElement;
+
     this.app = new PIXI.Application({
       width: this.world.mapW * TILE_SIZE,
       height: this.world.mapH * TILE_SIZE,
     });
-    this.mapSprites = [];
-    this.mobileSprites = {};
+    this.app.stage.addChild(this.backLayer);
+    this.app.stage.addChild(this.mapLayer);
+
+    this.highlight = new PIXI.Graphics();
+    this.highlight.lineStyle(1, 0x888888);
+    this.highlight.beginFill(0x222222);
+    this.highlight.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
   }
 
-  setup(element: Element, onSuccess: Function): void {
-    element.appendChild(this.app.view);
+  setup(onSuccess: Function): void {
+    this.element.appendChild(this.app.view);
     PIXI.loader
     .add(tilesetImage)
     .load((): void => {
@@ -52,7 +66,7 @@ export class View {
         const sprite = new PIXI.Sprite(tileTextures[tile]);
         sprite.x = x * TILE_SIZE;
         sprite.y = y * TILE_SIZE;
-        this.app.stage.addChild(sprite);
+        this.mapLayer.addChild(sprite);
         this.mapSprites[y][x] = sprite;
       }
     }
@@ -62,7 +76,7 @@ export class View {
     for (const mob of this.world.mobiles) {
       const sprite = new PIXI.Sprite(tileTextures[mob.tile]);
       this.mobileSprites[mob.id] = sprite;
-      this.app.stage.addChild(sprite);
+      this.mapLayer.addChild(sprite);
       this.redrawMobile(mob, 0);
     }
   }
@@ -109,5 +123,35 @@ export class View {
     for (const mob of this.world.mobiles) {
       this.redrawMobile(mob, time);
     }
+  }
+
+  getCoords(offsetX: number, offsetY: number): [number, number] | null {
+    const x = Math.floor(offsetX / TILE_SIZE);
+    const y = Math.floor(offsetY / TILE_SIZE);
+    if (!(0 <= x && x < this.world.mapW &&
+          0 <= y && y < this.world.mapH)) {
+      return null;
+    }
+    return [x, y];
+  }
+
+  setHighlight(x: number, y: number): void {
+    if (!this.hasHighlight) {
+      this.backLayer.addChild(this.highlight);
+      this.hasHighlight = true;
+    }
+    this.highlight.x = x * TILE_SIZE;
+    this.highlight.y = y * TILE_SIZE;
+
+    const tile = this.world.map[y][x];
+    this.infoElement.textContent = `[${x}, ${y}] ${tile.toLowerCase()}`;
+  }
+
+  clearHighlight(): void {
+    if (this.hasHighlight) {
+      this.backLayer.removeChild(this.highlight);
+      this.hasHighlight = false;
+    }
+    this.infoElement.textContent = '';
   }
 }

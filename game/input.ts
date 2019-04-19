@@ -1,4 +1,5 @@
 import { Command, CommandType } from "./types";
+import { View } from "./view";
 
 const CAPTURED_KEYS = [
   'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
@@ -19,14 +20,20 @@ const MOVEMENT_KEYS = [
 
 export class Input {
   keys: Record<string, boolean>;
+  view: View;
 
-  constructor() {
+  constructor(view: View) {
+    this.view = view;
     this.keys = {};
   }
 
   setup(): void {
     document.addEventListener('keydown', this.keyDown.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
+    const element = this.view.element;
+    element.addEventListener('mouseenter', this.mouse.bind(this));
+    element.addEventListener('mousemove', this.mouse.bind(this));
+    element.addEventListener('mouseleave', this.mouse.bind(this));
   }
 
   keyDown(event: KeyboardEvent): void {
@@ -52,5 +59,16 @@ export class Input {
       }
     }
     return null;
+  }
+
+  mouse(event: Event): void {
+    const mouseEvent = event as MouseEvent;
+    const coords = this.view.getCoords(mouseEvent.offsetX, mouseEvent.offsetY);
+    if (coords) {
+      const [x, y] = coords;
+      this.view.setHighlight(x, y);
+    } else {
+      this.view.clearHighlight();
+    }
   }
 }
