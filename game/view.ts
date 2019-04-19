@@ -203,7 +203,7 @@ export class View {
       return;
 
     const [x, y] = this.goalPos;
-    const path = this.world.distanceMap.findPath(x, y);
+    const path = this.world.distanceMap.findPathToAdjacent(x, y);
     if (!path) {
       return;
     }

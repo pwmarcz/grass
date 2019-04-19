@@ -73,8 +73,10 @@ export class DistanceMap {
     }
     const result: [number, number][] = [];
 
-    result.push([x, y]);
-    while (this.data[y][x] > 0) {
+    if (this.data[y][x] !== -1) {
+      result.push([x, y]);
+    }
+    while (this.data[y][x] !== 0) {
       for (const [x1, y1] of neighbors(x, y, this.w, this.h)) {
         if (this.data[y1][x1] === this.data[y][x] - 1) {
           x = x1;
@@ -87,5 +89,31 @@ export class DistanceMap {
 
     result.reverse();
     return result;
+  }
+
+  findPathToAdjacent(x: number, y: number): [number, number][] | null {
+    if (this.data[y][x] !== -1) {
+      return this.findPath(x, y);
+    }
+
+    let bestDist = -1, bestX = 0, bestY = 0;
+    for (const [x1, y1] of neighbors(x, y, this.w, this.h)) {
+      const dist = this.data[y1][x1];
+      if (dist !== -1 && (bestDist === -1 || bestDist > dist)) {
+        bestDist = dist;
+        bestX = x1;
+        bestY = y1;
+      }
+    }
+
+    if (bestDist !== -1) {
+      const result = this.findPath(bestX, bestY);
+      if (result) {
+        result.push([x, y]);
+      }
+      return result;
+    }
+
+    return null;
   }
 }
