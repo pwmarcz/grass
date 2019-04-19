@@ -16,9 +16,6 @@ export class World {
   mapW: number;
   mapH: number;
   time: number;
-  redrawMobile: Function;
-  redrawMap: Function;
-
   distanceMap: DistanceMap;
 
   constructor(map: TileGrid, mobiles: Mobile[]) {
@@ -34,17 +31,6 @@ export class World {
 
     const player = this.mobileMap.player;
     this.distanceMap = new DistanceMap(this.map, player.pos.x, player.pos.y);
-
-    this.redrawMobile = function(): void {};
-    this.redrawMap = function(): void {};
-  }
-
-  onRedrawMobile(handler: Function): void {
-    this.redrawMobile = handler;
-  }
-
-  onRedrawMap(handler: Function): void {
-    this.redrawMap = handler;
   }
 
   turn(commands: Record<string, Command | null>): void {
@@ -63,7 +49,6 @@ export class World {
 
       switch (mob.action.type) {
         case ActionType.MOVE:
-        this.redrawMobile(mob, this.time);
         mob.pos = mob.action.pos;
         if (mob.id === 'player') {
           this.distanceMap = new DistanceMap(this.map, mob.pos.x, mob.pos.y);
@@ -71,7 +56,6 @@ export class World {
         break;
       }
 
-      this.redrawMobile(mob, this.time);
       mob.action = null;
     }
 
@@ -101,7 +85,6 @@ export class World {
 
     if (newTile === 'DOOR_CLOSED') {
       this.map[y][x] = 'DOOR_OPEN';
-      this.redrawMap(x, y, this.time);
       mob.action = {
         type: ActionType.OPEN_DOOR,
         timeStart: this.time,

@@ -71,16 +71,13 @@ export class View {
       onSuccess();
     });
     this.app.renderer.render(this.app.stage);
-    this.world.onRedrawMobile(this.redrawMobile.bind(this));
-    this.world.onRedrawMap(this.redrawMap.bind(this));
   }
 
-  setupMapSprites(): void {
+  private setupMapSprites(): void {
     for (let y = 0; y < this.world.mapH; y++) {
       this.mapSprites[y] = [];
       for (let x = 0; x < this.world.mapW; x++) {
-        const tile = this.world.map[y][x];
-        const sprite = new PIXI.Sprite(tileTextures[tile]);
+        const sprite = new PIXI.Sprite();
         sprite.x = x * TILE_SIZE;
         sprite.y = y * TILE_SIZE;
         this.mapLayer.addChild(sprite);
@@ -89,16 +86,15 @@ export class View {
     }
   }
 
-  setupMobileSprites(): void {
+  private setupMobileSprites(): void {
     for (const mob of this.world.mobiles) {
       const sprite = new PIXI.Sprite(tileTextures[mob.tile]);
       this.mobileSprites[mob.id] = sprite;
       this.mapLayer.addChild(sprite);
-      this.redrawMobile(mob, 0);
     }
   }
 
-  redrawMobile(mob: Mobile, time: number): void {
+  private redrawMobile(mob: Mobile, time: number, alphaMap: number[][]): void {
     const sprite = this.mobileSprites[mob.id];
 
     let actionTime = 0;
@@ -110,8 +106,8 @@ export class View {
       sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, actionTime);
       sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, actionTime);
 
-      this.mapSprites[mob.pos.y][mob.pos.x].alpha = actionTime;
-      this.mapSprites[mob.action.pos.y][mob.action.pos.x].alpha = 1 - actionTime;
+      alphaMap[mob.pos.y][mob.pos.x] = actionTime;
+      alphaMap[mob.action.pos.y][mob.action.pos.x] = 1 - actionTime;
     } else if (mob.action && mob.action.type === ActionType.ATTACK) {
       let distance: number;
       if (actionTime <= ATTACK_START_TIME) {
@@ -123,27 +119,36 @@ export class View {
       sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, distance);
       sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, distance);
 
-      this.mapSprites[mob.pos.y][mob.pos.x].alpha = 0;
+      alphaMap[mob.pos.y][mob.pos.x] = 0;
     } else {
       sprite.x = mob.pos.x * TILE_SIZE;
       sprite.y = mob.pos.y * TILE_SIZE;
 
-      this.mapSprites[mob.pos.y][mob.pos.x].alpha = 0;
+      alphaMap[mob.pos.y][mob.pos.x] = 0;
     }
-  }
-
-  redrawMap(x: number, y: number, time: number): void {
-    this.mapSprites[y][x].texture = tileTextures[this.world.map[y][x]];
   }
 
   redraw(time: number): void {
+    const alphaMap = makeGrid(this.world.mapW, this.world.mapH, 1);
     for (const mob of this.world.mobiles) {
-      this.redrawMobile(mob, time);
+      this.redrawMobile(mob, time, alphaMap);
     }
+    this.redrawMap(alphaMap);
     this.redrawHighlight();
     this.redrawInfo();
     this.redrawPath();
     this.redrawGoal();
+  }
+
+  redrawMap(alphaMap: number[][]): void {
+    for (let y = 0; y < this.world.mapH; y++) {
+      for (let x = 0; x < this.world.mapW; x++) {
+        const sprite = this.mapSprites[y][x];
+        sprite.alpha = alphaMap[y][x];
+        const tile = this.world.map[y][x];
+        sprite.texture = tileTextures[tile];
+      }
+    }
   }
 
   redrawHighlight(): void {
@@ -203,4 +208,15 @@ export class View {
       this.pathGraphics.lineTo(TILE_SIZE * (pos.x + 0.5), TILE_SIZE * (pos.y + 0.5));
     }
   }
+}
+
+function makeGrid<T>(w: number, h: number, val: T): T[][] {
+  const result = new Array(h);
+  for (let y = 0; y < h; y++) {
+    result[y] = new Array(w);
+    for (let x = 0; x < w; x++) {
+      result[y][x] = val;
+    }
+  }
+  return result;
 }
