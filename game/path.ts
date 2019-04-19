@@ -1,5 +1,6 @@
 import { tiles } from "./tiles";
 import { Pos } from "./types";
+import { makeEmptyGrid } from "./utils";
 
 const NEIGHBORS = [
   // Prefer straight lines...
@@ -27,22 +28,14 @@ function neighbors(x0: number, y0: number, w: number, h: number):
 }
 
 export class DistanceMap {
-  data: number[][] = [];
+  data: number[][];
   w: number;
   h: number;
-
 
   constructor(map: string[][], x0: number, y0: number) {
     this.w = map[0].length;
     this.h = map.length;
-
-    for (let y = 0; y < this.h; y++) {
-      this.data[y] = [];
-      for (let x = 0; x < this.w; x++) {
-        this.data[y][x] = -1;
-      }
-    }
-
+    this.data = makeEmptyGrid(this.w, this.h, -1);
     this.flood(map, x0, y0);
   }
 

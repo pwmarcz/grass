@@ -50,7 +50,3 @@ export interface Mobile {
   readonly tile: string;
   action: Action | null;
 }
-
-export type MobileMap = Record<string, Mobile>;
-
-export type TileGrid = string[][];

@@ -1,6 +1,6 @@
 import { tiles } from './tiles';
 import { DistanceMap } from './path';
-import { TileGrid, Command, Mobile, CommandType, ActionType } from './types';
+import {Command, Mobile, CommandType, ActionType } from './types';
 
 const MOVEMENT_TIME: Record<string, number> = {
   'HUMAN': 10,
@@ -10,7 +10,7 @@ const MOVEMENT_TIME: Record<string, number> = {
 const ATTACK_TIME = 45;
 
 export class World {
-  map: TileGrid;
+  map: string[][];
   mobiles: Mobile[];
   mobileMap: Record<string, Mobile>;
   mapW: number;
@@ -18,7 +18,7 @@ export class World {
   time: number;
   distanceMap: DistanceMap;
 
-  constructor(map: TileGrid, mobiles: Mobile[]) {
+  constructor(map: string[][], mobiles: Mobile[]) {
     this.map = map;
     this.mobiles = mobiles;
     this.mobileMap = {};

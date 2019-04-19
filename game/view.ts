@@ -6,6 +6,7 @@ import { World } from './world';
 // @ts-ignore
 import tilesetImage from './tileset.auto.png';
 import { ActionType, Mobile, Pos } from './types';
+import { makeGrid, makeEmptyGrid } from './utils';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -74,16 +75,13 @@ export class View {
   }
 
   private setupMapSprites(): void {
-    for (let y = 0; y < this.world.mapH; y++) {
-      this.mapSprites[y] = [];
-      for (let x = 0; x < this.world.mapW; x++) {
-        const sprite = new PIXI.Sprite();
-        sprite.x = x * TILE_SIZE;
-        sprite.y = y * TILE_SIZE;
-        this.mapLayer.addChild(sprite);
-        this.mapSprites[y][x] = sprite;
-      }
-    }
+    this.mapSprites = makeGrid(this.world.mapW, this.world.mapH, (x, y) => {
+      const sprite = new PIXI.Sprite();
+      sprite.x = x * TILE_SIZE;
+      sprite.y = y * TILE_SIZE;
+      this.mapLayer.addChild(sprite);
+      return sprite;
+    });
   }
 
   private setupMobileSprites(): void {
@@ -129,7 +127,7 @@ export class View {
   }
 
   redraw(time: number): void {
-    const alphaMap = makeGrid(this.world.mapW, this.world.mapH, 1);
+    const alphaMap = makeEmptyGrid(this.world.mapW, this.world.mapH, 1);
     for (const mob of this.world.mobiles) {
       this.redrawMobile(mob, time, alphaMap);
     }
@@ -208,15 +206,4 @@ export class View {
       this.pathGraphics.lineTo(TILE_SIZE * (pos.x + 0.5), TILE_SIZE * (pos.y + 0.5));
     }
   }
-}
-
-function makeGrid<T>(w: number, h: number, val: T): T[][] {
-  const result = new Array(h);
-  for (let y = 0; y < h; y++) {
-    result[y] = new Array(w);
-    for (let x = 0; x < w; x++) {
-      result[y][x] = val;
-    }
-  }
-  return result;
 }
