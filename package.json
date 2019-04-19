@@ -15,9 +15,5 @@
   },
   "dependencies": {
     "pixi.js": "^4.8.7"
-  },
-  "scripts": {
-    "parcel": "parcel game/index.html",
-    "build": "parcel build game/index.html --public-url /grass/"
   }
 }

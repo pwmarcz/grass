@@ -12,11 +12,15 @@ check:
 .PHONY: dist
 dist: files
 	rm -rf dist
-	yarn build
+	./node_modules/.bin/parcel build game/index.html --public-url /grass/"
 
 .PHONY: deploy
-deploy: dist
+deploy: check dist
 	rsync -rva dist/* pwmarcz.pl:homepage/grass/
+
+.PHONY: serve
+serve: files
+	./node_modules/.bin/parcel game/index.html
 
 tiles/tileset.png: tiles/tileset.svg
 	inkscape $< --export-png=$@
