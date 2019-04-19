@@ -19,12 +19,13 @@ const MOVEMENT_KEYS = [
 ];
 
 export class Input {
-  keys: Record<string, boolean>;
+  keys: Record<string, boolean> = {};
   view: View;
+  touchStartData: {x: number; y: number; time: number} | null = null;
+  cachedCommand: Command | null = null;
 
   constructor(view: View) {
     this.view = view;
-    this.keys = {};
   }
 
   setup(): void {
@@ -34,6 +35,9 @@ export class Input {
     element.addEventListener('mouseenter', this.mouse.bind(this));
     element.addEventListener('mousemove', this.mouse.bind(this));
     element.addEventListener('mouseleave', this.mouse.bind(this));
+
+    element.addEventListener('touchstart', this.touchStart.bind(this));
+    element.addEventListener('touchend', this.touchEnd.bind(this));
   }
 
   keyDown(event: KeyboardEvent): void {
@@ -51,6 +55,12 @@ export class Input {
   }
 
   getCommand(): Command | null {
+    if (this.cachedCommand) {
+      const command = this.cachedCommand;
+      this.cachedCommand = null;
+      return command;
+    }
+
     for (const {keys, dx, dy} of MOVEMENT_KEYS) {
       for (const key of keys) {
         if (this.keys[key]) {
@@ -69,6 +79,42 @@ export class Input {
       this.view.setHighlight(x, y);
     } else {
       this.view.clearHighlight();
+    }
+  }
+
+  touchStart(event: Event): void {
+    const touchEvent = event as TouchEvent;
+    this.touchStartData = {
+      x: touchEvent.changedTouches[0].pageX,
+      y: touchEvent.changedTouches[0].pageY,
+      time: new Date().getTime(),
+    };
+  }
+
+  touchEnd(event: Event): void {
+    const touchEvent = event as TouchEvent;
+    let data = this.touchStartData;
+    this.touchStartData = null;
+    if (!data) {
+      return;
+    }
+    const dx = touchEvent.changedTouches[0].pageX - data.x;
+    const dy = touchEvent.changedTouches[0].pageY - data.y;
+    const dt = new Date().getTime() - data.time;
+
+    const timeThreshold = 300;
+    const distThreshold = 150;
+    if (dt < timeThreshold) {
+      const dxEffective = dx < -distThreshold ? -1 : dx > distThreshold ? 1 : 0;
+      const dyEffective = dy < -distThreshold ? -1 : dy > distThreshold ? 1 : 0;
+      if (dxEffective !== 0 || dyEffective !== 0) {
+        this.cachedCommand = {
+          type: CommandType.MOVE,
+          dx: dxEffective,
+          dy: dyEffective
+        };
+        setTimeout(() => this.cachedCommand = null, 100);
+      }
     }
   }
 }
