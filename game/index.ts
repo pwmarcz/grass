@@ -42,8 +42,8 @@ function gameLoop(delta: number): void {
         triedGoal = true;
         const path = world.distanceMap.findPathToAdjacent(input.goalPos.x, input.goalPos.y);
         if (path && path.length > 1) {
-          const dx = path[1].x - player.x;
-          const dy = path[1].y - player.y;
+          const dx = path[1].x - player.pos.x;
+          const dy = path[1].y - player.pos.y;
           commands.player = {
             type: CommandType.MOVE,
             dx,

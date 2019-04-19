@@ -29,7 +29,7 @@ export function loadMap(): { map: TileGrid; mobiles: Mobile[] } {
       if (tile === 'HUMAN') {
         mobiles.push({
           id: 'player',
-          x, y,
+          pos: {x, y},
           tile: 'HUMAN',
           action: null,
         });
@@ -39,7 +39,7 @@ export function loadMap(): { map: TileGrid; mobiles: Mobile[] } {
       if (tile === 'GOBLIN') {
         mobiles.push({
           id: 'goblin',
-          x, y,
+          pos: {x, y},
           tile: 'GOBLIN',
           action: null,
         });

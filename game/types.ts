@@ -47,8 +47,7 @@ export type Action = PosAction | SimpleAction;
 
 export interface Mobile {
   id: string;
-  x: number;
-  y: number;
+  pos: Pos;
   tile: string;
   action: Action | null;
 }

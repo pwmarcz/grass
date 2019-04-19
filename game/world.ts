@@ -33,7 +33,7 @@ export class World {
     this.time = 0;
 
     const player = this.mobileMap.player;
-    this.distanceMap = new DistanceMap(this.map, player.x, player.y);
+    this.distanceMap = new DistanceMap(this.map, player.pos.x, player.pos.y);
 
     this.redrawMobile = function(): void {};
     this.redrawMap = function(): void {};
@@ -64,10 +64,9 @@ export class World {
       switch (mob.action.type) {
         case ActionType.MOVE:
         this.redrawMobile(mob, this.time);
-        mob.x = mob.action.x;
-        mob.y = mob.action.y;
+        mob.pos = {x: mob.action.x, y: mob.action.y};
         if (mob.id === 'player') {
-          this.distanceMap = new DistanceMap(this.map, mob.x, mob.y);
+          this.distanceMap = new DistanceMap(this.map, mob.pos.x, mob.pos.y);
         }
         break;
       }
@@ -80,7 +79,7 @@ export class World {
     if (command) {
       switch (command.type) {
         case CommandType.MOVE:
-          this.moveMobile(mob, mob.x + command.dx, mob.y + command.dy);
+          this.moveMobile(mob, mob.pos.x + command.dx, mob.pos.y + command.dy);
           break;
         case CommandType.REST:
           mob.action = {
@@ -151,7 +150,7 @@ export class World {
 
   findMobile(x: number, y: number): Mobile | null {
     for (const mob of this.mobiles) {
-      if (mob.x === x && mob.y === y) {
+      if (mob.pos.x === x && mob.pos.y === y) {
         return mob;
       }
       if (mob.action && mob.action.type === ActionType.MOVE && mob.action.x === x && mob.action.y === y) {
