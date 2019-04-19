@@ -70,7 +70,7 @@ export class View {
   redrawMobile(mob: Mobile, time: number): void {
     const sprite = this.mobileSprites[mob.id];
 
-    let actionTime: number;
+    let actionTime = 0;
     if (mob.action) {
       actionTime = (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
     }

@@ -11,20 +11,34 @@ export enum ActionType {
   OPEN_DOOR = 'OPEN_DOOR',
 }
 
-export interface Command {
-  type: CommandType;
-  dx?: number;
-  dy?: number;
-  dt?: number;
+interface DirCommand {
+  type: CommandType.ATTACK | CommandType.MOVE;
+  dx: number;
+  dy: number;
 }
 
-export interface Action {
-  type: ActionType;
+interface TimeCommand {
+  type: CommandType.REST;
+  dt: number;
+}
+
+export type Command = DirCommand | TimeCommand;
+
+interface SimpleAction {
+  type:  ActionType.REST | ActionType.OPEN_DOOR;
   timeStart: number;
   timeEnd: number;
-  x?: number;
-  y?: number;
 }
+
+interface PosAction {
+  type: ActionType.ATTACK | ActionType.MOVE;
+  timeStart: number;
+  timeEnd: number;
+  x: number;
+  y: number;
+}
+
+export type Action = PosAction | SimpleAction;
 
 export interface Mobile {
   id: string;

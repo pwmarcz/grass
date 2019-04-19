@@ -43,7 +43,7 @@ export class Input {
     }
   }
 
-  getCommand(): Command {
+  getCommand(): Command | null {
     for (const {keys, dx, dy} of MOVEMENT_KEYS) {
       for (const key of keys) {
         if (this.keys[key]) {

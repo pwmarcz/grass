@@ -41,7 +41,7 @@ export class World {
     this.redrawMap = handler;
   }
 
-  turn(commands: Record<string, Command>): void {
+  turn(commands: Record<string, Command | null>): void {
     this.time++;
 
     for (const mob of this.mobiles) {
@@ -49,7 +49,7 @@ export class World {
     }
   }
 
-  turnMobile(mob: Mobile, commands: Record<string, Command>): void {
+  turnMobile(mob: Mobile, commands: Record<string, Command | null>): void {
     if (mob.action) {
       if (this.time < mob.action.timeEnd) {
         return;
@@ -140,7 +140,7 @@ export class World {
     return true;
   }
 
-  findMobile(x: number, y: number): Mobile {
+  findMobile(x: number, y: number): Mobile | null {
     for (const mob of this.mobiles) {
       if (mob.x === x && mob.y === y) {
         return mob;

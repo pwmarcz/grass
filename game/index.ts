@@ -12,7 +12,11 @@ let world = new World(map, mobiles);
 let view = new View(world);
 let input = new Input();
 
-view.setup(document.getElementById('app'), (): void => {
+const appElement = document.getElementById('app');
+if (!appElement) {
+  throw 'app not found';
+}
+view.setup(appElement, (): void => {
   view.app.ticker.add(gameLoop);
   input.setup();
 });
@@ -23,7 +27,7 @@ function gameLoop(delta: number): void {
   time += delta;
 
   while (world.time < Math.floor(time)) {
-    const commands: Record<string, Command> = {};
+    const commands: Record<string, Command | null> = {};
     if (!world.mobileMap.player.action) {
       commands.player = input.getCommand();
     }
@@ -37,7 +41,7 @@ function gameLoop(delta: number): void {
 }
 
 
-function getAiCommand(m: string): Command {
+function getAiCommand(m: string): Command | null {
   if (Math.random() < 0.8) {
     return { type: CommandType.REST, dt: Math.random() * 10 };
   }
