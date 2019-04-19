@@ -30,13 +30,40 @@ function gameLoop(delta: number): void {
 
   while (world.time < Math.floor(time)) {
     const commands: Record<string, Command | null> = {};
-    if (!world.mobileMap.player.action) {
-      commands.player = input.getCommand();
+    const player = world.mobileMap.player;
+    let triedGoal = false;
+
+    if (!player.action) {
+      const playerCommand = input.getCommand();
+      if (playerCommand) {
+        if (input.goalPos) {
+          input.goalPos = null;
+          view.goalPos = null;
+        }
+        commands.player = playerCommand;
+      } else if (input.goalPos) {
+        triedGoal = true;
+        const path = world.distanceMap.findPath(input.goalPos[0], input.goalPos[1]);
+        if (path && path.length > 1) {
+          const dx = path[1][0] - player.x;
+          const dy = path[1][1] - player.y;
+          commands.player = {
+            type: CommandType.MOVE,
+            dx,
+            dy,
+          };
+        }
+      }
     }
     if (!world.mobileMap.goblin.action) {
       commands.goblin = getAiCommand('goblin');
     }
     world.turn(commands);
+
+    if (triedGoal && !player.action) {
+      input.goalPos = null;
+      view.goalPos = null;
+    }
   }
 
   view.redraw(time);

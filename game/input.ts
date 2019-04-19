@@ -19,12 +19,12 @@ const MOVEMENT_KEYS = [
 ];
 
 export class Input {
-  keys: Record<string, boolean>;
+  keys: Record<string, boolean> = {};
   view: View;
+  goalPos: [number, number] | null =  null;
 
   constructor(view: View) {
     this.view = view;
-    this.keys = {};
   }
 
   setup(): void {
@@ -34,6 +34,7 @@ export class Input {
     element.addEventListener('mouseenter', this.mouse.bind(this));
     element.addEventListener('mousemove', this.mouse.bind(this));
     element.addEventListener('mouseleave', this.mouse.bind(this));
+    element.addEventListener('click', this.click.bind(this));
   }
 
   keyDown(event: KeyboardEvent): void {
@@ -69,6 +70,15 @@ export class Input {
       this.view.highlightPos = [x, y];
     } else {
       this.view.highlightPos = null;
+    }
+  }
+
+  click(event: Event): void {
+    const mouseEvent = event as MouseEvent;
+    const coords = this.view.getCoords(mouseEvent.offsetX, mouseEvent.offsetY);
+    if (coords) {
+      this.goalPos = coords;
+      this.view.goalPos = coords;
     }
   }
 }

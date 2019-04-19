@@ -24,8 +24,10 @@ export class View {
   frontLayer = new PIXI.Container();
   mapSprites: PIXI.Sprite[][] = [];
   mobileSprites: Record<string, PIXI.Sprite> = {};
-  highlight: PIXI.Graphics;
+  highlightGraphics: PIXI.Graphics;
   highlightPos: [number, number] | null = null;
+  goalGraphics: PIXI.Graphics;
+  goalPos: [number, number] | null = null;
   pathGraphics: PIXI.Graphics;
 
   constructor(world: World, element: Element, infoElement: Element) {
@@ -41,15 +43,21 @@ export class View {
     this.app.stage.addChild(this.mapLayer);
     this.app.stage.addChild(this.frontLayer);
 
-    this.highlight = new PIXI.Graphics();
-    this.highlight.lineStyle(1, 0x888888);
-    this.highlight.beginFill(0x222222);
-    this.highlight.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
-    this.highlight.visible = false;
-    this.backLayer.addChild(this.highlight);
+    this.highlightGraphics = new PIXI.Graphics();
+    this.highlightGraphics.lineStyle(1, 0x888888);
+    this.highlightGraphics.beginFill(0x222222);
+    this.highlightGraphics.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+    this.highlightGraphics.visible = false;
+    this.backLayer.addChild(this.highlightGraphics);
 
     this.pathGraphics = new PIXI.Graphics();
     this.frontLayer.addChild(this.pathGraphics);
+
+    this.goalGraphics = new PIXI.Graphics();
+    this.goalGraphics.lineStyle(1, 0x6D5000);
+    this.goalGraphics.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+    this.goalGraphics.visible = false;
+    this.frontLayer.addChild(this.goalGraphics);
   }
 
   setup(onSuccess: Function): void {
@@ -135,6 +143,7 @@ export class View {
     this.redrawHighlight();
     this.redrawInfo();
     this.redrawPath();
+    this.redrawGoal();
   }
 
   getCoords(offsetX: number, offsetY: number): [number, number] | null {
@@ -150,11 +159,22 @@ export class View {
   redrawHighlight(): void {
     if (this.highlightPos) {
       const [x, y] = this.highlightPos;
-      this.highlight.x = x * TILE_SIZE;
-      this.highlight.y = y * TILE_SIZE;
-      this.highlight.visible = true;
+      this.highlightGraphics.x = x * TILE_SIZE;
+      this.highlightGraphics.y = y * TILE_SIZE;
+      this.highlightGraphics.visible = true;
     } else {
-      this.highlight.visible = false;
+      this.highlightGraphics.visible = false;
+    }
+  }
+
+  redrawGoal(): void {
+    if (this.goalPos) {
+      const [x, y] = this.goalPos;
+      this.goalGraphics.x = x * TILE_SIZE;
+      this.goalGraphics.y = y * TILE_SIZE;
+      this.goalGraphics.visible = true;
+    } else {
+      this.goalGraphics.visible = false;
     }
   }
 
@@ -179,10 +199,10 @@ export class View {
 
   redrawPath(): void {
     this.pathGraphics.clear();
-    if (!this.highlightPos)
+    if (!this.goalPos)
       return;
 
-    const [x, y] = this.highlightPos;
+    const [x, y] = this.goalPos;
     const path = this.world.distanceMap.findPath(x, y);
     if (!path) {
       return;
