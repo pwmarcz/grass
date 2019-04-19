@@ -1,5 +1,5 @@
 .PHONY: all
-all: files dist
+all: files
 
 .PHONY: files
 files: tiles/tileset.png game/tileset.auto.png game/map.auto.js
