@@ -1,4 +1,4 @@
-import { tiles } from "./tiles";
+import { TILES } from "./tiles";
 import { Pos } from "./types";
 import { makeEmptyGrid } from "./utils";
 
@@ -49,7 +49,8 @@ export class DistanceMap {
         continue;
       }
 
-      if (tiles[map[y][x]].pass === false) {
+      const tile = map[y][x];
+      if (!(TILES[tile].canEnter || tile === 'DOOR_CLOSED')) {
         continue;
       }
 

@@ -1,4 +1,4 @@
-import { tiles } from './tiles';
+import { TILES } from './tiles';
 import { Mobile } from './types';
 import { makeGrid } from './utils';
 
@@ -12,8 +12,8 @@ declare const TileMaps: {
 
 export function loadMap(): { map: string[][]; mobiles: Mobile[] } {
   const tilesById: Record<number, string> = {};
-  for (const tile in tiles) {
-    tilesById[tiles[tile].id] = tile;
+  for (const tile in TILES) {
+    tilesById[TILES[tile].id] = tile;
   }
 
   const mapData = TileMaps['map'];

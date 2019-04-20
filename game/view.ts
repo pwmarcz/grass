@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import * as redom from 'redom';
-import { TILE_SIZE, tileTextures, prepareTextures, makeTileElement } from './tiles';
+import { TILE_SIZE, TILE_TEXTURES, prepareTextures, makeTileElement } from './tiles';
 import { World } from './world';
 
 // @ts-ignore
@@ -86,7 +86,7 @@ export class View {
 
   private setupMobileSprites(): void {
     for (const mob of this.world.mobiles) {
-      const sprite = new PIXI.Sprite(tileTextures[mob.tile]);
+      const sprite = new PIXI.Sprite(TILE_TEXTURES[mob.tile]);
       this.mobileSprites[mob.id] = sprite;
       this.mapLayer.addChild(sprite);
     }
@@ -144,7 +144,7 @@ export class View {
         const sprite = this.mapSprites[y][x];
         sprite.alpha = alphaMap[y][x];
         const tile = this.world.map[y][x];
-        sprite.texture = tileTextures[tile];
+        sprite.texture = TILE_TEXTURES[tile];
       }
     }
   }

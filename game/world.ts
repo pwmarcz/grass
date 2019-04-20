@@ -1,6 +1,6 @@
-import { tiles } from './tiles';
+import { TILES } from './tiles';
 import { DistanceMap } from './path';
-import {Command, Mobile, CommandType, ActionType } from './types';
+import { Command, Mobile, CommandType, ActionType } from './types';
 
 const MOVEMENT_TIME: Record<string, number> = {
   'HUMAN': 10,
@@ -122,7 +122,7 @@ export class World {
 
     const newTile = this.map[y][x];
 
-    if (tiles[newTile].pass === false) {
+    if (!TILES[newTile].canEnter) {
       return false;
     }
 

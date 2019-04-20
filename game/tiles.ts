@@ -4,54 +4,58 @@ import * as redom from 'redom';
 // @ts-ignore
 import tilesetImage from './tileset.auto.png';
 
-export interface TileMeta {
-  id: number;
-  pass?: boolean;
+export class TileMeta {
+  id: number = 0;
+  canEnter: boolean = true;
+
+  constructor(options: { id: number; canEnter?: boolean; canPath?: boolean}) {
+    Object.assign(this, options);
+  }
 }
 
-export const tiles: Record<string, TileMeta> = {
-  EMPTY: { id: 99, pass: false },
-  FLOOR: { id: 23 },
-  WALL: { id: 21, pass: false },
-  WOOD: { id: 30, pass: false },
-  GRASS: { id: 22 },
-  GRASS_TALL: { id: 13 },
+export const TILES: Record<string, TileMeta> = {
+  EMPTY: new TileMeta({ id: 99, canEnter: false }),
+  FLOOR: new TileMeta({ id: 23 }),
+  WALL: new TileMeta({ id: 21, canEnter: false }),
+  WOOD: new TileMeta({ id: 30, canEnter: false }),
+  GRASS: new TileMeta({ id: 22 }),
+  GRASS_TALL: new TileMeta({ id: 13 }),
 
-  TREE_A: { id: 11, pass: false },
-  TREE_B: { id: 12, pass: false },
+  TREE_A: new TileMeta({ id: 11, canEnter: false }),
+  TREE_B: new TileMeta({ id: 12, canEnter: false }),
 
-  DOOR_CLOSED: { id: 31, pass: false },
-  DOOR_OPEN: { id: 32 },
+  DOOR_CLOSED: new TileMeta({ id: 31, canEnter: false }),
+  DOOR_OPEN: new TileMeta({ id: 32 }),
 
-  WATER_DEEP: { id: 33, pass: false },
-  WATER_SHALLOW: { id: 34 },
+  WATER_DEEP: new TileMeta({ id: 33, canEnter: false }),
+  WATER_SHALLOW: new TileMeta({ id: 34 }),
 
-  STAIR_UP: { id: 40 },
-  STAIR_DOWN: { id: 41 },
+  STAIR_UP: new TileMeta({ id: 40 }),
+  STAIR_DOWN: new TileMeta({ id: 41 }),
 
-  HUMAN: { id: 10 },
-  GOBLIN: { id: 1 },
+  HUMAN: new TileMeta({ id: 10 }),
+  GOBLIN: new TileMeta({ id: 1 }),
 
-  GOLD: { id: 0 },
+  GOLD: new TileMeta({ id: 0 }),
 };
 
 export const TILE_SIZE = 32;
 
-export const tileTextures: Record<string, PIXI.Texture> = {};
+export const TILE_TEXTURES: Record<string, PIXI.Texture> = {};
 
 export function prepareTextures(): void {
   const baseTexture = PIXI.utils.TextureCache[tilesetImage];
-  for (const tile in tiles) {
-    const id = tiles[tile].id;
+  for (const tile in TILES) {
+    const id = TILES[tile].id;
     const x = id % 10, y = Math.floor(id / 10);
     const frame = new PIXI.Rectangle(TILE_SIZE * x, TILE_SIZE * y, TILE_SIZE, TILE_SIZE);
     const texture = new PIXI.Texture(baseTexture, frame);
-    tileTextures[tile] = texture;
+    TILE_TEXTURES[tile] = texture;
   }
 }
 
 export function makeTileElement(tile: string): Element {
-  const id = tiles[tile].id;
+  const id = TILES[tile].id;
   const x = (id % 10) * TILE_SIZE, y = Math.floor(id / 10) * TILE_SIZE;
 
   return redom.el('span.tile', {
