@@ -93,10 +93,9 @@ export class Input {
   }
 
   getPos(event: InteractionEvent): Pos | null {
-    const offsetX = event.data.global.x - this.stage.position.x;
-    const offsetY = event.data.global.y - this.stage.position.y;
-    const x = Math.floor(offsetX / TILE_SIZE);
-    const y = Math.floor(offsetY / TILE_SIZE);
+    const local = this.stage.toLocal(event.data.global);
+    const x = Math.floor(local.x / TILE_SIZE);
+    const y = Math.floor(local.y / TILE_SIZE);
     if (!(0 <= x && x < this.mapW &&
           0 <= y && y < this.mapH)) {
       return null;
