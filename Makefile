@@ -2,7 +2,7 @@
 all: files
 
 .PHONY: files
-files: tiles/tileset.png game/tileset.auto.png game/map.auto.xml
+files: game/tileset.auto.png game/icon.auto.png game/map.auto.xml
 
 .PHONY: check
 check:
@@ -22,11 +22,8 @@ deploy: check dist
 serve: files
 	./node_modules/.bin/parcel game/index.html
 
-tiles/tileset.png: tiles/tileset.svg
+game/%.auto.png: tiles/%.svg
 	inkscape $< --export-png=$@
-
-game/tileset.auto.png: tiles/tileset.png
-	cp $< $@
 
 game/map.auto.xml: tiles/map.tmx
 	cp $< $@
