@@ -46,7 +46,7 @@ export class View {
     this.app.stage.interactive = true;
 
     this.highlightGraphics = new PIXI.Graphics();
-    this.highlightGraphics.lineStyle(1, 0x888888);
+    this.highlightGraphics.lineStyle(1, 0x888888, 1, 0);
     this.highlightGraphics.beginFill(0x222222);
     this.highlightGraphics.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
     this.highlightGraphics.visible = false;
@@ -56,7 +56,7 @@ export class View {
     this.frontLayer.addChild(this.pathGraphics);
 
     this.goalGraphics = new PIXI.Graphics();
-    this.goalGraphics.lineStyle(1, 0x6D5000);
+    this.goalGraphics.lineStyle(1, 0x6D5000, 1, 0);
     this.goalGraphics.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
     this.goalGraphics.visible = false;
     this.frontLayer.addChild(this.goalGraphics);
