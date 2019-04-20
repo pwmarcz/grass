@@ -75,11 +75,11 @@ export class Input {
   }
 
   mouse(event: InteractionEvent): void {
-    this.highlightPos = this.getPos(event.data.global.x, event.data.global.y);
+    this.highlightPos = this.getPos(event);
   }
 
   click(event: InteractionEvent): void {
-    const pos = this.getPos(event.data.global.x, event.data.global.y);
+    const pos = this.getPos(event);
     if (pos) {
       this.goalPos = pos;
     }
@@ -92,7 +92,9 @@ export class Input {
     }
   }
 
-  getPos(offsetX: number, offsetY: number): Pos | null {
+  getPos(event: InteractionEvent): Pos | null {
+    const offsetX = event.data.global.x - this.stage.position.x;
+    const offsetY = event.data.global.y - this.stage.position.y;
     const x = Math.floor(offsetX / TILE_SIZE);
     const y = Math.floor(offsetY / TILE_SIZE);
     if (!(0 <= x && x < this.mapW &&
