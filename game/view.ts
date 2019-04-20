@@ -43,6 +43,7 @@ export class View {
     this.app.stage.addChild(this.backLayer);
     this.app.stage.addChild(this.mapLayer);
     this.app.stage.addChild(this.frontLayer);
+    this.app.stage.interactive = true;
 
     this.highlightGraphics = new PIXI.Graphics();
     this.highlightGraphics.lineStyle(1, 0x888888);

@@ -1,5 +1,8 @@
 import { Command, CommandType, Pos } from "./types";
 import { TILE_SIZE } from "./tiles";
+import { DisplayObject } from "pixi.js";
+
+type InteractionEvent = PIXI.interaction.InteractionEvent;
 
 const CAPTURED_KEYS = [
   'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
@@ -20,14 +23,16 @@ const MOVEMENT_KEYS = [
 
 export class Input {
   keys: Record<string, boolean> = {};
-  element: Element;
+  appElement: Element;
+  stage: DisplayObject;
   mapW: number;
   mapH: number;
   goalPos: Pos | null = null;
   highlightPos: Pos | null = null;
 
-  constructor(element: Element, mapW: number, mapH: number) {
-    this.element = element;
+  constructor(appElement: Element, stage: PIXI.DisplayObject, mapW: number, mapH: number) {
+    this.appElement = appElement;
+    this.stage = stage;
     this.mapW = mapW;
     this.mapH = mapH;
   }
@@ -36,11 +41,12 @@ export class Input {
     document.addEventListener('keydown', this.keyDown.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
 
-    this.element.addEventListener('mouseenter', this.mouse.bind(this));
-    this.element.addEventListener('mousemove', this.mouse.bind(this));
-    this.element.addEventListener('mouseleave', this.mouse.bind(this));
-    this.element.addEventListener('click', this.click.bind(this));
-    this.element.addEventListener('contextmenu', this.rightClick.bind(this));
+    this.stage.on('mouseenter', this.mouse.bind(this));
+    this.stage.on('mousemove', this.mouse.bind(this));
+    this.stage.on('mouseleave', this.mouse.bind(this));
+    this.stage.on('pointertap', this.click.bind(this));
+    this.stage.on('rightclick', this.rightClick.bind(this));
+    this.appElement.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
   keyDown(event: KeyboardEvent): void {
@@ -68,21 +74,19 @@ export class Input {
     return null;
   }
 
-  mouse(event: Event): void {
-    const mouseEvent = event as MouseEvent;
-    this.highlightPos = this.getPos(mouseEvent.offsetX, mouseEvent.offsetY);
+  mouse(event: InteractionEvent): void {
+    this.highlightPos = this.getPos(event.data.global.x, event.data.global.y);
   }
 
-  click(event: Event): void {
-    const mouseEvent = event as MouseEvent;
-    const pos = this.getPos(mouseEvent.offsetX, mouseEvent.offsetY);
+  click(event: InteractionEvent): void {
+    const pos = this.getPos(event.data.global.x, event.data.global.y);
     if (pos) {
       this.goalPos = pos;
     }
   }
 
-  rightClick(event: Event): void {
-    event.preventDefault();
+  rightClick(event: InteractionEvent): void {
+    event.stopPropagation();
     if (this.goalPos) {
       this.goalPos = null;
     }

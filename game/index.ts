@@ -16,7 +16,7 @@ if (!appElement || !infoElement) {
 
 let world = new World(map, mobiles);
 let view = new View(world, appElement, infoElement);
-let input = new Input(appElement, world.mapW, world.mapH);
+let input = new Input(appElement, view.app.stage, world.mapW, world.mapH);
 
 view.setup((): void => {
   view.app.ticker.add(gameLoop);
