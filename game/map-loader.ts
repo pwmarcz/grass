@@ -2,26 +2,34 @@ import { TILES } from './tiles';
 import { Mobile } from './types';
 import { makeGrid } from './utils';
 
-declare const TileMaps: {
-  map: {
-    width: number;
-    height: number;
-    layers: {data: number[]}[];
-  };
-};
+function parseTmx(xml: string): { width: number; height: number; layers: number[][] } {
+  const parser = new DOMParser;
+  const doc = parser.parseFromString(xml, 'application/xml');
+  const root = doc.documentElement;
+  const width = parseInt(root.getAttribute('width') as string, 10);
+  const height = parseInt(root.getAttribute('height') as string, 10);
 
-export function loadMap(): { map: string[][]; mobiles: Mobile[] } {
+  const layers = Array.from(doc.querySelectorAll('layer > data')).map(layer => {
+    const text = layer.textContent as string;
+    return text.trim().split(',').map(s => parseInt(s, 10));
+  });
+
+  return { width, height, layers };
+}
+
+export function loadMap(xml: string): { map: string[][]; mobiles: Mobile[] } {
+  const { width, height, layers } = parseTmx(xml);
+  const mapData = layers[1];
+
   const tilesById: Record<number, string> = {};
   for (const tile in TILES) {
     tilesById[TILES[tile].id] = tile;
   }
 
-  const mapData = TileMaps['map'];
   const mobiles: Mobile[] = [];
 
-  const map = makeGrid(mapData.width, mapData.height, (x, y) => {
-    const id = mapData.layers[1].data[y * mapData.width + x] - 1;
-
+  const map = makeGrid(width, height, (x, y) => {
+    const id = mapData[y * width + x] - 1;
     let tile = id === -1 ? 'EMPTY' : tilesById[id];
 
     if (tile === 'HUMAN') {

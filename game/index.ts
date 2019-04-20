@@ -1,4 +1,6 @@
 import './lib/normalize.css';
+// @ts-ignore
+import mapFile from './map.auto.xml';
 
 import { loadMap } from './map-loader';
 import { View } from './view';
@@ -6,7 +8,6 @@ import { Input } from './input';
 import { World } from './world';
 import { Command, CommandType } from './types';
 
-const { map, mobiles } = loadMap();
 
 const appElement = document.getElementById('app');
 const infoElement = document.getElementById('info');
@@ -14,18 +15,22 @@ if (!appElement || !infoElement) {
   throw 'app not found';
 }
 
-const world = new World(map, mobiles);
-const view = new View(world, appElement, infoElement);
-const input = new Input(appElement, view.app.stage, world.mapW, world.mapH);
+fetch(mapFile).then(response => response.text()).then(xml => {
+  const { map, mobiles } = loadMap(xml);
+  const world = new World(map, mobiles);
+  const view = new View(world, appElement, infoElement);
+  const input = new Input(appElement, view.app.stage, world.mapW, world.mapH);
 
-view.setup((): void => {
-  view.app.ticker.add(gameLoop);
-  input.setup();
+  view.setup((): void => {
+    view.app.ticker.add(delta => gameLoop(world, input, view, delta));
+    input.setup();
+  });
 });
+
 
 let time = 0;
 
-function gameLoop(delta: number): void {
+function gameLoop(world: World, input: Input, view: View, delta: number): void {
   time += delta;
 
   while (world.time < Math.floor(time)) {

@@ -2,7 +2,7 @@
 all: files
 
 .PHONY: files
-files: tiles/tileset.png game/tileset.auto.png game/map.auto.js
+files: tiles/tileset.png game/tileset.auto.png game/map.auto.xml
 
 .PHONY: check
 check:
@@ -28,5 +28,5 @@ tiles/tileset.png: tiles/tileset.svg
 game/tileset.auto.png: tiles/tileset.png
 	cp $< $@
 
-game/map.auto.js: tiles/map.tmx
-	tiled --export-map js $< $@
+game/map.auto.xml: tiles/map.tmx
+	cp $< $@
