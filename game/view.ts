@@ -1,10 +1,7 @@
 import * as PIXI from 'pixi.js';
 import * as redom from 'redom';
-import { TILE_SIZE, TILE_TEXTURES, prepareTextures, makeTileElement } from './tiles';
+import { TILE_SIZE, TILE_TEXTURES, makeTileElement } from './tiles';
 import { World } from './world';
-
-// @ts-ignore
-import tilesetImage from './tileset.auto.png';
 import { ActionType, Mobile, Pos } from './types';
 import { makeGrid, makeEmptyGrid } from './utils';
 
@@ -62,17 +59,11 @@ export class View {
     this.frontLayer.addChild(this.goalGraphics);
   }
 
-  setup(onSuccess: Function): void {
+  setup(): void {
     this.element.appendChild(this.app.view);
-    PIXI.loader
-    .add(tilesetImage)
-    .load((): void => {
-      prepareTextures();
-      this.setupMapSprites();
-      this.setupMobileSprites();
-      onSuccess();
-    });
     this.app.renderer.render(this.app.stage);
+    this.setupMapSprites();
+    this.setupMobileSprites();
   }
 
   private setupMapSprites(): void {
