@@ -14,9 +14,9 @@ if (!appElement || !infoElement) {
   throw 'app not found';
 }
 
-let world = new World(map, mobiles);
-let view = new View(world, appElement, infoElement);
-let input = new Input(appElement, view.app.stage, world.mapW, world.mapH);
+const world = new World(map, mobiles);
+const view = new View(world, appElement, infoElement);
+const input = new Input(appElement, view.app.stage, world.mapW, world.mapH);
 
 view.setup((): void => {
   view.app.ticker.add(gameLoop);
