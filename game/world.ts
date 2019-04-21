@@ -30,7 +30,8 @@ export class World {
     this.time = 0;
 
     const player = this.mobileMap.player;
-    this.distanceMap = new DistanceMap(this.map, player.pos.x, player.pos.y);
+    this.distanceMap = new DistanceMap(this.canPath.bind(this), this.mapW, this.mapH);
+    this.distanceMap.calculate(player.pos.x, player.pos.y);
   }
 
   turn(commands: Record<string, Command | null>): void {
@@ -51,7 +52,7 @@ export class World {
         case ActionType.MOVE:
         mob.pos = mob.action.pos;
         if (mob.id === 'player') {
-          this.distanceMap = new DistanceMap(this.map, mob.pos.x, mob.pos.y);
+          this.distanceMap.calculate(mob.pos.x, mob.pos.y);
         }
         break;
       }
@@ -121,8 +122,20 @@ export class World {
     }
 
     const newTile = this.map[y][x];
-
     if (!TILES[newTile].canEnter) {
+      return false;
+    }
+
+    return true;
+  }
+
+  canPath(x: number, y: number): boolean {
+    if (!this.inBounds(x, y)) {
+      return false;
+    }
+
+    const newTile = this.map[y][x];
+    if(!(TILES[newTile].canEnter || newTile === 'DOOR_CLOSED')) {
       return false;
     }
 

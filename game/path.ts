@@ -1,6 +1,7 @@
-import { TILES } from "./tiles";
 import { Pos } from "./types";
 import { makeEmptyGrid } from "./utils";
+
+type MapFunc = (x: number, y: number) => boolean;
 
 const NEIGHBORS = [
   // Prefer straight lines...
@@ -29,17 +30,24 @@ function neighbors(x0: number, y0: number, w: number, h: number):
 
 export class DistanceMap {
   data: number[][];
+  mapFunc: MapFunc;
   w: number;
   h: number;
 
-  constructor(map: string[][], x0: number, y0: number) {
-    this.w = map[0].length;
-    this.h = map.length;
+  constructor(mapFunc: MapFunc, w: number, h: number) {
+    this.mapFunc = mapFunc;
+    this.w = w;
+    this.h = h;
     this.data = makeEmptyGrid(this.w, this.h, -1);
-    this.flood(map, x0, y0);
   }
 
-  flood(map: string[][], x0: number, y0: number): void {
+  calculate(x0: number, y0: number): void {
+    for (let y = 0; y < this.h; y++) {
+      for (let x = 0; x < this.w; x++) {
+        this.data[y][x] = -1;
+      }
+    }
+
     const queue = [[x0, y0, 0]];
     let next;
     while ((next = queue.pop())) {
@@ -49,8 +57,7 @@ export class DistanceMap {
         continue;
       }
 
-      const tile = map[y][x];
-      if (!(TILES[tile].canEnter || tile === 'DOOR_CLOSED')) {
+      if (!this.mapFunc(x, y)) {
         continue;
       }
 
