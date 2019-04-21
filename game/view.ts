@@ -175,24 +175,18 @@ export class View {
       return;
     }
 
-    let tile = null;
+    let terrainTile: string | null = null;
+    let mobTile: string | null = null;
     if (this.highlightPos) {
       const {x, y} = this.highlightPos;
-      tile = this.world.map[y][x];
-    }
-    this.sidebar.setState({terrainTile: tile});
-    /*this.infoElement.innerHTML = '';
-    if (!this.highlightPos)
-      return;
-
-    const {x, y} = this.highlightPos;
-    let tile = this.world.map[y][x];
-    const mob = this.world.findMob(x, y);
-    if (mob) {
-      tile = mob.tile;
+      terrainTile = this.world.map[y][x];
+      const mob = this.world.findMob(x, y);
+      if (mob) {
+        mobTile = mob.tile;
+      }
     }
 
-    this.infoElement.innerHTML = '';*/
+    this.sidebar.setState({ terrainTile, mobTile });
   }
 
   calculatePath(): void {
@@ -223,7 +217,7 @@ export class View {
 
 interface SidebarState {
   terrainTile: string | null;
-  mobTile: string;
+  mobTile: string | null;
 }
 
 class Sidebar extends Component<{}, SidebarState> {
@@ -232,6 +226,10 @@ class Sidebar extends Component<{}, SidebarState> {
       terrainTile && h('div', null,
         h(TileElement, {tile: terrainTile}),
         h('span', {class: 'desc'}, terrainTile.toLowerCase()),
+      ),
+      mobTile && h('div', null,
+        h(TileElement, {tile: mobTile}),
+        h('span', {class: 'desc'}, mobTile.toLowerCase()),
       )
     );
   }
