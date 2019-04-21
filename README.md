@@ -15,6 +15,7 @@ I'm using the following components:
 
 * [TypeScript](https://www.typescriptlang.org/) as language
 * [Yarn](https://yarnpkg.com/en/) for JS packages
+* [Parcel](https://parceljs.org/) for bundling the application
 * [PixiJS](http://www.pixijs.com/) for game rendering
 * [RE:DOM](https://redom.js.org/) for minor HTML generation
 * [ESLint](https://eslint.org/) for linting
