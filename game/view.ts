@@ -36,8 +36,8 @@ export class View {
     this.infoElement = infoElement;
 
     this.app = new PIXI.Application({
-      width: this.world.mapW * TILE_SIZE,
-      height: this.world.mapH * TILE_SIZE,
+      width: this.element.clientWidth,
+      height: this.element.clientHeight,
     });
     this.app.stage.addChild(this.backLayer);
     this.app.stage.addChild(this.mapLayer);
