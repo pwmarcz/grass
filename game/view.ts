@@ -59,9 +59,6 @@ export class View {
     this.goalGraphics.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
     this.goalGraphics.visible = false;
     this.frontLayer.addChild(this.goalGraphics);
-
-    renderWithRef<Sidebar>(h(Sidebar, null), infoElement, infoElement)
-    .then(sidebar => this.sidebar = sidebar);
   }
 
   setup(): void {
@@ -69,6 +66,8 @@ export class View {
     this.app.renderer.render(this.app.stage);
     this.setupMapSprites();
     this.setupMobSprites();
+    renderWithRef<Sidebar>(h(Sidebar, null), this.infoElement, this.infoElement)
+    .then(sidebar => this.sidebar = sidebar);
   }
 
   private setupMapSprites(): void {
