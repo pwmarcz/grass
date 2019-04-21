@@ -14,30 +14,53 @@
     }
 
     .container {
-      width: 960px;
+      width: 1100px;
       margin: 0 auto;
     }
 
+    #game {
+      border: solid 1px #333;
+      display: flex;
+      flex-direction: row;
+    }
+
+    #app {
+      width: 800px;
+      height: 640px;
+      border-right: solid 1px #333;
+    }
+
     #info {
-      height: 70px;
+      height: 100%;
+      flex-grow: 1;
+      padding: 16px;
+    }
+
+    #info section > h2 {
+      margin: 0 0 1em 0;
+      font-size: 1em;
+      color: #555;
+    }
+
+    #info section > div {
+      margin-top: 8px;
     }
 
     * {
       color: #eee;
     }
 
-    #info > div > * { vertical-align: middle; }
+    .tile-row > * { vertical-align: middle; }
 
     .tile {
       display: inline-block;
       vertical-align: middle;
-      border: solid 1px #333;
       width: 32px;
       height: 32px;
       background-image: url("tileset.auto.png");
     }
 
-    #info .tile {
+    .tile-row > .tile {
       margin-right: 10px;
     }
   </style>
@@ -46,8 +69,10 @@
 <body>
   <div class="container">
     <h1>Grass</h1>
-    <div id="info">Loading...</div>
-    <div id="app"></div>
+    <div id="game">
+      <div id="app"></div>
+      <div id="info">Loading...</div>
+    </div>
     <p>
       Controls:
       <ul>

@@ -3,7 +3,7 @@ import { TILE_SIZE, TileGlyph, TileElement } from './tiles';
 import { World } from './world';
 import { ActionType, Mob, Pos } from './types';
 import { makeGrid, makeEmptyGrid, renderWithRef } from './utils';
-import { Component, ComponentChild, h } from 'preact';
+import { Component, ComponentChild, h, VNode } from 'preact';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -222,14 +222,23 @@ interface SidebarState {
 class Sidebar extends Component<{}, SidebarState> {
   render(props: {}, { terrainTile, mobTile }: SidebarState): ComponentChild {
     return h('div', {id: 'info'},
-      terrainTile && h('div', null,
-        h(TileElement, {tile: terrainTile}),
-        h('span', {class: 'desc'}, terrainTile.toLowerCase()),
+      h('section', null,
+        h('h2', null, 'Highlighted:'),
+        terrainTile && h(TileRow, {tile: terrainTile, desc: terrainTile.toLowerCase()}),
+        mobTile && h(TileRow, {tile: mobTile, desc: mobTile.toLowerCase()}),
       ),
-      mobTile && h('div', null,
-        h(TileElement, {tile: mobTile}),
-        h('span', {class: 'desc'}, mobTile.toLowerCase()),
-      )
     );
   }
+}
+
+interface TileRowProps {
+  tile: string;
+  desc: string;
+}
+
+function TileRow({tile, desc}: TileRowProps): VNode {
+  return h('div', {class: 'tile-row'},
+    h(TileElement, {tile}),
+    h('span', {class: 'desc'}, desc),
+  );
 }
