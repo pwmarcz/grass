@@ -26,6 +26,7 @@ export class View {
   highlightPos: Pos | null = null;
   goalGraphics: PIXI.Graphics;
   goalPos: Pos | null = null;
+  path: Pos[] | null = null;
   pathGraphics: PIXI.Graphics;
 
   constructor(world: World, element: Element, infoElement: Element) {
@@ -119,18 +120,19 @@ export class View {
   }
 
   redraw(dirty: boolean, time: number): void {
+    if (dirty) {
+      this.calculatePath();
+      this.redrawHighlight();
+      this.redrawInfo();
+      this.redrawGoal();
+    }
+    this.redrawPath();
+
     const alphaMap = makeEmptyGrid(this.world.mapW, this.world.mapH, 1);
     for (const mob of this.world.mobs) {
       this.redrawMob(mob, time, alphaMap);
     }
     this.redrawMap(alphaMap);
-
-    if (dirty) {
-      this.redrawHighlight();
-      this.redrawInfo();
-      this.redrawPath();
-      this.redrawGoal();
-    }
   }
 
   redrawMap(alphaMap: number[][]): void {
@@ -183,22 +185,28 @@ export class View {
     ));
   }
 
+  calculatePath(): void {
+    if (this.goalPos) {
+      this.path = this.world.distanceMap.findPathToAdjacent(this.goalPos.x, this.goalPos.y);
+    } else {
+      this.path = null;
+    }
+  }
+
   redrawPath(): void {
     this.pathGraphics.clear();
-    if (!this.goalPos)
+    if (!this.path)
       return;
 
-    const {x, y} = this.goalPos;
-    const path = this.world.distanceMap.findPathToAdjacent(x, y);
-    if (!path) {
-      return;
-    }
-
-    const {x: xStart, y: yStart} = path[0];
     this.pathGraphics.lineStyle(5, 0xFFFFFF, 0.3);
-    this.pathGraphics.moveTo(TILE_SIZE * (xStart + 0.5), TILE_SIZE * (yStart + 0.5));
-    for (const pos of path) {
-      this.pathGraphics.lineTo(TILE_SIZE * (pos.x + 0.5), TILE_SIZE * (pos.y + 0.5));
+    const {x: x0, y: y0} = this.mobGlyphs.player.position;
+    this.pathGraphics.moveTo(
+      x0 + 0.5 * TILE_SIZE,
+      y0 + 0.5 * TILE_SIZE
+    );
+    for (let i = 1; i < this.path.length; i++) {
+      const {x, y} = this.path[i];
+      this.pathGraphics.lineTo(TILE_SIZE * (x + 0.5), TILE_SIZE * (y + 0.5));
     }
   }
 }
