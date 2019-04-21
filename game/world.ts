@@ -32,24 +32,27 @@ export class World {
 
   turn(commands: Record<string, Command | null>): void {
     this.time++;
+    let dirty = false;
 
     for (const mob of this.mobs) {
-      this.turnMob(mob, commands);
+      if (this.turnMob(mob, commands)) {
+        dirty = true;
+      }
+    }
+    if (dirty) {
+      this.distanceMap.calculate(this.player.pos.x, this.player.pos.y);
     }
   }
 
-  turnMob(mob: Mob, commands: Record<string, Command | null>): void {
+  turnMob(mob: Mob, commands: Record<string, Command | null>): boolean {
     if (mob.action) {
       if (this.time < mob.action.timeEnd) {
-        return;
+        return false;
       }
 
       switch (mob.action.type) {
         case ActionType.MOVE:
         mob.pos = mob.action.pos;
-        if (mob.id === 'player') {
-          this.distanceMap.calculate(mob.pos.x, mob.pos.y);
-        }
         break;
       }
 
@@ -71,6 +74,8 @@ export class World {
           break;
       }
     }
+
+    return true;
   }
 
   moveMob(mob: Mob, x: number, y: number): void {
