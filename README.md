@@ -6,6 +6,7 @@ See it at https://pwmarcz.pl/grass.
 
 * Install Inkscape
 * Run `make` to generate the image files
+* Install Yarn and run `yarn` to install packages
 * Run `make serve` to run dev server on `localhost:1234`
 
 ## Overview
