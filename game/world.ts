@@ -12,7 +12,7 @@ const ATTACK_TIME = 45;
 export class World {
   map: string[][];
   mobs: Mob[];
-  mobMap: Record<string, Mob>;
+  player: Mob;
   mapW: number;
   mapH: number;
   time: number;
@@ -21,17 +21,13 @@ export class World {
   constructor(map: string[][], mobs: Mob[]) {
     this.map = map;
     this.mobs = mobs;
-    this.mobMap = {};
-    for (const mob of this.mobs) {
-      this.mobMap[mob.id] = mob;
-    }
+    this.player = mobs.find(mob => mob.id === 'player') as Mob;
     this.mapH = this.map.length;
     this.mapW = this.map[0].length;
     this.time = 0;
 
-    const player = this.mobMap.player;
     this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this), this.mapW, this.mapH);
-    this.distanceMap.calculate(player.pos.x, player.pos.y);
+    this.distanceMap.calculate(this.player.pos.x, this.player.pos.y);
   }
 
   turn(commands: Record<string, Command | null>): void {

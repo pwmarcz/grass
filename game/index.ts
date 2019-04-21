@@ -39,10 +39,9 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
 
   while (world.time < Math.floor(time)) {
     const commands: Record<string, Command | null> = {};
-    const player = world.mobMap.player;
     let triedGoal = false;
 
-    if (!player.action) {
+    if (!world.player.action) {
       const playerCommand = input.getCommand();
       if (playerCommand) {
         input.goalPos = null;
@@ -51,8 +50,8 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
         triedGoal = true;
         const path = world.distanceMap.findPathToAdjacent(input.goalPos.x, input.goalPos.y);
         if (path && path.length > 1) {
-          const dx = path[1].x - player.pos.x;
-          const dy = path[1].y - player.pos.y;
+          const dx = path[1].x - world.player.pos.x;
+          const dy = path[1].y - world.player.pos.y;
           commands.player = {
             type: CommandType.MOVE,
             dx,
@@ -70,7 +69,7 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
     }
     world.turn(commands);
 
-    if (triedGoal && !player.action) {
+    if (triedGoal && !world.player.action) {
       input.goalPos = null;
     }
   }
