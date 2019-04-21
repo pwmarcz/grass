@@ -1,5 +1,4 @@
 import './lib/normalize.css';
-import deepEqual from 'fast-deep-equal';
 
 // @ts-ignore
 import mapFile from './map.auto.xml';
@@ -10,6 +9,7 @@ import { Input } from './input';
 import { World } from './world';
 import { Command, CommandType } from './types';
 import { loadTextures } from './tiles';
+import { posEqual } from './utils';
 
 
 const appElement = document.getElementById('app');
@@ -80,8 +80,8 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
     }
   }
 
-  if (!deepEqual(view.goalPos, input.goalPos) ||
-    !deepEqual(view.highlightPos, input.highlightPos)) {
+  if (!posEqual(view.goalPos, input.goalPos) ||
+    !posEqual(view.highlightPos, input.highlightPos)) {
     view.goalPos = input.goalPos;
     view.highlightPos = input.highlightPos;
     dirty = true;

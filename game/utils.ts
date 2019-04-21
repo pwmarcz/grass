@@ -1,3 +1,5 @@
+import { Pos } from "./types";
+
 export function makeEmptyGrid<T>(
   w: number, h: number, val: T
 ): T[][] {
@@ -23,4 +25,14 @@ export function makeGrid<T>(
     }
   }
   return result;
+}
+
+export function posEqual(a: Pos | null, b: Pos | null): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a === null || b === null) {
+    return false;
+  }
+  return a.x === b.x && a.y === b.y;
 }

@@ -2,7 +2,6 @@
     "compilerOptions": {
         "strict": true,
         "target": "es5",
-        "lib": ["dom", "es6", "es2015.promise"],
-        "esModuleInterop": true
+        "lib": ["dom", "es6", "es2015.promise"]
     }
 }
