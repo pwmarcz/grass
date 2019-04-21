@@ -1,4 +1,5 @@
 import { Pos } from "./types";
+import { VNode, render } from "preact";
 
 export function makeEmptyGrid<T>(
   w: number, h: number, val: T
@@ -35,4 +36,16 @@ export function posEqual(a: Pos | null, b: Pos | null): boolean {
     return false;
   }
   return a.x === b.x && a.y === b.y;
+}
+
+export function renderWithRef<P>(
+  node: VNode,
+  element: Element,
+  mergeWith?: Element | undefined
+): Promise<P> {
+  return new Promise((resolve, reject) => {
+    node.attributes = node.attributes || {};
+    node.attributes.ref = resolve;
+    render(node, element, mergeWith);
+  });
 }

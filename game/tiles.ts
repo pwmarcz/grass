@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import * as redom from 'redom';
+import { h } from 'preact';
 
 // @ts-ignore
 import tilesetImage from './tileset.auto.png';
@@ -90,11 +90,12 @@ export class TileGlyph extends PIXI.Container {
   }
 }
 
-export function makeTileElement(tile: string): Element {
+export function TileElement({tile}: { tile: string }): preact.VNode {
   const id = TILES[tile].id;
   const x = (id % 10) * TILE_SIZE, y = Math.floor(id / 10) * TILE_SIZE;
 
-  return redom.el('span.tile', {
+  return h('span', {
+    className: 'tile',
     style: {
       backgroundPositionX: -x + 'px',
       backgroundPositionY: -y + 'px',

@@ -17,7 +17,7 @@ I'm using the following components:
 * [Yarn](https://yarnpkg.com/en/) for JS packages
 * [Parcel](https://parceljs.org/) for bundling the application
 * [PixiJS](http://www.pixijs.com/) for game rendering
-* [RE:DOM](https://redom.js.org/) for minor HTML generation
+* [Preact](https://preactjs.com/) for the HTML parts
 * [ESLint](https://eslint.org/) for linting
 
 Content prepared using:

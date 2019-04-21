@@ -1,9 +1,9 @@
 import * as PIXI from 'pixi.js';
-import * as redom from 'redom';
-import { TILE_SIZE, makeTileElement, TileGlyph } from './tiles';
+import { TILE_SIZE, TileGlyph, TileElement } from './tiles';
 import { World } from './world';
 import { ActionType, Mob, Pos } from './types';
-import { makeGrid, makeEmptyGrid } from './utils';
+import { makeGrid, makeEmptyGrid, renderWithRef } from './utils';
+import { Component, ComponentChild, h } from 'preact';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -16,6 +16,7 @@ export class View {
   world: World;
   element: Element;
   infoElement: Element;
+  sidebar: Sidebar | null = null;
   app: PIXI.Application;
   backLayer = new PIXI.Container();
   mapLayer = new PIXI.Container();
@@ -58,6 +59,9 @@ export class View {
     this.goalGraphics.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
     this.goalGraphics.visible = false;
     this.frontLayer.addChild(this.goalGraphics);
+
+    renderWithRef<Sidebar>(h(Sidebar, null), infoElement, infoElement)
+    .then(sidebar => this.sidebar = sidebar);
   }
 
   setup(): void {
@@ -167,7 +171,17 @@ export class View {
   }
 
   redrawInfo(): void {
-    this.infoElement.innerHTML = '';
+    if (!this.sidebar) {
+      return;
+    }
+
+    let tile = null;
+    if (this.highlightPos) {
+      const {x, y} = this.highlightPos;
+      tile = this.world.map[y][x];
+    }
+    this.sidebar.setState({terrainTile: tile});
+    /*this.infoElement.innerHTML = '';
     if (!this.highlightPos)
       return;
 
@@ -178,11 +192,7 @@ export class View {
       tile = mob.tile;
     }
 
-    this.infoElement.innerHTML = '';
-    redom.mount(this.infoElement, redom.el('div',
-      makeTileElement(tile),
-      redom.el('span.desc', ` ${tile.toLowerCase()}`),
-    ));
+    this.infoElement.innerHTML = '';*/
   }
 
   calculatePath(): void {
@@ -208,5 +218,21 @@ export class View {
       const {x, y} = this.path[i];
       this.pathGraphics.lineTo(TILE_SIZE * (x + 0.5), TILE_SIZE * (y + 0.5));
     }
+  }
+}
+
+interface SidebarState {
+  terrainTile: string | null;
+  mobTile: string;
+}
+
+class Sidebar extends Component<{}, SidebarState> {
+  render(props: {}, { terrainTile, mobTile }: SidebarState): ComponentChild {
+    return h('div', {id: 'info'},
+      terrainTile && h('div', null,
+        h(TileElement, {tile: terrainTile}),
+        h('span', {class: 'desc'}, terrainTile.toLowerCase()),
+      )
+    );
   }
 }
