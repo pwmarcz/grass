@@ -6,11 +6,11 @@ function parseTmx(xml: string): { width: number; height: number; layers: number[
   const parser = new DOMParser;
   const doc = parser.parseFromString(xml, 'application/xml');
   const root = doc.documentElement;
-  const width = parseInt(root.getAttribute('width') as string, 10);
-  const height = parseInt(root.getAttribute('height') as string, 10);
+  const width = parseInt(root.getAttribute('width')!, 10);
+  const height = parseInt(root.getAttribute('height')!, 10);
 
   const layers = Array.from(doc.querySelectorAll('layer > data')).map(layer => {
-    const text = layer.textContent as string;
+    const text = layer.textContent!;
     return text.trim().split(',').map(s => parseInt(s, 10));
   });
 

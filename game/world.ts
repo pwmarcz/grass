@@ -21,7 +21,7 @@ export class World {
   constructor(map: string[][], mobs: Mob[]) {
     this.map = map;
     this.mobs = mobs;
-    this.player = mobs.find(mob => mob.id === 'player') as Mob;
+    this.player = mobs.find(mob => mob.id === 'player')!;
     this.mapH = this.map.length;
     this.mapW = this.map[0].length;
     this.time = 0;
