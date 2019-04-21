@@ -7,8 +7,9 @@ import tilesetImage from './tileset.auto.png';
 export class TileMeta {
   id: number = 0;
   canEnter: boolean = true;
+  char: string | null = null;
 
-  constructor(options: { id: number; canEnter?: boolean; canPath?: boolean}) {
+  constructor(options: { id: number; canEnter?: boolean; canPath?: boolean }) {
     Object.assign(this, options);
   }
 }
@@ -43,6 +44,8 @@ export const TILE_SIZE = 32;
 
 export const TILE_TEXTURES: Record<string, PIXI.Texture> = {};
 
+export const TILE_TEXT_STYLES: Record<string, PIXI.TextStyle> = {};
+
 export function loadTextures(): Promise<void> {
   return new Promise((resolve, reject) => {
     PIXI.loader
@@ -59,6 +62,32 @@ export function loadTextures(): Promise<void> {
       resolve();
     });
   });
+}
+
+export class TileGlyph extends PIXI.Container {
+  tile: string = 'EMPTY';
+
+  constructor(tile: string) {
+    super();
+    this.update(tile);
+  }
+
+  updateSprite(tile: string): void {
+    const sprite = new PIXI.Sprite(TILE_TEXTURES[tile]);
+    this.removeChildren();
+    this.addChild(sprite);
+  }
+
+  update(tile: string): void {
+    if (this.tile !== tile) {
+      this.tile = tile;
+      if (tile === 'EMPTY') {
+        this.removeChildren();
+      } else {
+        this.updateSprite(tile);
+      }
+    }
+  }
 }
 
 export function makeTileElement(tile: string): Element {

@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import * as redom from 'redom';
-import { TILE_SIZE, TILE_TEXTURES, makeTileElement } from './tiles';
+import { TILE_SIZE, makeTileElement, TileGlyph } from './tiles';
 import { World } from './world';
 import { ActionType, Mobile, Pos } from './types';
 import { makeGrid, makeEmptyGrid } from './utils';
@@ -20,8 +20,8 @@ export class View {
   backLayer = new PIXI.Container();
   mapLayer = new PIXI.Container();
   frontLayer = new PIXI.Container();
-  mapSprites: PIXI.Sprite[][] = [];
-  mobileSprites: Record<string, PIXI.Sprite> = {};
+  mapGlyphs: TileGlyph[][] = [];
+  mobileGlyphs: Record<string, TileGlyph> = {};
   highlightGraphics: PIXI.Graphics;
   highlightPos: Pos | null = null;
   goalGraphics: PIXI.Graphics;
@@ -67,25 +67,25 @@ export class View {
   }
 
   private setupMapSprites(): void {
-    this.mapSprites = makeGrid(this.world.mapW, this.world.mapH, (x, y) => {
-      const sprite = new PIXI.Sprite();
-      sprite.x = x * TILE_SIZE;
-      sprite.y = y * TILE_SIZE;
-      this.mapLayer.addChild(sprite);
-      return sprite;
+    this.mapGlyphs = makeGrid(this.world.mapW, this.world.mapH, (x, y) => {
+      const glyph = new TileGlyph('EMPTY');
+      glyph.x = x * TILE_SIZE;
+      glyph.y = y * TILE_SIZE;
+      this.mapLayer.addChild(glyph);
+      return glyph;
     });
   }
 
   private setupMobileSprites(): void {
     for (const mob of this.world.mobiles) {
-      const sprite = new PIXI.Sprite(TILE_TEXTURES[mob.tile]);
-      this.mobileSprites[mob.id] = sprite;
-      this.mapLayer.addChild(sprite);
+      const glyph = new TileGlyph(mob.tile);
+      this.mobileGlyphs[mob.id] = glyph;
+      this.mapLayer.addChild(glyph);
     }
   }
 
   private redrawMobile(mob: Mobile, time: number, alphaMap: number[][]): void {
-    const sprite = this.mobileSprites[mob.id];
+    const glyph = this.mobileGlyphs[mob.id];
 
     let actionTime = 0;
     if (mob.action) {
@@ -93,8 +93,8 @@ export class View {
     }
 
     if (mob.action && mob.action.type === ActionType.MOVE) {
-      sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, actionTime);
-      sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, actionTime);
+      glyph.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, actionTime);
+      glyph.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, actionTime);
 
       alphaMap[mob.pos.y][mob.pos.x] = actionTime;
       alphaMap[mob.action.pos.y][mob.action.pos.x] = 1 - actionTime;
@@ -106,13 +106,13 @@ export class View {
         distance = (1 - (actionTime - ATTACK_START_TIME) / (1 - ATTACK_START_TIME)) * ATTACK_DISTANCE;
       }
 
-      sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, distance);
-      sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, distance);
+      glyph.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, distance);
+      glyph.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, distance);
 
       alphaMap[mob.pos.y][mob.pos.x] = 0;
     } else {
-      sprite.x = mob.pos.x * TILE_SIZE;
-      sprite.y = mob.pos.y * TILE_SIZE;
+      glyph.x = mob.pos.x * TILE_SIZE;
+      glyph.y = mob.pos.y * TILE_SIZE;
 
       alphaMap[mob.pos.y][mob.pos.x] = 0;
     }
@@ -133,10 +133,10 @@ export class View {
   redrawMap(alphaMap: number[][]): void {
     for (let y = 0; y < this.world.mapH; y++) {
       for (let x = 0; x < this.world.mapW; x++) {
-        const sprite = this.mapSprites[y][x];
-        sprite.alpha = alphaMap[y][x];
+        const glyph = this.mapGlyphs[y][x];
+        glyph.alpha = alphaMap[y][x];
         const tile = this.world.map[y][x];
-        sprite.texture = TILE_TEXTURES[tile];
+        glyph.update(tile);
       }
     }
   }
