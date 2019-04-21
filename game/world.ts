@@ -30,7 +30,7 @@ export class World {
     this.time = 0;
 
     const player = this.mobileMap.player;
-    this.distanceMap = new DistanceMap(this.canPath.bind(this), this.mapW, this.mapH);
+    this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this), this.mapW, this.mapH);
     this.distanceMap.calculate(player.pos.x, player.pos.y);
   }
 
@@ -129,13 +129,18 @@ export class World {
     return true;
   }
 
-  canPath(x: number, y: number): boolean {
+  canPlayerPath(x: number, y: number): boolean {
     if (!this.inBounds(x, y)) {
       return false;
     }
 
+    const mobile = this.findMobile(x, y);
+    if (mobile && mobile.id !== 'player') {
+      return false;
+    }
+
     const newTile = this.map[y][x];
-    if(!(TILES[newTile].canEnter || newTile === 'DOOR_CLOSED')) {
+    if (!(TILES[newTile].canEnter || newTile === 'DOOR_CLOSED')) {
       return false;
     }
 
