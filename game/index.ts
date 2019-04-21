@@ -6,7 +6,7 @@ import { loadMap } from './map-loader';
 import { View } from './view';
 import { Input } from './input';
 import { World } from './world';
-import { Command, CommandType, Mobile } from './types';
+import { Command, CommandType } from './types';
 import { loadTextures } from './tiles';
 
 

@@ -1,6 +1,6 @@
 import { TILES } from './tiles';
 import { Mobile } from './types';
-import { makeGrid } from './utils';
+import { makeEmptyGrid } from './utils';
 
 function parseTmx(xml: string): { width: number; height: number; layers: number[][] } {
   const parser = new DOMParser;
@@ -17,44 +17,50 @@ function parseTmx(xml: string): { width: number; height: number; layers: number[
   return { width, height, layers };
 }
 
+const TILES_BY_ID: Record<number, string> = {};
+
+for (const tile in TILES) {
+  TILES_BY_ID[TILES[tile].id] = tile;
+}
+
+function getTile(x: number, y: number, width: number, layer: number[]): string | null {
+  const id = layer[y * width + x];
+  return id === 0 ? null : TILES_BY_ID[id - 1];
+}
+
 export function loadMap(xml: string): { map: string[][]; mobiles: Mobile[] } {
   const { width, height, layers } = parseTmx(xml);
-  const mapData = layers[1];
-
-  const tilesById: Record<number, string> = {};
-  for (const tile in TILES) {
-    tilesById[TILES[tile].id] = tile;
-  }
+  const terrainLayer = layers[1];
+  const itemLayer = layers[2];
+  const mobileLayer = layers[3];
 
   const mobiles: Mobile[] = [];
   let mobCounter = 0;
 
-  const map = makeGrid(width, height, (x, y) => {
-    const id = mapData[y * width + x] - 1;
-    let tile = id === -1 ? 'EMPTY' : tilesById[id];
+  const map: string[][] = makeEmptyGrid(width, height, '');
 
-    if (tile === 'HUMAN') {
-      mobiles.push({
-        id: 'player',
-        pos: {x, y},
-        tile: 'HUMAN',
-        action: null,
-      });
-      tile = 'FLOOR';
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const terrainTile = getTile(x, y, width, terrainLayer);
+      map[y][x] = terrainTile || 'EMPTY';
+
+      const mobTile = getTile(x, y, width, mobileLayer);
+      if (mobTile) {
+        const mobId = mobTile === 'HUMAN' ? 'player' : 'mob' + (mobCounter++);
+        mobiles.push({
+          id: mobId,
+          pos: {x, y},
+          tile: mobTile,
+          action: null,
+        });
+      }
+
+      const itemTile = getTile(x, y, width, itemLayer);
+      if (itemTile) {
+          map[y][x] = itemTile;
+      }
     }
-
-    if (tile === 'GOBLIN') {
-      mobiles.push({
-        id: 'mob' + (mobCounter++),
-        pos: {x, y},
-        tile: 'GOBLIN',
-        action: null,
-      });
-      tile = 'FLOOR';
-    }
-
-    return tile;
-  });
+  }
 
   return { map, mobiles };
 }
