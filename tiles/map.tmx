@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="right-down" width="25" height="20" tilewidth="32" tileheight="32" nextobjectid="1">
+<map version="1.2" tiledversion="1.2.3" orientation="orthogonal" renderorder="right-down" width="25" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="3" nextobjectid="1">
  <tileset firstgid="1" name="Tileset" tilewidth="32" tileheight="32" tilecount="100" columns="10">
   <image source="tileset.png" width="320" height="320"/>
  </tileset>
- <layer name="Black" width="25" height="20">
+ <layer id="1" name="Black" width="25" height="20">
   <data encoding="csv">
 21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,
 21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,
@@ -27,12 +27,12 @@
 21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21
 </data>
  </layer>
- <layer name="Map" width="25" height="20">
+ <layer id="2" name="Map" width="25" height="20">
   <data encoding="csv">
 0,0,0,0,0,0,31,31,31,31,31,31,31,31,31,31,31,31,0,0,0,0,0,0,0,
 0,0,0,31,31,31,31,24,24,24,24,32,24,24,24,24,1,31,0,22,22,22,22,0,0,
 0,0,0,31,24,24,24,24,31,31,31,31,24,24,24,24,24,31,22,22,23,23,22,22,0,
-0,0,22,22,32,22,22,22,22,0,0,31,24,41,24,24,24,31,23,23,23,23,23,22,22,
+0,0,22,22,32,22,22,22,22,0,0,31,24,41,24,2,24,31,23,23,23,23,23,22,22,
 0,0,22,24,24,24,24,24,22,0,0,31,24,24,24,24,24,31,23,23,13,13,24,24,22,
 0,0,22,24,42,24,24,24,22,0,12,31,31,33,31,31,31,31,23,23,13,13,24,24,22,
 0,0,22,24,24,24,24,22,22,12,13,12,12,23,12,12,23,23,23,12,12,13,24,24,22,

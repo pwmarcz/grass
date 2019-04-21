@@ -6,7 +6,7 @@ import { loadMap } from './map-loader';
 import { View } from './view';
 import { Input } from './input';
 import { World } from './world';
-import { Command, CommandType } from './types';
+import { Command, CommandType, Mobile } from './types';
 import { loadTextures } from './tiles';
 
 
@@ -61,8 +61,12 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
         }
       }
     }
-    if (!world.mobileMap.goblin.action) {
-      commands.goblin = getAiCommand('goblin');
+    for (const mob of world.mobiles) {
+      if (!mob.action) {
+        if (mob.id !== 'player') {
+          commands[mob.id] = getAiCommand();
+        }
+      }
     }
     world.turn(commands);
 
@@ -78,7 +82,7 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
 }
 
 
-function getAiCommand(m: string): Command | null {
+function getAiCommand(): Command | null {
   if (Math.random() < 0.8) {
     return { type: CommandType.REST, dt: Math.random() * 10 };
   }

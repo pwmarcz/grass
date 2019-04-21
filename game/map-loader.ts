@@ -27,6 +27,7 @@ export function loadMap(xml: string): { map: string[][]; mobiles: Mobile[] } {
   }
 
   const mobiles: Mobile[] = [];
+  let mobCounter = 0;
 
   const map = makeGrid(width, height, (x, y) => {
     const id = mapData[y * width + x] - 1;
@@ -44,7 +45,7 @@ export function loadMap(xml: string): { map: string[][]; mobiles: Mobile[] } {
 
     if (tile === 'GOBLIN') {
       mobiles.push({
-        id: 'goblin',
+        id: 'mob' + (mobCounter++),
         pos: {x, y},
         tile: 'GOBLIN',
         action: null,
