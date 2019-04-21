@@ -1,6 +1,6 @@
 import { TILES } from './tiles';
 import { DistanceMap } from './path';
-import { Command, Mobile, CommandType, ActionType } from './types';
+import { Command, Mob, CommandType, ActionType } from './types';
 
 const MOVEMENT_TIME: Record<string, number> = {
   'HUMAN': 10,
@@ -11,25 +11,25 @@ const ATTACK_TIME = 45;
 
 export class World {
   map: string[][];
-  mobiles: Mobile[];
-  mobileMap: Record<string, Mobile>;
+  mobs: Mob[];
+  mobMap: Record<string, Mob>;
   mapW: number;
   mapH: number;
   time: number;
   distanceMap: DistanceMap;
 
-  constructor(map: string[][], mobiles: Mobile[]) {
+  constructor(map: string[][], mobs: Mob[]) {
     this.map = map;
-    this.mobiles = mobiles;
-    this.mobileMap = {};
-    for (const mob of this.mobiles) {
-      this.mobileMap[mob.id] = mob;
+    this.mobs = mobs;
+    this.mobMap = {};
+    for (const mob of this.mobs) {
+      this.mobMap[mob.id] = mob;
     }
     this.mapH = this.map.length;
     this.mapW = this.map[0].length;
     this.time = 0;
 
-    const player = this.mobileMap.player;
+    const player = this.mobMap.player;
     this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this), this.mapW, this.mapH);
     this.distanceMap.calculate(player.pos.x, player.pos.y);
   }
@@ -37,12 +37,12 @@ export class World {
   turn(commands: Record<string, Command | null>): void {
     this.time++;
 
-    for (const mob of this.mobiles) {
-      this.turnMobile(mob, commands);
+    for (const mob of this.mobs) {
+      this.turnMob(mob, commands);
     }
   }
 
-  turnMobile(mob: Mobile, commands: Record<string, Command | null>): void {
+  turnMob(mob: Mob, commands: Record<string, Command | null>): void {
     if (mob.action) {
       if (this.time < mob.action.timeEnd) {
         return;
@@ -64,7 +64,7 @@ export class World {
     if (command) {
       switch (command.type) {
         case CommandType.MOVE:
-          this.moveMobile(mob, mob.pos.x + command.dx, mob.pos.y + command.dy);
+          this.moveMob(mob, mob.pos.x + command.dx, mob.pos.y + command.dy);
           break;
         case CommandType.REST:
           mob.action = {
@@ -77,7 +77,7 @@ export class World {
     }
   }
 
-  moveMobile(mob: Mobile, x: number, y: number): void {
+  moveMob(mob: Mob, x: number, y: number): void {
     if (!this.inBounds(x, y)) {
       return;
     }
@@ -94,7 +94,7 @@ export class World {
       return;
     }
 
-    if (this.findMobile(x, y)) {
+    if (this.findMob(x, y)) {
       mob.action = {
         type: ActionType.ATTACK,
         pos: {x, y},
@@ -134,8 +134,8 @@ export class World {
       return false;
     }
 
-    const mobile = this.findMobile(x, y);
-    if (mobile && mobile.id !== 'player') {
+    const mob = this.findMob(x, y);
+    if (mob && mob.id !== 'player') {
       return false;
     }
 
@@ -147,8 +147,8 @@ export class World {
     return true;
   }
 
-  findMobile(x: number, y: number): Mobile | null {
-    for (const mob of this.mobiles) {
+  findMob(x: number, y: number): Mob | null {
+    for (const mob of this.mobs) {
       if (mob.pos.x === x && mob.pos.y === y) {
         return mob;
       }

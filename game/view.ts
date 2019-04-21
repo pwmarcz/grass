@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import * as redom from 'redom';
 import { TILE_SIZE, makeTileElement, TileGlyph } from './tiles';
 import { World } from './world';
-import { ActionType, Mobile, Pos } from './types';
+import { ActionType, Mob, Pos } from './types';
 import { makeGrid, makeEmptyGrid } from './utils';
 
 const ATTACK_DISTANCE = 0.3;
@@ -21,7 +21,7 @@ export class View {
   mapLayer = new PIXI.Container();
   frontLayer = new PIXI.Container();
   mapGlyphs: TileGlyph[][] = [];
-  mobileGlyphs: Record<string, TileGlyph> = {};
+  mobGlyphs: Record<string, TileGlyph> = {};
   highlightGraphics: PIXI.Graphics;
   highlightPos: Pos | null = null;
   goalGraphics: PIXI.Graphics;
@@ -63,7 +63,7 @@ export class View {
     this.element.appendChild(this.app.view);
     this.app.renderer.render(this.app.stage);
     this.setupMapSprites();
-    this.setupMobileSprites();
+    this.setupMobSprites();
   }
 
   private setupMapSprites(): void {
@@ -76,16 +76,16 @@ export class View {
     });
   }
 
-  private setupMobileSprites(): void {
-    for (const mob of this.world.mobiles) {
+  private setupMobSprites(): void {
+    for (const mob of this.world.mobs) {
       const glyph = new TileGlyph(mob.tile);
-      this.mobileGlyphs[mob.id] = glyph;
+      this.mobGlyphs[mob.id] = glyph;
       this.mapLayer.addChild(glyph);
     }
   }
 
-  private redrawMobile(mob: Mobile, time: number, alphaMap: number[][]): void {
-    const glyph = this.mobileGlyphs[mob.id];
+  private redrawMob(mob: Mob, time: number, alphaMap: number[][]): void {
+    const glyph = this.mobGlyphs[mob.id];
 
     let actionTime = 0;
     if (mob.action) {
@@ -120,8 +120,8 @@ export class View {
 
   redraw(time: number): void {
     const alphaMap = makeEmptyGrid(this.world.mapW, this.world.mapH, 1);
-    for (const mob of this.world.mobiles) {
-      this.redrawMobile(mob, time, alphaMap);
+    for (const mob of this.world.mobs) {
+      this.redrawMob(mob, time, alphaMap);
     }
     this.redrawMap(alphaMap);
     this.redrawHighlight();
@@ -168,7 +168,7 @@ export class View {
 
     const {x, y} = this.highlightPos;
     let tile = this.world.map[y][x];
-    const mob = this.world.findMobile(x, y);
+    const mob = this.world.findMob(x, y);
     if (mob) {
       tile = mob.tile;
     }

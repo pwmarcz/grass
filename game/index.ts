@@ -22,8 +22,8 @@ const loadPromise = loadTextures();
 Promise.all([mapPromise, loadPromise])
 .then(result => {
   const [xml] = result;
-  const { map, mobiles } = loadMap(xml);
-  const world = new World(map, mobiles);
+  const { map, mobs } = loadMap(xml);
+  const world = new World(map, mobs);
   const view = new View(world, appElement, infoElement);
   const input = new Input(appElement, view.app.stage, world.mapW, world.mapH);
 
@@ -39,7 +39,7 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
 
   while (world.time < Math.floor(time)) {
     const commands: Record<string, Command | null> = {};
-    const player = world.mobileMap.player;
+    const player = world.mobMap.player;
     let triedGoal = false;
 
     if (!player.action) {
@@ -61,7 +61,7 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
         }
       }
     }
-    for (const mob of world.mobiles) {
+    for (const mob of world.mobs) {
       if (!mob.action) {
         if (mob.id !== 'player') {
           commands[mob.id] = getAiCommand();
