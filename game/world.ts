@@ -30,7 +30,7 @@ export class World {
     this.distanceMap.calculate(this.player.pos.x, this.player.pos.y);
   }
 
-  turn(commands: Record<string, Command | null>): void {
+  turn(commands: Record<string, Command | null>): boolean {
     this.time++;
     let dirty = false;
 
@@ -42,6 +42,8 @@ export class World {
     if (dirty) {
       this.distanceMap.calculate(this.player.pos.x, this.player.pos.y);
     }
+
+    return dirty;
   }
 
   turnMob(mob: Mob, commands: Record<string, Command | null>): boolean {

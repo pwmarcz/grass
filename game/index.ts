@@ -1,4 +1,6 @@
 import './lib/normalize.css';
+import deepEqual from 'fast-deep-equal';
+
 // @ts-ignore
 import mapFile from './map.auto.xml';
 
@@ -36,6 +38,7 @@ let time = 0;
 
 function gameLoop(world: World, input: Input, view: View, delta: number): void {
   time += delta;
+  let dirty = false;
 
   while (world.time < Math.floor(time)) {
     const commands: Record<string, Command | null> = {};
@@ -67,17 +70,24 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
         }
       }
     }
-    world.turn(commands);
+
+    if (world.turn(commands)) {
+      dirty = true;
+    }
 
     if (triedGoal && !world.player.action) {
       input.goalPos = null;
     }
   }
 
-  view.goalPos = input.goalPos;
-  view.highlightPos = input.highlightPos;
+  if (!deepEqual(view.goalPos, input.goalPos) ||
+    !deepEqual(view.highlightPos, input.highlightPos)) {
+    view.goalPos = input.goalPos;
+    view.highlightPos = input.highlightPos;
+    dirty = true;
+  }
 
-  view.redraw(time);
+  view.redraw(dirty, time);
 }
 
 

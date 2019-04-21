@@ -118,16 +118,19 @@ export class View {
     }
   }
 
-  redraw(time: number): void {
+  redraw(dirty: boolean, time: number): void {
     const alphaMap = makeEmptyGrid(this.world.mapW, this.world.mapH, 1);
     for (const mob of this.world.mobs) {
       this.redrawMob(mob, time, alphaMap);
     }
     this.redrawMap(alphaMap);
-    this.redrawHighlight();
-    this.redrawInfo();
-    this.redrawPath();
-    this.redrawGoal();
+
+    if (dirty) {
+      this.redrawHighlight();
+      this.redrawInfo();
+      this.redrawPath();
+      this.redrawGoal();
+    }
   }
 
   redrawMap(alphaMap: number[][]): void {
