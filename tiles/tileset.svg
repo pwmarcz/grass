@@ -14,9 +14,9 @@
    viewBox="0 0 320 320.00001"
    id="svg3336"
    version="1.1"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="tileset.svg"
-   inkscape:export-filename="C:\Dropbox\grass\tileset.png"
+   inkscape:export-filename="C:\Dropbox\grass\tiles\tileset.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90"
    enable-background="new">
@@ -29,28 +29,28 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="11.313709"
-     inkscape:cx="48.942775"
-     inkscape:cy="299.2186"
+     inkscape:zoom="2.0000001"
+     inkscape:cx="7.8250566"
+     inkscape:cy="74.058492"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
      units="px"
-     inkscape:window-width="1920"
-     inkscape:window-height="996"
-     inkscape:window-x="0"
-     inkscape:window-y="28"
+     inkscape:window-width="1600"
+     inkscape:window-height="1116"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:snap-bbox="true"
      inkscape:snap-object-midpoints="false"
      inkscape:bbox-paths="true"
-     inkscape:bbox-nodes="false"
+     inkscape:bbox-nodes="true"
      inkscape:object-paths="false"
      inkscape:snap-nodes="true"
      inkscape:object-nodes="true"
      inkscape:snap-intersection-paths="true"
      inkscape:snap-smooth-nodes="true"
-     inkscape:snap-bbox-edge-midpoints="true">
+     inkscape:snap-bbox-edge-midpoints="false">
     <inkscape:grid
        type="xygrid"
        id="grid4193"
@@ -60,7 +60,20 @@
        empopacity="0.32156863"
        empspacing="16"
        spacingx="1"
-       spacingy="1" />
+       spacingy="1"
+       visible="true" />
+    <inkscape:grid
+       type="xygrid"
+       id="grid4306"
+       spacingx="0.5"
+       spacingy="0.50000002"
+       empspacing="640"
+       dotted="true"
+       color="#ffffff"
+       opacity="0.47058824"
+       empcolor="#ffffff"
+       empopacity="0.25098039"
+       visible="false" />
   </sodipodi:namedview>
   <metadata
      id="metadata3341">
@@ -70,7 +83,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -349,6 +362,33 @@
          x="38.044922"
          y="756.51111"
          style="font-size:30px;line-height:1.25;fill:#2365b3;fill-opacity:1">g</tspan></text>
+    <path
+       style="opacity:1;fill:#969696;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:4;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 19,904.36216 -5,5 -4,-4 -3,3 4,4 -1,1 -5,-5 -3,3 5,5 -1,1 3,3 13,-13 z"
+       id="rect4236"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccccccccc" />
+    <path
+       style="fill:#969696;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 47,161 -2,2 2,2 0,3 -9,0 0,5 2,0 2,-2 13,0 1,1 2,0 0,-4 -8,0 0,-3 2,-2 -2,-2 z m -3,11 0,14 4,4 1,0 4,-4 0,-14 -4,0 0,13.5 -0.5,0.5 -0.5,-0.5 0,-13.5 z"
+       transform="translate(0,732.36216)"
+       id="path4284"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccccccccccccccccccccccccc" />
+    <ellipse
+       style="opacity:1;fill:#969696;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:4;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path4309"
+       cx="24.5"
+       cy="901.86218"
+       rx="6.5"
+       ry="6.5000043" />
+    <ellipse
+       style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:4;stroke-linecap:butt;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path4318"
+       cx="24.5"
+       cy="901.86218"
+       rx="2.875"
+       ry="2.9999843" />
   </g>
   <g
      inkscape:groupmode="layer"
