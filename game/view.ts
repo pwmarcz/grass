@@ -143,7 +143,12 @@ export class View {
       for (let x = 0; x < this.world.mapW; x++) {
         const glyph = this.mapGlyphs[y][x];
         glyph.alpha = alphaMap[y][x];
-        const tile = this.world.map[y][x];
+
+        let tile = this.world.map[y][x];
+        const items = this.world.findItems(x, y);
+        if (items.length > 0) {
+          tile = items[items.length - 1].tile;
+        }
         glyph.update(tile);
       }
     }
@@ -176,6 +181,7 @@ export class View {
 
     let terrainTile: string | null = null;
     let mobTile: string | null = null;
+    let itemTiles: string[] | null = null;
     if (this.highlightPos) {
       const {x, y} = this.highlightPos;
       terrainTile = this.world.map[y][x];
@@ -183,9 +189,10 @@ export class View {
       if (mob) {
         mobTile = mob.tile;
       }
+      itemTiles = this.world.findItems(x, y).map(item => item.tile);
     }
 
-    this.sidebar.setState({ terrainTile, mobTile });
+    this.sidebar.setState({ terrainTile, mobTile, itemTiles });
   }
 
   calculatePath(): void {
@@ -217,15 +224,18 @@ export class View {
 interface SidebarState {
   terrainTile: string | null;
   mobTile: string | null;
+  itemTiles: string[] | null;
 }
 
 class Sidebar extends Component<{}, SidebarState> {
-  render(props: {}, { terrainTile, mobTile }: SidebarState): ComponentChild {
+  render(props: {}, { terrainTile, mobTile, itemTiles }: SidebarState): ComponentChild {
     return h('div', {id: 'info'},
       h('section', null,
         h('h2', null, 'Highlighted:'),
         terrainTile && h(TileRow, {tile: terrainTile, desc: terrainTile.toLowerCase()}),
         mobTile && h(TileRow, {tile: mobTile, desc: mobTile.toLowerCase()}),
+        itemTiles && itemTiles.map(itemTile =>
+          h(TileRow, { tile: itemTile, desc: itemTile.toLowerCase()})),
       ),
     );
   }

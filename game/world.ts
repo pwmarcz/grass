@@ -1,6 +1,6 @@
 import { TILES } from './tiles';
 import { DistanceMap } from './path';
-import { Command, Mob, CommandType, ActionType } from './types';
+import { Command, Mob, CommandType, ActionType, Item } from './types';
 
 const MOVEMENT_TIME: Record<string, number> = {
   'HUMAN': 10,
@@ -12,15 +12,17 @@ const ATTACK_TIME = 45;
 export class World {
   map: string[][];
   mobs: Mob[];
+  items: Item[];
   player: Mob;
   mapW: number;
   mapH: number;
   time: number;
   distanceMap: DistanceMap;
 
-  constructor(map: string[][], mobs: Mob[]) {
+  constructor(map: string[][], mobs: Mob[], items: Item[]) {
     this.map = map;
     this.mobs = mobs;
+    this.items = items;
     this.player = mobs.find(mob => mob.id === 'player')!;
     this.mapH = this.map.length;
     this.mapW = this.map[0].length;
@@ -160,6 +162,16 @@ export class World {
       }
     }
     return null;
+  }
+
+  findItems(x: number, y: number): Item[] {
+    const result = [];
+    for (const item of this.items) {
+      if (item.pos && item.pos.x === x && item.pos.y === y) {
+        result.push(item);
+      }
+    }
+    return result;
   }
 
   inBounds(x: number, y: number): boolean {

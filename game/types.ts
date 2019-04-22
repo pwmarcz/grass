@@ -50,3 +50,10 @@ export interface Mob {
   readonly tile: string;
   action: Action | null;
 }
+
+export interface Item {
+  // readonly id: string;
+  pos: Pos | null;
+  mobId: string | null;
+  readonly tile: string;
+}

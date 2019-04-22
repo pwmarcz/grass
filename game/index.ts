@@ -24,8 +24,8 @@ const loadPromise = loadTextures();
 Promise.all([mapPromise, loadPromise])
 .then(result => {
   const [xml] = result;
-  const { map, mobs } = loadMap(xml);
-  const world = new World(map, mobs);
+  const { map, mobs, items } = loadMap(xml);
+  const world = new World(map, mobs, items);
   const view = new View(world, appElement, infoElement);
   const input = new Input(appElement, view.app.stage, world.mapW, world.mapH);
 
