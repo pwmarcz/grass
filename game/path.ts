@@ -1,5 +1,6 @@
 import { Pos } from "./types";
 import { makeEmptyGrid } from "./utils";
+import Denque from 'denque';
 
 type MapFunc = (x: number, y: number) => boolean;
 
@@ -48,7 +49,7 @@ export class DistanceMap {
       }
     }
 
-    const queue = [[x0, y0, 0]];
+    const queue = new Denque([[x0, y0, 0]]);
     let next;
     while ((next = queue.pop())) {
       const [x, y, dist] = next;
