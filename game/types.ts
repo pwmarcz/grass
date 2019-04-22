@@ -52,7 +52,7 @@ export interface Mob {
 }
 
 export interface Item {
-  // readonly id: string;
+  readonly id: string;
   pos: Pos | null;
   mobId: string | null;
   readonly tile: string;

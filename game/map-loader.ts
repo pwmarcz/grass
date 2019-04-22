@@ -38,6 +38,7 @@ export function loadMap(xml: string):
   const mobs: Mob[] = [];
   let mobCounter = 0;
   const items: Item[] = [];
+  let itemCounter = 0;
 
   const map: string[][] = makeEmptyGrid(width, height, '');
 
@@ -60,6 +61,7 @@ export function loadMap(xml: string):
       const itemTile = getTile(x, y, width, itemLayer);
       if (itemTile) {
         items.push({
+          id: 'item' + (itemCounter++),
           tile: itemTile,
           pos: {x, y},
           mobId: null,
