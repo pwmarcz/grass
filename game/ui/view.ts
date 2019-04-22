@@ -5,7 +5,7 @@ import { ActionType, Mob, Pos } from '../types';
 import { makeEmptyGrid, renderWithRef } from '../utils';
 import { Sidebar } from './sidebar';
 import { h } from 'preact';
-import { Renderer } from './renderer';
+import { StringRenderer, IndexRenderer } from './renderer';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -19,8 +19,12 @@ export class View {
   private element: Element;
   private infoElement: Element;
   app: PIXI.Application;
-  private renderer: Renderer;
   private sidebar: Sidebar | null = null;
+
+  private backLayer: StringRenderer;
+  private mapLayer: IndexRenderer;
+  private mobLayer: StringRenderer;
+  private frontLayer: StringRenderer;
 
   highlightPos: Pos | null = null;
   goalPos: Pos | null = null;
@@ -37,9 +41,10 @@ export class View {
       height: this.element.clientHeight,
     });
 
-    this.renderer = new Renderer(this.app.stage, [
-      'back', 'map', 'mobs', 'front'
-    ]);
+    this.backLayer = new StringRenderer(this.app.stage);
+    this.mapLayer = new IndexRenderer(this.app.stage, this.world.mapW * this.world.mapH);
+    this.mobLayer = new StringRenderer(this.app.stage);
+    this.frontLayer = new StringRenderer(this.app.stage);
 
     this.app.stage.interactive = true;
   }
@@ -52,7 +57,7 @@ export class View {
   }
 
   private redrawMob(mob: Mob, time: number, alphaMap: number[][]): void {
-    const sprite = this.renderer.sprite('mobs', mob.id, sprite => {
+    const sprite = this.mobLayer.make(mob.id, PIXI.Sprite, sprite => {
       sprite.texture = TILE_TEXTURES[mob.tile];
     });
 
@@ -102,7 +107,10 @@ export class View {
     }
     this.redrawMap(alphaMap);
 
-    this.renderer.flush();
+    this.backLayer.flush();
+    this.mapLayer.flush();
+    this.mobLayer.flush();
+    this.frontLayer.flush();
   }
 
   redrawMap(alphaMap: number[][]): void {
@@ -115,7 +123,7 @@ export class View {
         }
 
         if (tile !== 'EMPTY') {
-          const sprite = this.renderer.sprite('map', `${x},${y}`, sprite => {
+          const sprite = this.mapLayer.make(x * this.world.mapW + y, PIXI.Sprite, sprite => {
             sprite.x = x * TILE_SIZE;
             sprite.y = y * TILE_SIZE;
           });
@@ -129,7 +137,7 @@ export class View {
 
   redrawHighlight(): void {
     if (this.highlightPos) {
-      const g = this.renderer.graphics('back', 'highlight', g => {
+      const g = this.backLayer.make('highlight', PIXI.Graphics, g => {
         g.lineStyle(1, 0x888888, 1, 0);
         g.beginFill(0x222222);
         g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
@@ -141,7 +149,7 @@ export class View {
 
   redrawGoal(): void {
     if (this.goalPos) {
-      const g = this.renderer.graphics('back', 'goal', g => {
+      const g = this.frontLayer.make('goal', PIXI.Graphics, g => {
         g.lineStyle(1, 0x6D5000, 1, 0);
         g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
       });
@@ -183,11 +191,11 @@ export class View {
 
   redrawPath(): void {
     if (this.path) {
-      const g = this.renderer.graphics('front', 'path');
+      const g = this.frontLayer.make('path', PIXI.Graphics);
       g.clear();
       g.lineStyle(5, 0xFFFFFF, 0.3);
 
-      const {x: x0, y: y0} = this.renderer.sprite('mobs', 'player').position;
+      const {x: x0, y: y0} = this.mobLayer.get('player')!.position;
       g.moveTo(
         x0 + 0.5 * TILE_SIZE,
         y0 + 0.5 * TILE_SIZE

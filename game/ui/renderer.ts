@@ -1,85 +1,91 @@
 import * as PIXI from "pixi.js";
 
-interface Layer {
-  container: PIXI.Container;
-  objects: Record<string, PIXI.DisplayObject>;
-  seen: Set<string>;
-}
+abstract class Renderer<Key> {
+  private container: PIXI.Container = new PIXI.Container();
+  private seen: Set<Key> = new Set();
 
-type Init<P> = (p: P) => void;
-
-export class Renderer {
-  private root: PIXI.Container;
-  private layers: Record<string, Layer>;
-
-  constructor(root: PIXI.Container, layerNames: string[]) {
-    this.root = root;
-    this.layers = {};
-
-    for (const layerName of layerNames) {
-      const container = new PIXI.Container();
-      this.root.addChild(container);
-      this.layers[layerName] =  {
-        container,
-        objects: {},
-        seen: new Set(),
-      };
-    }
+  constructor(root: PIXI.Container) {
+    root.addChild(this.container);
   }
 
-  private get<T extends PIXI.DisplayObject>(
-    layerName: string,
-    key: string,
-    prefix: string,
-    construct: () => T,
-    init: Init<T> | undefined
+  abstract get(key: Key): PIXI.DisplayObject | null;
+  abstract keys(): Key[];
+  abstract set(key: Key, obj: PIXI.DisplayObject | null): void;
+
+  make<T extends PIXI.DisplayObject>(
+    key: Key,
+    construct: new () => T,
+    init?: (obj: T) => void
   ): T {
-    key = `${prefix}.${key}`;
-    const layer = this.layers[layerName];
-    let obj = layer.objects[key] as T | undefined;
+    let obj = this.get(key) as T | undefined;
     if (!obj) {
-      obj = construct();
-      layer.container.addChild(obj);
-      layer.objects[key] = obj;
+      obj = new construct();
+      this.container.addChild(obj);
+      this.set(key, obj);
       if (init) {
         init(obj);
       }
     }
-    layer.seen.add(key);
+    this.seen.add(key);
     return obj;
   }
 
-  sprite(
-    layerName: string,
-    key: string,
-    init?: Init<PIXI.Sprite>
-  ): PIXI.Sprite {
-    return this.get<PIXI.Sprite>(
-      layerName, key, 'sprite', () => new PIXI.Sprite, init
-    );
-  }
-
-  graphics(
-    layerName: string,
-    key: string,
-    init?: Init<PIXI.Graphics>
-  ): PIXI.Graphics {
-    return this.get<PIXI.Graphics>(
-      layerName, key, 'graphics', () => new PIXI.Graphics, init
-    );
-  }
-
   flush(): void {
-    for (const layer of Object.values(this.layers)) {
-      for (const key in layer.objects) {
-        if (!layer.seen.has(key)) {
-          const obj = layer.objects[key];
-          delete layer.objects[key];
-          layer.container.removeChild(obj);
-          obj.destroy();
-        }
+    for (const key of this.keys()) {
+      if (!this.seen.has(key)) {
+        const obj = this.get(key)!;
+        this.container.removeChild(obj);
+        obj.destroy();
+        this.set(key, null);
       }
-      layer.seen.clear();
     }
+    this.seen.clear();
+  }
+}
+
+export class StringRenderer extends Renderer<string> {
+  private objects: Record<string, PIXI.DisplayObject> = {};
+
+  get(key: string): PIXI.DisplayObject | null {
+    return this.objects[key] || null;
+  }
+
+  set(key: string, value: PIXI.DisplayObject | null): void {
+    if (value) {
+      this.objects[key] = value;
+    } else {
+      delete this.objects[key];
+    }
+  }
+
+  keys(): string[] {
+    return Object.keys(this.objects);
+  }
+}
+
+export class IndexRenderer extends Renderer<number> {
+  private objects: (PIXI.DisplayObject | null)[];
+
+  constructor(root: PIXI.Container, size: number) {
+    super(root);
+    this.objects = new Array(size).fill(null);
+  }
+
+  get(key: number): PIXI.DisplayObject | null {
+    return this.objects[key];
+  }
+
+  set(key: number, value: PIXI.DisplayObject | null): void {
+    this.objects[key] = value;
+  }
+
+  keys(): number[] {
+    const result = [];
+    for (let i = 0; i < this.objects.length; i++) {
+      if (this.objects[i]) {
+        result.push(i);
+      }
+    }
+    return result;
   }
 }
