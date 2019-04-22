@@ -88,6 +88,24 @@ export class View {
     }
   }
 
+  redraw(dirty: boolean, time: number): void {
+    if (dirty) {
+      this.calculatePath();
+      this.redrawHighlight();
+      this.redrawInfo();
+      this.redrawGoal();
+    }
+    this.redrawPath();
+
+    const alphaMap = makeEmptyGrid(this.world.mapW, this.world.mapH, 1);
+    for (const mob of this.world.mobs) {
+      this.redrawMob(mob, time, alphaMap);
+    }
+    this.redrawMap(alphaMap);
+
+    this.updateViewport(time);
+  }
+
   private redrawMob(mob: Mob, time: number, alphaMap: number[][]): void {
     const glyph = this.mobGlyphs[mob.id];
 
@@ -122,20 +140,21 @@ export class View {
     }
   }
 
-  redraw(dirty: boolean, time: number): void {
-    if (dirty) {
-      this.calculatePath();
-      this.redrawHighlight();
-      this.redrawInfo();
-      this.redrawGoal();
-    }
-    this.redrawPath();
+  updateViewport(time: number): void {
+    const player = this.world.player;
 
-    const alphaMap = makeEmptyGrid(this.world.mapW, this.world.mapH, 1);
-    for (const mob of this.world.mobs) {
-      this.redrawMob(mob, time, alphaMap);
+    let x: number, y: number;
+    if (player.action && player.action.type === ActionType.MOVE) {
+      const actionTime = (time - player.action.timeStart) / (player.action.timeEnd - player.action.timeStart);
+      x = lerp(player.pos.x, player.action.pos.x, actionTime);
+      y = lerp(player.pos.y, player.action.pos.y, actionTime);
+    } else {
+      x = player.pos.x;
+      y = player.pos.y;
     }
-    this.redrawMap(alphaMap);
+
+    this.app.stage.x = -(x * TILE_SIZE - this.app.view.width / 2);
+    this.app.stage.y = -(y * TILE_SIZE - this.app.view.height / 2);
   }
 
   redrawMap(alphaMap: number[][]): void {
