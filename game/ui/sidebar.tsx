@@ -27,14 +27,18 @@ export class Sidebar extends Component<{}, SidebarState> {
       <div id="info">
         <section>
           <h2>Inventory:</h2>
-          {inventory.map(itemTile => <TileRow tile={itemTile} />)}
+          <div class="item-list">
+            {inventory.map(itemTile => <TileRow tile={itemTile} />)}
+          </div>
         </section>
         <section>
           <h2>Highlighted:</h2>
-          {terrainTile && <TileRow tile={terrainTile}/>}
-          {mobTile && <TileRow tile={mobTile}/>}
-          {itemTiles && itemTiles.map(itemTile =>
-            <TileRow tile={itemTile}/>)}
+          <div class="item-list">
+            {terrainTile && <TileRow tile={terrainTile}/>}
+            {mobTile && <TileRow tile={mobTile}/>}
+            {itemTiles && itemTiles.map(itemTile =>
+              <TileRow tile={itemTile}/>)}
+          </div>
         </section>
       </div>
     );
