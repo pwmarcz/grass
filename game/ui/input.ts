@@ -11,14 +11,14 @@ const CAPTURED_KEYS = [
 ];
 
 const MOVEMENT_KEYS = [
+  {keys: [['ArrowLeft', 'ArrowUp'], 'y', '7'], dx: -1, dy: -1},
+  {keys: [['ArrowRight', 'ArrowUp'], 'u', '9'], dx: 1, dy: -1},
+  {keys: [['ArrowLeft', 'ArrowDown'],'b', '1'], dx: -1, dy: 1},
+  {keys: [['ArrowRight', 'ArrowDown'], 'n', '3'], dx: 1, dy: 1},
   {keys: ['ArrowLeft', 'h', '4'], dx: -1, dy: 0},
   {keys: ['ArrowRight', 'l', '6'], dx: 1, dy: 0},
   {keys: ['ArrowUp', 'k', '8'], dx: 0, dy: -1},
   {keys: ['ArrowDown', 'j', '2'], dx: 0, dy: 1},
-  {keys: ['y', '7'], dx: -1, dy: -1},
-  {keys: ['u', '9'], dx: 1, dy: -1},
-  {keys: ['b', '1'], dx: -1, dy: 1},
-  {keys: ['n', '3'], dx: 1, dy: 1},
 ];
 
 export class Input {
@@ -66,7 +66,14 @@ export class Input {
   getCommand(): Command | null {
     for (const {keys, dx, dy} of MOVEMENT_KEYS) {
       for (const key of keys) {
-        if (this.keys[key]) {
+        let pressed;
+        if (typeof key === 'string') {
+          pressed = this.keys[key];
+        } else {
+          pressed = key.every(k => this.keys[k]);
+        }
+
+        if (pressed) {
           return {type: CommandType.MOVE, dx, dy};
         }
       }
