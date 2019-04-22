@@ -4,8 +4,8 @@ import './lib/normalize.css';
 import mapFile from './map.auto.xml';
 
 import { loadMap } from './map-loader';
-import { View } from './view';
-import { Input } from './input';
+import { View } from './ui/view';
+import { Input } from './ui/input';
 import { World } from './world';
 import { Command, CommandType } from './types';
 import { loadTextures } from './tiles';

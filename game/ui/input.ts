@@ -1,5 +1,5 @@
-import { Command, CommandType, Pos } from "./types";
-import { TILE_SIZE } from "./tiles";
+import { Command, CommandType, Pos } from "../types";
+import { TILE_SIZE } from "../tiles";
 import { DisplayObject } from "pixi.js";
 
 type InteractionEvent = PIXI.interaction.InteractionEvent;
