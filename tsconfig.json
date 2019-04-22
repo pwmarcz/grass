@@ -5,5 +5,10 @@
         "lib": ["dom", "es6", "es2015.promise"],
         "jsx": "react",
         "jsxFactory": "h",
-    }
+        "downlevelIteration": true,
+    },
+    "include": [
+        "game/**/*.ts",
+        "game/**/*.tsx"
+    ],
 }

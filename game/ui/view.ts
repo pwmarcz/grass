@@ -1,10 +1,11 @@
 import * as PIXI from 'pixi.js';
-import { TILE_SIZE, TileGlyph } from '../tiles';
+import { TILE_SIZE, TILE_TEXTURES } from '../tiles';
 import { World } from '../world';
 import { ActionType, Mob, Pos } from '../types';
-import { makeGrid, makeEmptyGrid, renderWithRef } from '../utils';
+import { makeEmptyGrid, renderWithRef } from '../utils';
 import { Sidebar } from './sidebar';
 import { h } from 'preact';
+import { Renderer } from './renderer';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -14,22 +15,17 @@ function lerp(a: number, b: number, t: number): number {
 }
 
 export class View {
-  world: World;
-  element: Element;
-  infoElement: Element;
-  sidebar: Sidebar | null = null;
+  private world: World;
+  private element: Element;
+  private infoElement: Element;
   app: PIXI.Application;
-  backLayer = new PIXI.Container();
-  mapLayer = new PIXI.Container();
-  frontLayer = new PIXI.Container();
-  mapGlyphs: TileGlyph[][] = [];
-  mobGlyphs: Record<string, TileGlyph> = {};
-  highlightGraphics: PIXI.Graphics;
+  private renderer: Renderer;
+  private sidebar: Sidebar | null = null;
+
   highlightPos: Pos | null = null;
-  goalGraphics: PIXI.Graphics;
   goalPos: Pos | null = null;
   path: Pos[] | null = null;
-  pathGraphics: PIXI.Graphics;
+
 
   constructor(world: World, element: Element, infoElement: Element) {
     this.world = world;
@@ -40,57 +36,25 @@ export class View {
       width: this.element.clientWidth,
       height: this.element.clientHeight,
     });
-    this.app.stage.addChild(this.backLayer);
-    this.app.stage.addChild(this.mapLayer);
-    this.app.stage.addChild(this.frontLayer);
+
+    this.renderer = new Renderer(this.app.stage, [
+      'back', 'map', 'mobs', 'front'
+    ]);
+
     this.app.stage.interactive = true;
-
-    this.highlightGraphics = new PIXI.Graphics();
-    this.highlightGraphics.lineStyle(1, 0x888888, 1, 0);
-    this.highlightGraphics.beginFill(0x222222);
-    this.highlightGraphics.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
-    this.highlightGraphics.visible = false;
-    this.backLayer.addChild(this.highlightGraphics);
-
-    this.pathGraphics = new PIXI.Graphics();
-    this.frontLayer.addChild(this.pathGraphics);
-
-    this.goalGraphics = new PIXI.Graphics();
-    this.goalGraphics.lineStyle(1, 0x6D5000, 1, 0);
-    this.goalGraphics.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
-    this.goalGraphics.visible = false;
-    this.frontLayer.addChild(this.goalGraphics);
   }
 
   setup(): void {
     this.element.appendChild(this.app.view);
     this.app.renderer.render(this.app.stage);
-    this.setupMapSprites();
-    this.setupMobSprites();
     renderWithRef<Sidebar>(h(Sidebar, null), this.infoElement, this.infoElement)
     .then(sidebar => this.sidebar = sidebar);
   }
 
-  private setupMapSprites(): void {
-    this.mapGlyphs = makeGrid(this.world.mapW, this.world.mapH, (x, y) => {
-      const glyph = new TileGlyph('EMPTY');
-      glyph.x = x * TILE_SIZE;
-      glyph.y = y * TILE_SIZE;
-      this.mapLayer.addChild(glyph);
-      return glyph;
-    });
-  }
-
-  private setupMobSprites(): void {
-    for (const mob of this.world.mobs) {
-      const glyph = new TileGlyph(mob.tile);
-      this.mobGlyphs[mob.id] = glyph;
-      this.mapLayer.addChild(glyph);
-    }
-  }
-
   private redrawMob(mob: Mob, time: number, alphaMap: number[][]): void {
-    const glyph = this.mobGlyphs[mob.id];
+    const sprite = this.renderer.sprite('mobs', mob.id, sprite => {
+      sprite.texture = TILE_TEXTURES[mob.tile];
+    });
 
     let actionTime = 0;
     if (mob.action) {
@@ -98,8 +62,8 @@ export class View {
     }
 
     if (mob.action && mob.action.type === ActionType.MOVE) {
-      glyph.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, actionTime);
-      glyph.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, actionTime);
+      sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, actionTime);
+      sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, actionTime);
 
       alphaMap[mob.pos.y][mob.pos.x] = actionTime;
       alphaMap[mob.action.pos.y][mob.action.pos.x] = 1 - actionTime;
@@ -111,13 +75,13 @@ export class View {
         distance = (1 - (actionTime - ATTACK_START_TIME) / (1 - ATTACK_START_TIME)) * ATTACK_DISTANCE;
       }
 
-      glyph.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, distance);
-      glyph.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, distance);
+      sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, distance);
+      sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, distance);
 
       alphaMap[mob.pos.y][mob.pos.x] = 0;
     } else {
-      glyph.x = mob.pos.x * TILE_SIZE;
-      glyph.y = mob.pos.y * TILE_SIZE;
+      sprite.x = mob.pos.x * TILE_SIZE;
+      sprite.y = mob.pos.y * TILE_SIZE;
 
       alphaMap[mob.pos.y][mob.pos.x] = 0;
     }
@@ -126,10 +90,10 @@ export class View {
   redraw(dirty: boolean, time: number): void {
     if (dirty) {
       this.calculatePath();
-      this.redrawHighlight();
       this.redrawInfo();
-      this.redrawGoal();
     }
+    this.redrawHighlight();
+    this.redrawGoal();
     this.redrawPath();
 
     const alphaMap = makeEmptyGrid(this.world.mapW, this.world.mapH, 1);
@@ -137,41 +101,52 @@ export class View {
       this.redrawMob(mob, time, alphaMap);
     }
     this.redrawMap(alphaMap);
+
+    this.renderer.flush();
   }
 
   redrawMap(alphaMap: number[][]): void {
     for (let y = 0; y < this.world.mapH; y++) {
       for (let x = 0; x < this.world.mapW; x++) {
-        const glyph = this.mapGlyphs[y][x];
-        glyph.alpha = alphaMap[y][x];
-
         let tile = this.world.map[y][x];
         const items = this.world.findItems(x, y);
         if (items.length > 0) {
           tile = items[items.length - 1].tile;
         }
-        glyph.update(tile);
+
+        if (tile !== 'EMPTY') {
+          const sprite = this.renderer.sprite('map', `${x},${y}`, sprite => {
+            sprite.x = x * TILE_SIZE;
+            sprite.y = y * TILE_SIZE;
+          });
+
+          sprite.alpha = alphaMap[y][x];
+          sprite.texture = TILE_TEXTURES[tile];
+        }
       }
     }
   }
 
   redrawHighlight(): void {
     if (this.highlightPos) {
-      this.highlightGraphics.x = this.highlightPos.x * TILE_SIZE;
-      this.highlightGraphics.y = this.highlightPos.y * TILE_SIZE;
-      this.highlightGraphics.visible = true;
-    } else {
-      this.highlightGraphics.visible = false;
+      const g = this.renderer.graphics('back', 'highlight', g => {
+        g.lineStyle(1, 0x888888, 1, 0);
+        g.beginFill(0x222222);
+        g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+      });
+      g.x = this.highlightPos.x * TILE_SIZE;
+      g.y = this.highlightPos.y * TILE_SIZE;
     }
   }
 
   redrawGoal(): void {
     if (this.goalPos) {
-      this.goalGraphics.x = this.goalPos.x * TILE_SIZE;
-      this.goalGraphics.y = this.goalPos.y * TILE_SIZE;
-      this.goalGraphics.visible = true;
-    } else {
-      this.goalGraphics.visible = false;
+      const g = this.renderer.graphics('back', 'goal', g => {
+        g.lineStyle(1, 0x6D5000, 1, 0);
+        g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+      });
+      g.x = this.goalPos.x * TILE_SIZE;
+      g.y = this.goalPos.y * TILE_SIZE;
     }
   }
 
@@ -207,19 +182,20 @@ export class View {
   }
 
   redrawPath(): void {
-    this.pathGraphics.clear();
-    if (!this.path)
-      return;
+    if (this.path) {
+      const g = this.renderer.graphics('front', 'path');
+      g.clear();
+      g.lineStyle(5, 0xFFFFFF, 0.3);
 
-    this.pathGraphics.lineStyle(5, 0xFFFFFF, 0.3);
-    const {x: x0, y: y0} = this.mobGlyphs.player.position;
-    this.pathGraphics.moveTo(
-      x0 + 0.5 * TILE_SIZE,
-      y0 + 0.5 * TILE_SIZE
-    );
-    for (let i = 1; i < this.path.length; i++) {
-      const {x, y} = this.path[i];
-      this.pathGraphics.lineTo(TILE_SIZE * (x + 0.5), TILE_SIZE * (y + 0.5));
+      const {x: x0, y: y0} = this.renderer.sprite('mobs', 'player').position;
+      g.moveTo(
+        x0 + 0.5 * TILE_SIZE,
+        y0 + 0.5 * TILE_SIZE
+      );
+      for (let i = 1; i < this.path.length; i++) {
+        const {x, y} = this.path[i];
+        g.lineTo(TILE_SIZE * (x + 0.5), TILE_SIZE * (y + 0.5));
+      }
     }
   }
 }

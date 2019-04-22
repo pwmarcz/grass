@@ -1,5 +1,5 @@
 import { Component, ComponentChild, h, VNode } from 'preact';
-import { TileElement } from '../tiles';
+import { TILES, TILE_SIZE } from '../tiles';
 
 export interface SidebarState {
   inventory: string[];
@@ -49,8 +49,21 @@ function TileRow({tile}: TileRowProps): VNode {
   const desc = tile.toLowerCase();
   return (
     <div class="tile-row">
-      <TileElement tile={tile} />
+      <Tile tile={tile} />
       <span class="desc">{desc}</span>
     </div>
   );
+}
+
+function Tile({tile}: { tile: string }): preact.VNode {
+  const id = TILES[tile].id;
+  const x = (id % 10) * TILE_SIZE, y = Math.floor(id / 10) * TILE_SIZE;
+
+  return h('span', {
+    className: 'tile',
+    style: {
+      backgroundPositionX: -x + 'px',
+      backgroundPositionY: -y + 'px',
+    }
+  });
 }

@@ -9,7 +9,7 @@ files: game/tileset.auto.png game/icon.auto.png game/map.auto.xml
 .PHONY: check
 check:
 	./node_modules/.bin/eslint $(TS_FILES)
-	./node_modules/.bin/tsc --noEmit --jsx react --jsxFactory h $(TS_FILES)
+	./node_modules/.bin/tsc --project tsconfig.json --noEmit
 
 .PHONY: dist
 dist: files

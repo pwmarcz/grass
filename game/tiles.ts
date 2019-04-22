@@ -1,5 +1,4 @@
 import * as PIXI from 'pixi.js';
-import { h } from 'preact';
 
 // @ts-ignore
 import tilesetImage from './tileset.auto.png';
@@ -61,44 +60,5 @@ export function loadTextures(): Promise<void> {
       }
       resolve();
     });
-  });
-}
-
-export class TileGlyph extends PIXI.Container {
-  tile: string = 'EMPTY';
-
-  constructor(tile: string) {
-    super();
-    this.update(tile);
-  }
-
-  updateSprite(tile: string): void {
-    const sprite = new PIXI.Sprite(TILE_TEXTURES[tile]);
-    this.removeChildren();
-    this.addChild(sprite);
-  }
-
-  update(tile: string): void {
-    if (this.tile !== tile) {
-      this.tile = tile;
-      if (tile === 'EMPTY') {
-        this.removeChildren();
-      } else {
-        this.updateSprite(tile);
-      }
-    }
-  }
-}
-
-export function TileElement({tile}: { tile: string }): preact.VNode {
-  const id = TILES[tile].id;
-  const x = (id % 10) * TILE_SIZE, y = Math.floor(id / 10) * TILE_SIZE;
-
-  return h('span', {
-    className: 'tile',
-    style: {
-      backgroundPositionX: -x + 'px',
-      backgroundPositionY: -y + 'px',
-    }
   });
 }
