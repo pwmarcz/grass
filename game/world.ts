@@ -9,6 +9,8 @@ const MOVEMENT_TIME: Record<string, number> = {
 
 const ATTACK_TIME = 45;
 
+const PICK_UP_TIME = 20;
+
 export class World {
   map: string[][];
   mobs: Mob[];
@@ -56,8 +58,15 @@ export class World {
 
       switch (mob.action.type) {
         case ActionType.MOVE:
-        mob.pos = mob.action.pos;
-        break;
+          mob.pos = mob.action.pos;
+          break;
+        case ActionType.PICK_UP: {
+          const itemId = mob.action.itemId;
+          const item = this.items.find(item => item.id === itemId)!;
+          item.pos = null;
+          item.mobId = mob.id;
+          break;
+        }
       }
 
       mob.action = null;
@@ -74,6 +83,14 @@ export class World {
             type: ActionType.REST,
             timeStart: this.time,
             timeEnd: this.time + command.dt,
+          };
+          break;
+        case CommandType.PICK_UP:
+          mob.action = {
+            type: ActionType.PICK_UP,
+            timeStart: this.time,
+            timeEnd: this.time + PICK_UP_TIME,
+            itemId: command.itemId,
           };
           break;
       }
@@ -165,13 +182,16 @@ export class World {
   }
 
   findItems(x: number, y: number): Item[] {
-    const result = [];
-    for (const item of this.items) {
-      if (item.pos && item.pos.x === x && item.pos.y === y) {
-        result.push(item);
-      }
-    }
-    return result;
+    return this.items.filter(item =>
+      item.pos && item.pos.x === x && item.pos.y === y
+    );
+  }
+
+
+  findMobItems(mob: Mob): Item[] {
+    return this.items.filter(item =>
+      item.mobId && item.mobId === mob.id
+    );
   }
 
   inBounds(x: number, y: number): boolean {

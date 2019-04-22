@@ -61,6 +61,14 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
             dy,
           };
         }
+      } else {
+        const items = world.findItems(world.player.pos.x, world.player.pos.y);
+        if (items.length > 0) {
+          commands.player = {
+            type: CommandType.PICK_UP,
+            itemId: items[items.length - 1].id,
+          };
+        }
       }
     }
     for (const mob of world.mobs) {

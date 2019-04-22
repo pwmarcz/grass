@@ -179,6 +179,8 @@ export class View {
       return;
     }
 
+    const inventory = this.world.findMobItems(this.world.player).map(item => item.tile);
+
     let terrainTile: string | null = null;
     let mobTile: string | null = null;
     let itemTiles: string[] | null = null;
@@ -192,7 +194,7 @@ export class View {
       itemTiles = this.world.findItems(x, y).map(item => item.tile);
     }
 
-    this.sidebar.setState({ terrainTile, mobTile, itemTiles });
+    this.sidebar.setState({ inventory, terrainTile, mobTile, itemTiles });
   }
 
   calculatePath(): void {
@@ -222,20 +224,37 @@ export class View {
 }
 
 interface SidebarState {
+  inventory: string[];
   terrainTile: string | null;
   mobTile: string | null;
   itemTiles: string[] | null;
 }
 
 class Sidebar extends Component<{}, SidebarState> {
-  render(props: {}, { terrainTile, mobTile, itemTiles }: SidebarState): ComponentChild {
+  constructor() {
+    super();
+    this.state = {
+      inventory: [],
+      terrainTile: null,
+      mobTile: null,
+      itemTiles: null,
+    };
+  }
+
+  render(props: {}, state: SidebarState): ComponentChild {
+    const { inventory, terrainTile, mobTile, itemTiles } = state;
     return h('div', {id: 'info'},
+      h('section', null,
+        h('h2', null, 'Inventory:'),
+        inventory.map(itemTile =>
+          h(TileRow, { tile: itemTile, desc: itemTile.toLowerCase() })),
+      ),
       h('section', null,
         h('h2', null, 'Highlighted:'),
         terrainTile && h(TileRow, {tile: terrainTile, desc: terrainTile.toLowerCase()}),
         mobTile && h(TileRow, {tile: mobTile, desc: mobTile.toLowerCase()}),
         itemTiles && itemTiles.map(itemTile =>
-          h(TileRow, { tile: itemTile, desc: itemTile.toLowerCase()})),
+          h(TileRow, { tile: itemTile, desc: itemTile.toLowerCase() })),
       ),
     );
   }
