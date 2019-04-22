@@ -2,7 +2,7 @@ import * as PIXI from "pixi.js";
 
 interface Layer {
   container: PIXI.Container;
-  objects: Map<string, PIXI.DisplayObject>;
+  objects: Record<string, PIXI.DisplayObject>;
   seen: Set<string>;
 }
 
@@ -10,20 +10,20 @@ type Init<P> = (p: P) => void;
 
 export class Renderer {
   private root: PIXI.Container;
-  private layers: Map<string, Layer>;
+  private layers: Record<string, Layer>;
 
   constructor(root: PIXI.Container, layerNames: string[]) {
     this.root = root;
-    this.layers = new Map();
+    this.layers = {};
 
     for (const layerName of layerNames) {
       const container = new PIXI.Container();
       this.root.addChild(container);
-      this.layers.set(layerName, {
+      this.layers[layerName] =  {
         container,
-        objects: new Map(),
+        objects: {},
         seen: new Set(),
-      });
+      };
     }
   }
 
@@ -35,12 +35,12 @@ export class Renderer {
     init: Init<T> | undefined
   ): T {
     key = `${prefix}.${key}`;
-    const layer = this.layers.get(layerName)!;
-    let obj = layer.objects.get(key) as T | undefined;
+    const layer = this.layers[layerName];
+    let obj = layer.objects[key] as T | undefined;
     if (!obj) {
       obj = construct();
       layer.container.addChild(obj);
-      layer.objects.set(key, obj);
+      layer.objects[key] = obj;
       if (init) {
         init(obj);
       }
@@ -70,10 +70,11 @@ export class Renderer {
   }
 
   flush(): void {
-    for (const layer of this.layers.values()) {
-      for (const [key, obj] of layer.objects.entries()) {
+    for (const layer of Object.values(this.layers)) {
+      for (const key in layer.objects) {
         if (!layer.seen.has(key)) {
-          layer.objects.delete(key);
+          const obj = layer.objects[key];
+          delete layer.objects[key];
           layer.container.removeChild(obj);
           obj.destroy();
         }
