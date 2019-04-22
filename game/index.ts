@@ -8,7 +8,7 @@ import { View } from './ui/view';
 import { Input } from './ui/input';
 import { World } from './world';
 import { Command, CommandType } from './types';
-import { loadTextures } from './tiles';
+import { loadTextures } from './ui/textures';
 import { posEqual } from './utils';
 
 

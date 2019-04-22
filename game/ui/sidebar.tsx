@@ -1,5 +1,6 @@
 import { Component, ComponentChild, h, VNode } from 'preact';
-import { TILES, TILE_SIZE } from '../tiles';
+import { TILES } from '../tiles';
+import { TILE_SIZE } from './textures';
 
 export interface SidebarState {
   inventory: string[];

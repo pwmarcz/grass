@@ -1,7 +1,3 @@
-import * as PIXI from 'pixi.js';
-
-// @ts-ignore
-import tilesetImage from './tileset.auto.png';
 
 export class TileMeta {
   id: number = 0;
@@ -38,27 +34,3 @@ export const TILES: Record<string, TileMeta> = {
 
   GOLD: new TileMeta({ id: 0 }),
 };
-
-export const TILE_SIZE = 32;
-
-export const TILE_TEXTURES: Record<string, PIXI.Texture> = {};
-
-export const TILE_TEXT_STYLES: Record<string, PIXI.TextStyle> = {};
-
-export function loadTextures(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    PIXI.loader
-    .add(tilesetImage)
-    .load(() => {
-      const baseTexture = PIXI.utils.TextureCache[tilesetImage];
-      for (const tile in TILES) {
-        const id = TILES[tile].id;
-        const x = id % 10, y = Math.floor(id / 10);
-        const frame = new PIXI.Rectangle(TILE_SIZE * x, TILE_SIZE * y, TILE_SIZE, TILE_SIZE);
-        const texture = new PIXI.Texture(baseTexture, frame);
-        TILE_TEXTURES[tile] = texture;
-      }
-      resolve();
-    });
-  });
-}

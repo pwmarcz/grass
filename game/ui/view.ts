@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { TILE_SIZE, TILE_TEXTURES } from '../tiles';
+import { TILE_SIZE, TILE_TEXTURES } from './textures';
 import { World } from '../world';
 import { ActionType, Mob, Pos } from '../types';
 import { makeEmptyGrid, renderWithRef } from '../utils';
