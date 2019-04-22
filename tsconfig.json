@@ -1,12 +1,12 @@
 {
     "compilerOptions": {
         "strict": true,
-        "target": "es5",
+        "target": "es6",
         "lib": ["dom", "es6", "es2015.promise"],
         "jsx": "react",
         "jsxFactory": "h",
-        "downlevelIteration": true,
         "esModuleInterop": true,
+        "moduleResolution": "node"
     },
     "include": [
         "game/**/*.ts",
