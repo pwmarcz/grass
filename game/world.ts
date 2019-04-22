@@ -51,6 +51,7 @@ export class World {
   }
 
   turnMob(mob: Mob, commands: Record<string, Command | null>): boolean {
+    let dirty = false;
     if (mob.action) {
       if (this.time < mob.action.timeEnd) {
         return false;
@@ -70,6 +71,7 @@ export class World {
       }
 
       mob.action = null;
+      dirty = true;
     }
 
     const command = commands[mob.id];
@@ -94,9 +96,10 @@ export class World {
           };
           break;
       }
+      dirty = true;
     }
 
-    return true;
+    return dirty;
   }
 
   moveMob(mob: Mob, x: number, y: number): void {
