@@ -29,7 +29,7 @@ function neighbors(x0: number, y0: number, w: number, h: number):
   return result;
 }
 
-const MAX_DIST = 20;
+const MAX_DIST = 40;
 
 export class DistanceMap {
   data: number[][];
