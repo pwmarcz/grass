@@ -3,8 +3,10 @@ all: files
 
 TS_FILES=$(shell find game/ -name '*.ts' -or -name '*.tsx')
 
+MAPS = $(patsubst tiles/%.tmx,game/%.auto.xml,$(wildcard tiles/*.tmx))
+
 .PHONY: files
-files: game/tileset.auto.png game/icon.auto.png game/map.auto.xml
+files: game/tileset.auto.png game/icon.auto.png $(MAPS)
 
 .PHONY: check
 check:
@@ -27,5 +29,5 @@ serve: files
 game/%.auto.png: tiles/%.svg
 	inkscape $< --export-png=$@
 
-game/map.auto.xml: tiles/map.tmx
+game/%.auto.xml: tiles/%.tmx
 	cp $< $@

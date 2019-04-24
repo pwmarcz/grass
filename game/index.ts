@@ -1,7 +1,9 @@
 import './lib/normalize.css';
 
 // @ts-ignore
-import mapFile from './map.auto.xml';
+import mapFile1 from './map.auto.xml';
+// @ts-ignore
+import mapFile2 from './map2.auto.xml';
 
 import { loadMap } from './map-loader';
 import { View } from './ui/view';
@@ -11,6 +13,11 @@ import { Command, CommandType } from './types';
 import { loadTextures } from './ui/textures';
 import { posEqual } from './utils';
 
+let mapFile = mapFile1;
+const parsedUrl = new URL(window.location.href);
+if (parsedUrl.searchParams.get('map') === '2') {
+  mapFile = mapFile2;
+}
 
 const appElement = document.getElementById('app');
 const infoElement = document.getElementById('info');
