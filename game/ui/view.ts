@@ -9,6 +9,7 @@ import { StringRenderer, IndexRenderer } from './renderer';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
+const DARK_ALPHA = 0.4;
 
 function lerp(a: number, b: number, t: number): number {
   return a * (1 - t) + b * t;
@@ -199,14 +200,14 @@ export class View {
 
   getVisibilityMultiplier(x: number, y: number, {t}: Movement): number {
     const visible = this.world.visibilityMap.visible(x, y);
-    const multiplier = visible ? 1 : 0.2;
+    const multiplier = visible ? 1 : DARK_ALPHA;
 
     if (t === 0) {
       return multiplier;
     }
 
     const nextVisible = this.world.nextVisibilityMap.visible(x, y);
-    const nextMultiplier = nextVisible ? 1 : 0.2;
+    const nextMultiplier = nextVisible ? 1 : DARK_ALPHA;
     return lerp(multiplier, nextMultiplier, t);
   }
 

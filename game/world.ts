@@ -176,7 +176,7 @@ export class World {
     }
 
     const newTile = this.map[y][x];
-    if (!TILES[newTile].canEnter) {
+    if (!TILES[newTile].passThrough) {
       return false;
     }
 
@@ -194,7 +194,7 @@ export class World {
     }
 
     const newTile = this.map[y][x];
-    if (!(TILES[newTile].canEnter || newTile === 'DOOR_CLOSED')) {
+    if (!(TILES[newTile].passThrough || newTile === 'DOOR_CLOSED')) {
       return false;
     }
 
@@ -206,7 +206,7 @@ export class World {
       return false;
     }
     const tile = this.map[y][x];
-    return TILES[tile].canEnter; // TODO see through trees, etc.
+    return TILES[tile].seeThrough;
   }
 
 
