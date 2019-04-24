@@ -168,6 +168,10 @@ export class View {
           continue;
         }
 
+        if (!this.world.memory[y][x]) {
+          continue;
+        }
+
         let tile = this.world.map[y][x];
         const items = this.world.findItems(x, y);
         if (items.length > 0) {
@@ -258,16 +262,20 @@ export class View {
     let items: ItemInfo[] | null = null;
     if (this.highlightPos) {
       const {x, y} = this.highlightPos;
-      terrainTile = this.world.map[y][x];
 
-      if (this.world.visibilityMap.visible(x, y)) {
-        const mob = this.world.findMob(x, y);
-        if (mob) {
-          mobTile = mob.tile;
+      if (this.world.memory[y][x]) {
+
+        terrainTile = this.world.map[y][x];
+
+        if (this.world.visibilityMap.visible(x, y)) {
+          const mob = this.world.findMob(x, y);
+          if (mob) {
+            mobTile = mob.tile;
+          }
         }
-      }
 
-      items = compactItems(this.world.findItems(x, y));
+        items = compactItems(this.world.findItems(x, y));
+      }
     }
 
     this.sidebar.setState({ inventory, terrainTile, mobTile, items });

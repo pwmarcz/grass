@@ -23,6 +23,7 @@ export class World {
   mapH: number;
   time: number;
   distanceMap: DistanceMap;
+  memory: boolean[][];
 
   // Swapped to do double-buffering.
   visibilityMap: VisibilityMap;
@@ -48,6 +49,9 @@ export class World {
     this.visibilityMap = new VisibilityMap(this.canPlayerSeeThrough.bind(this));
     this.visibilityMap.update(this.player.pos.x, this.player.pos.y);
     this.nextVisibilityMap = new VisibilityMap(this.canPlayerSeeThrough.bind(this));
+
+    this.memory = makeEmptyGrid(this.mapW, this.mapH, false);
+    this.updateMemory(this.visibilityMap);
   }
 
   turn(commands: Record<string, Command | null>): boolean {
@@ -136,6 +140,7 @@ export class World {
     if (newTile === 'DOOR_CLOSED') {
       this.map[y][x] = 'DOOR_OPEN';
       this.visibilityMap.update(this.player.pos.x, this.player.pos.y);
+      this.updateMemory(this.visibilityMap);
       mob.action = {
         type: ActionType.OPEN_DOOR,
         timeStart: this.time,
@@ -167,6 +172,19 @@ export class World {
     };
     if (mob.id === 'player') {
       this.nextVisibilityMap.update(x, y);
+      this.updateMemory(this.nextVisibilityMap);
+    }
+  }
+
+  updateMemory(vm: VisibilityMap): void {
+    for (let my = 0; my < vm.h; my++) {
+      for (let mx = 0; mx < vm.w; mx++) {
+        const x = mx + vm.x0;
+        const y = my + vm.y0;
+        if (this.inBounds(x, y)) {
+          this.memory[y][x] = this.memory[y][x] || vm.data[my][mx];
+        }
+      }
     }
   }
 
