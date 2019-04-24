@@ -24,7 +24,7 @@ export const TILES: Record<string, TileMeta> = {
   DOOR_CLOSED: new TileMeta({ id: 31, passThrough: false, seeThrough: false }),
   DOOR_OPEN: new TileMeta({ id: 32 }),
 
-  WATER_DEEP: new TileMeta({ id: 33, passThrough: false, seeThrough: false }),
+  WATER_DEEP: new TileMeta({ id: 33, passThrough: false }),
   WATER_SHALLOW: new TileMeta({ id: 34 }),
 
   STAIR_UP: new TileMeta({ id: 40 }),
