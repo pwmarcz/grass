@@ -65,16 +65,18 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
         commands.player = playerCommand;
       } else if (input.goalPos) {
         triedGoal = true;
-        const path = world.distanceMap.findPathToAdjacent(input.goalPos.x, input.goalPos.y);
-        if (path && path.length > 1) {
-          const dx = path[1].x - world.player.pos.x;
-          const dy = path[1].y - world.player.pos.y;
-          commands.player = {
-            type: CommandType.MOVE,
-            dx,
-            dy,
-          };
-          view.path = path;
+        if (world.memory[input.goalPos.y][input.goalPos.x]) {
+          const path = world.distanceMap.findPathToAdjacent(input.goalPos.x, input.goalPos.y);
+          if (path && path.length > 1) {
+            const dx = path[1].x - world.player.pos.x;
+            const dy = path[1].y - world.player.pos.y;
+            commands.player = {
+              type: CommandType.MOVE,
+              dx,
+              dy,
+            };
+            view.path = path;
+          }
         }
       } else {
         const items = world.findItems(world.player.pos.x, world.player.pos.y);
