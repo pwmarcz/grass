@@ -139,8 +139,8 @@ export class View {
       y = player.pos.y;
     }
 
-    let dx = -(x * TILE_SIZE - this.app.view.width / 2);
-    let dy = -(y * TILE_SIZE - this.app.view.height / 2);
+    let dx = -((x + 0.5) * TILE_SIZE - this.app.view.width / 2);
+    let dy = -((y + 0.5) * TILE_SIZE - this.app.view.height / 2);
 
     // Don't scroll past map edge.
     dx = clamp(dx, -this.world.mapW * TILE_SIZE + this.app.view.width, 0);
