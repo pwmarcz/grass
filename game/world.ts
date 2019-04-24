@@ -38,7 +38,7 @@ export class World {
     }
 
     this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this), this.mapW, this.mapH);
-    this.distanceMap.calculate(this.player.pos.x, this.player.pos.y);
+    this.distanceMap.update(this.player.pos.x, this.player.pos.y);
   }
 
   turn(commands: Record<string, Command | null>): boolean {
@@ -51,7 +51,7 @@ export class World {
       }
     }
     if (dirty) {
-      this.distanceMap.calculate(this.player.pos.x, this.player.pos.y);
+      this.distanceMap.update(this.player.pos.x, this.player.pos.y);
     }
 
     return dirty;

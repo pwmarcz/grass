@@ -37,6 +37,11 @@ export class DistanceMap {
   w: number;
   h: number;
 
+  private x0: number = 0;
+  private y0: number = 0;
+  private maxDist: number = 0;
+  private dirty: boolean = true;
+
   constructor(mapFunc: MapFunc, w: number, h: number) {
     this.mapFunc = mapFunc;
     this.w = w;
@@ -44,14 +49,21 @@ export class DistanceMap {
     this.data = makeEmptyGrid(this.w, this.h, -1);
   }
 
-  calculate(x0: number, y0: number, maxDist = MAX_DIST): void {
+  update(x0: number, y0: number, maxDist = MAX_DIST): void {
+    this.x0 = x0;
+    this.y0 = y0;
+    this.maxDist = maxDist;
+    this.dirty = true;
+  }
+
+  recalculate(): void {
     for (let y = 0; y < this.h; y++) {
       for (let x = 0; x < this.w; x++) {
         this.data[y][x] = -1;
       }
     }
 
-    const queue = new Denque([[x0, y0, 0]]);
+    const queue = new Denque([[this.x0, this.y0, 0]]);
     let next;
     while ((next = queue.pop())) {
       const [x, y, dist] = next;
@@ -66,15 +78,21 @@ export class DistanceMap {
 
       this.data[y][x] = dist;
 
-      if (dist < maxDist) {
+      if (dist < this.maxDist) {
         for (const pos of neighbors(x, y, this.w, this.h)) {
           queue.unshift([pos.x, pos.y, dist + 1]);
         }
       }
     }
+
+    this.dirty = false;
   }
 
   findPath(x0: number, y0: number): Pos[] | null {
+    if (this.dirty) {
+      this.recalculate();
+    }
+
     if (this.data[y0][x0] === -1) {
       return null;
     }
@@ -97,6 +115,10 @@ export class DistanceMap {
   }
 
   findPathToAdjacent(x: number, y: number): Pos[] | null {
+    if (this.dirty) {
+      this.recalculate();
+    }
+
     if (this.data[y][x] !== -1) {
       return this.findPath(x, y);
     }
