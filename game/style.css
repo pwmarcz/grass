@@ -13,7 +13,7 @@ body {
 }
 
 #game {
-  border: solid #333;
+  border: solid #444;
   border-width: 1px 0 0 1px;
 
   display: flex;
@@ -22,13 +22,13 @@ body {
 }
 
 #game > * {
-  border: solid #333;
+  border: solid #444;
   border-width: 0 1px 1px 0;
 }
 
 #app {
   width: 800px;
-  height: 640px;
+  height: 672px;
 }
 
 #info {
