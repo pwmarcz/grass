@@ -29,6 +29,8 @@ function neighbors(x0: number, y0: number, w: number, h: number):
   return result;
 }
 
+const MAX_DIST = 20;
+
 export class DistanceMap {
   data: number[][];
   mapFunc: MapFunc;
@@ -42,7 +44,7 @@ export class DistanceMap {
     this.data = makeEmptyGrid(this.w, this.h, -1);
   }
 
-  calculate(x0: number, y0: number): void {
+  calculate(x0: number, y0: number, maxDist = MAX_DIST): void {
     for (let y = 0; y < this.h; y++) {
       for (let x = 0; x < this.w; x++) {
         this.data[y][x] = -1;
@@ -64,8 +66,10 @@ export class DistanceMap {
 
       this.data[y][x] = dist;
 
-      for (const pos of neighbors(x, y, this.w, this.h)) {
-        queue.unshift([pos.x, pos.y, dist + 1]);
+      if (dist < maxDist) {
+        for (const pos of neighbors(x, y, this.w, this.h)) {
+          queue.unshift([pos.x, pos.y, dist + 1]);
+        }
       }
     }
   }
