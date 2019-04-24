@@ -1,4 +1,5 @@
 import './lib/normalize.css';
+import './style.css';
 
 // @ts-ignore
 import mapFile1 from './map.auto.xml';
