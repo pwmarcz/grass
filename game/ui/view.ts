@@ -68,7 +68,7 @@ export class View {
     .then(sidebar => this.sidebar = sidebar);
   }
 
-  private redrawMob(mob: Mob, time: number, alphaMap: number[][]): void {
+  private redrawMob(mob: Mob, time: number, alphaMap: number[][], movement: Movement): void {
     const sprite = this.mobLayer.make(mob.id, PIXI.Sprite, sprite => {
       sprite.texture = TILE_TEXTURES[mob.tile];
     });
@@ -78,12 +78,20 @@ export class View {
       actionTime = (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
     }
 
+    const a1 = this.getVisibilityMultiplier(mob.pos.x, mob.pos.y, movement, 0);
+    if (mob.action && mob.action.type === ActionType.MOVE) {
+      const a2 = this.getVisibilityMultiplier(mob.action.pos.x, mob.action.pos.y, movement, 0);
+      sprite.alpha = lerp(a1, a2, actionTime);
+    } else {
+      sprite.alpha = a1;
+    }
+
     if (mob.action && mob.action.type === ActionType.MOVE) {
       sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, actionTime);
       sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, actionTime);
 
-      alphaMap[mob.pos.y][mob.pos.x] = actionTime;
-      alphaMap[mob.action.pos.y][mob.action.pos.x] = 1 - actionTime;
+      alphaMap[mob.pos.y][mob.pos.x] = lerp(1, actionTime, sprite.alpha);
+      alphaMap[mob.action.pos.y][mob.action.pos.x] = lerp(1, 1 - actionTime, sprite.alpha);
     } else if (mob.action && mob.action.type === ActionType.ATTACK) {
       let distance: number;
       if (actionTime <= ATTACK_START_TIME) {
@@ -95,12 +103,12 @@ export class View {
       sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, distance);
       sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, distance);
 
-      alphaMap[mob.pos.y][mob.pos.x] = 0;
+      alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
     } else {
       sprite.x = mob.pos.x * TILE_SIZE;
       sprite.y = mob.pos.y * TILE_SIZE;
 
-      alphaMap[mob.pos.y][mob.pos.x] = 0;
+      alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
     }
   }
 
@@ -117,7 +125,7 @@ export class View {
 
     const alphaMap = makeEmptyGrid(this.world.mapW, this.world.mapH, 1);
     for (const mob of this.world.mobs) {
-      this.redrawMob(mob, time, alphaMap);
+      this.redrawMob(mob, time, alphaMap, movement);
     }
     this.redrawMap(alphaMap, movement);
 
@@ -198,16 +206,19 @@ export class View {
     return {x0, y0, x1, y1, t};
   }
 
-  getVisibilityMultiplier(x: number, y: number, {t}: Movement): number {
+  getVisibilityMultiplier(
+    x: number, y: number, {t}: Movement,
+    darkAlpha = DARK_ALPHA
+  ): number {
     const visible = this.world.visibilityMap.visible(x, y);
-    const multiplier = visible ? 1 : DARK_ALPHA;
+    const multiplier = visible ? 1 : darkAlpha;
 
     if (t === 0) {
       return multiplier;
     }
 
     const nextVisible = this.world.nextVisibilityMap.visible(x, y);
-    const nextMultiplier = nextVisible ? 1 : DARK_ALPHA;
+    const nextMultiplier = nextVisible ? 1 : darkAlpha;
     return lerp(multiplier, nextMultiplier, t);
   }
 
