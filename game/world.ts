@@ -1,6 +1,7 @@
 import { TILES } from './tiles';
 import { DistanceMap } from './path';
 import { Command, Mob, CommandType, ActionType, Item } from './types';
+import { makeEmptyGrid } from './utils';
 
 const MOVEMENT_TIME: Record<string, number> = {
   'HUMAN': 10,
@@ -13,6 +14,7 @@ const PICK_UP_TIME = 20;
 
 export class World {
   map: string[][];
+  mobMap: (Mob | null)[][];
   mobs: Mob[];
   items: Item[];
   player: Mob;
@@ -29,6 +31,11 @@ export class World {
     this.mapH = this.map.length;
     this.mapW = this.map[0].length;
     this.time = 0;
+
+    this.mobMap = makeEmptyGrid(this.mapW, this.mapH, null);
+    for (const mob of this.mobs) {
+      this.mobMap[mob.pos.y][mob.pos.x] = mob;
+    }
 
     this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this), this.mapW, this.mapH);
     this.distanceMap.calculate(this.player.pos.x, this.player.pos.y);
@@ -59,6 +66,7 @@ export class World {
 
       switch (mob.action.type) {
         case ActionType.MOVE:
+          this.mobMap[mob.pos.y][mob.pos.x] = null;
           mob.pos = mob.action.pos;
           break;
         case ActionType.PICK_UP: {
@@ -133,6 +141,7 @@ export class World {
       return;
     }
 
+    this.mobMap[y][x] = mob;
     mob.action = {
       type: ActionType.MOVE,
       pos: {x, y},
@@ -173,15 +182,7 @@ export class World {
   }
 
   findMob(x: number, y: number): Mob | null {
-    for (const mob of this.mobs) {
-      if (mob.pos.x === x && mob.pos.y === y) {
-        return mob;
-      }
-      if (mob.action && mob.action.type === ActionType.MOVE && mob.action.pos.x === x && mob.action.pos.y === y) {
-        return mob;
-      }
-    }
-    return null;
+    return this.mobMap[y][x];
   }
 
   findItems(x: number, y: number): Item[] {
