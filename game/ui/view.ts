@@ -3,7 +3,7 @@ import { TILE_SIZE, TILE_TEXTURES } from './textures';
 import { World } from '../world';
 import { ActionType, Mob, Pos } from '../types';
 import { makeEmptyGrid, renderWithRef } from '../utils';
-import { Sidebar } from './sidebar';
+import { Sidebar, compactItems, ItemInfo } from './sidebar';
 import { h } from 'preact';
 import { StringRenderer, IndexRenderer } from './renderer';
 
@@ -205,11 +205,12 @@ export class View {
       return;
     }
 
-    const inventory = this.world.findMobItems(this.world.player).map(item => item.tile);
+    const inventory = compactItems(
+      this.world.findMobItems(this.world.player));
 
     let terrainTile: string | null = null;
     let mobTile: string | null = null;
-    let itemTiles: string[] | null = null;
+    let items: ItemInfo[] | null = null;
     if (this.highlightPos) {
       const {x, y} = this.highlightPos;
       terrainTile = this.world.map[y][x];
@@ -217,10 +218,10 @@ export class View {
       if (mob) {
         mobTile = mob.tile;
       }
-      itemTiles = this.world.findItems(x, y).map(item => item.tile);
+      items = compactItems(this.world.findItems(x, y));
     }
 
-    this.sidebar.setState({ inventory, terrainTile, mobTile, itemTiles });
+    this.sidebar.setState({ inventory, terrainTile, mobTile, items });
   }
 
   calculatePath(): void {
