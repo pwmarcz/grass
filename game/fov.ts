@@ -122,6 +122,7 @@ export class VisibilityMap {
   }
 
   inRadius(dx: number, dy: number): boolean {
-    return dx * dx + dy * dy <= this.radius * this.radius;
+    const r = this.radius + 1;
+    return dx * dx + dy * dy < r * r;
   }
 }
