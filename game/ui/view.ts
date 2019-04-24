@@ -18,6 +18,14 @@ function clamp(a: number, min: number, max: number): number {
   return Math.max(min, Math.min(a, max));
 }
 
+interface Movement {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  t: number;
+}
+
 export class View {
   private world: World;
   private element: Element;
@@ -96,7 +104,8 @@ export class View {
   }
 
   redraw(dirty: boolean, time: number): void {
-    this.updateViewport(time);
+    const movement = this.getMovement(time);
+    this.updateViewport(movement);
 
     if (dirty) {
       this.redrawInfo();
@@ -109,7 +118,7 @@ export class View {
     for (const mob of this.world.mobs) {
       this.redrawMob(mob, time, alphaMap);
     }
-    this.redrawMap(alphaMap);
+    this.redrawMap(alphaMap, movement);
 
     this.backLayer.flush();
     this.mapLayer.flush();
@@ -126,18 +135,11 @@ export class View {
     );
   }
 
-  updateViewport(time: number): void {
-    const player = this.world.player;
+  updateViewport(movement: Movement): void {
+    const {x0, y0, x1, y1, t} = movement;
 
-    let x: number, y: number;
-    if (player.action && player.action.type === ActionType.MOVE) {
-      const actionTime = (time - player.action.timeStart) / (player.action.timeEnd - player.action.timeStart);
-      x = lerp(player.pos.x, player.action.pos.x, actionTime);
-      y = lerp(player.pos.y, player.action.pos.y, actionTime);
-    } else {
-      x = player.pos.x;
-      y = player.pos.y;
-    }
+    const x = lerp(x0, x1, t);
+    const y = lerp(y0, y1, t);
 
     let dx = -((x + 0.5) * TILE_SIZE - this.app.view.width / 2);
     let dy = -((y + 0.5) * TILE_SIZE - this.app.view.height / 2);
@@ -150,7 +152,7 @@ export class View {
     this.app.stage.y = dy;
   }
 
-  redrawMap(alphaMap: number[][]): void {
+  redrawMap(alphaMap: number[][], movement: Movement): void {
     for (let y = 0; y < this.world.mapH; y++) {
       for (let x = 0; x < this.world.mapW; x++) {
         if (!this.shouldDrawTile(x, y)) {
@@ -169,11 +171,43 @@ export class View {
             sprite.y = y * TILE_SIZE;
           });
 
-          sprite.alpha = alphaMap[y][x];
+          sprite.alpha = alphaMap[y][x] * this.getVisibilityMultiplier(x, y, movement);
           sprite.texture = TILE_TEXTURES[tile];
         }
       }
     }
+  }
+
+  getMovement(time: number): Movement {
+    const player = this.world.player;
+
+    const x0 = player.pos.x, y0 = player.pos.y;
+    let x1: number, y1: number;
+    let t: number;
+    if (player.action && player.action.type === ActionType.MOVE) {
+      t = (time - player.action.timeStart) / (player.action.timeEnd - player.action.timeStart);
+      x1 = player.action.pos.x;
+      y1 = player.action.pos.y;
+    } else {
+      x1 = x0;
+      y1 = y0;
+      t = 0;
+    }
+
+    return {x0, y0, x1, y1, t};
+  }
+
+  getVisibilityMultiplier(x: number, y: number, {t}: Movement): number {
+    const visible = this.world.visibilityMap.visible(x, y);
+    const multiplier = visible ? 1 : 0.2;
+
+    if (t === 0) {
+      return multiplier;
+    }
+
+    const nextVisible = this.world.nextVisibilityMap.visible(x, y);
+    const nextMultiplier = nextVisible ? 1 : 0.2;
+    return lerp(multiplier, nextMultiplier, t);
   }
 
   redrawHighlight(): void {

@@ -2,6 +2,7 @@ import { TILES } from './tiles';
 import { DistanceMap } from './path';
 import { Command, Mob, CommandType, ActionType, Item } from './types';
 import { makeEmptyGrid } from './utils';
+import { VisibilityMap } from './fov';
 
 const MOVEMENT_TIME: Record<string, number> = {
   'HUMAN': 10,
@@ -23,6 +24,10 @@ export class World {
   time: number;
   distanceMap: DistanceMap;
 
+  // Swapped to do double-buffering.
+  visibilityMap: VisibilityMap;
+  nextVisibilityMap: VisibilityMap;
+
   constructor(map: string[][], mobs: Mob[], items: Item[]) {
     this.map = map;
     this.mobs = mobs;
@@ -39,6 +44,10 @@ export class World {
 
     this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this), this.mapW, this.mapH);
     this.distanceMap.update(this.player.pos.x, this.player.pos.y);
+
+    this.visibilityMap = new VisibilityMap(this.canPlayerSeeThrough.bind(this));
+    this.visibilityMap.update(this.player.pos.x, this.player.pos.y);
+    this.nextVisibilityMap = new VisibilityMap(this.canPlayerSeeThrough.bind(this));
   }
 
   turn(commands: Record<string, Command | null>): boolean {
@@ -65,10 +74,17 @@ export class World {
       }
 
       switch (mob.action.type) {
-        case ActionType.MOVE:
+        case ActionType.MOVE: {
           this.mobMap[mob.pos.y][mob.pos.x] = null;
           mob.pos = mob.action.pos;
+
+          if (mob.id === 'player') {
+            const temp = this.visibilityMap;
+            this.visibilityMap = this.nextVisibilityMap;
+            this.nextVisibilityMap = temp;
+          }
           break;
+        }
         case ActionType.PICK_UP: {
           const itemId = mob.action.itemId;
           const item = this.items.find(item => item.id === itemId)!;
@@ -119,6 +135,7 @@ export class World {
 
     if (newTile === 'DOOR_CLOSED') {
       this.map[y][x] = 'DOOR_OPEN';
+      this.visibilityMap.update(this.player.pos.x, this.player.pos.y);
       mob.action = {
         type: ActionType.OPEN_DOOR,
         timeStart: this.time,
@@ -148,6 +165,9 @@ export class World {
       timeStart: this.time,
       timeEnd: this.time + MOVEMENT_TIME[mob.tile],
     };
+    if (mob.id === 'player') {
+      this.nextVisibilityMap.update(x, y);
+    }
   }
 
   canMove(x: number, y: number): boolean {
@@ -180,6 +200,15 @@ export class World {
 
     return true;
   }
+
+  canPlayerSeeThrough(x: number, y: number): boolean {
+    if (!this.inBounds(x, y)) {
+      return false;
+    }
+    const tile = this.map[y][x];
+    return TILES[tile].canEnter; // TODO see through trees, etc.
+  }
+
 
   findMob(x: number, y: number): Mob | null {
     return this.mobMap[y][x];

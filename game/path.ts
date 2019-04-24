@@ -1,8 +1,7 @@
 import { Pos } from "./types";
 import { makeEmptyGrid } from "./utils";
 import Denque from 'denque';
-
-type MapFunc = (x: number, y: number) => boolean;
+import { MapFunc } from './types';
 
 const NEIGHBORS = [
   // Prefer straight lines...
@@ -32,10 +31,10 @@ function neighbors(x0: number, y0: number, w: number, h: number):
 const MAX_DIST = 40;
 
 export class DistanceMap {
-  data: number[][];
-  mapFunc: MapFunc;
-  w: number;
-  h: number;
+  readonly data: number[][];
+  readonly mapFunc: MapFunc;
+  readonly w: number;
+  readonly h: number;
 
   private x0: number = 0;
   private y0: number = 0;
