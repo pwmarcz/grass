@@ -14,6 +14,10 @@ function lerp(a: number, b: number, t: number): number {
   return a * (1 - t) + b * t;
 }
 
+function clamp(a: number, min: number, max: number): number {
+  return Math.max(min, Math.min(a, max));
+}
+
 export class View {
   private world: World;
   private element: Element;
@@ -93,6 +97,8 @@ export class View {
   }
 
   redraw(dirty: boolean, time: number): void {
+    this.updateViewport(time);
+
     if (dirty) {
       this.calculatePath();
       this.redrawInfo();
@@ -111,6 +117,30 @@ export class View {
     this.mapLayer.flush();
     this.mobLayer.flush();
     this.frontLayer.flush();
+  }
+
+  updateViewport(time: number): void {
+    const player = this.world.player;
+
+    let x: number, y: number;
+    if (player.action && player.action.type === ActionType.MOVE) {
+      const actionTime = (time - player.action.timeStart) / (player.action.timeEnd - player.action.timeStart);
+      x = lerp(player.pos.x, player.action.pos.x, actionTime);
+      y = lerp(player.pos.y, player.action.pos.y, actionTime);
+    } else {
+      x = player.pos.x;
+      y = player.pos.y;
+    }
+
+    let dx = -(x * TILE_SIZE - this.app.view.width / 2);
+    let dy = -(y * TILE_SIZE - this.app.view.height / 2);
+
+    // Don't scroll past map edge.
+    dx = clamp(dx, -this.world.mapW * TILE_SIZE + this.app.view.width, 0);
+    dy = clamp(dy, -this.world.mapH * TILE_SIZE + this.app.view.height, 0);
+
+    this.app.stage.x = dx;
+    this.app.stage.y = dy;
   }
 
   redrawMap(alphaMap: number[][]): void {
