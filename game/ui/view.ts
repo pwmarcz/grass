@@ -168,7 +168,8 @@ export class View {
           continue;
         }
 
-        if (!this.world.memory[y][x]) {
+        const multiplier = this.getVisibilityMultiplier(x, y, movement);
+        if (multiplier === 0) {
           continue;
         }
 
@@ -184,7 +185,7 @@ export class View {
             sprite.y = y * TILE_SIZE;
           });
 
-          sprite.alpha = alphaMap[y][x] * this.getVisibilityMultiplier(x, y, movement);
+          sprite.alpha = alphaMap[y][x] * multiplier;
           sprite.texture = TILE_TEXTURES[tile];
         }
       }
@@ -215,14 +216,15 @@ export class View {
     darkAlpha = DARK_ALPHA
   ): number {
     const visible = this.world.visibilityMap.visible(x, y);
-    const multiplier = visible ? 1 : darkAlpha;
+    const remembered = this.world.memory[y][x];
+    const multiplier = visible ? 1 : remembered ? darkAlpha : 0;
 
     if (t === 0) {
       return multiplier;
     }
 
     const nextVisible = this.world.nextVisibilityMap.visible(x, y);
-    const nextMultiplier = nextVisible ? 1 : darkAlpha;
+    const nextMultiplier = nextVisible ? 1 : remembered ? darkAlpha : 0;
     return lerp(multiplier, nextMultiplier, t);
   }
 

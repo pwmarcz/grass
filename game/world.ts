@@ -86,6 +86,7 @@ export class World {
             const temp = this.visibilityMap;
             this.visibilityMap = this.nextVisibilityMap;
             this.nextVisibilityMap = temp;
+            this.updateMemory(this.visibilityMap);
           }
           break;
         }
@@ -172,7 +173,6 @@ export class World {
     };
     if (mob.id === 'player') {
       this.nextVisibilityMap.update(x, y);
-      this.updateMemory(this.nextVisibilityMap);
     }
   }
 
