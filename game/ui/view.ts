@@ -259,10 +259,14 @@ export class View {
     if (this.highlightPos) {
       const {x, y} = this.highlightPos;
       terrainTile = this.world.map[y][x];
-      const mob = this.world.findMob(x, y);
-      if (mob) {
-        mobTile = mob.tile;
+
+      if (this.world.visibilityMap.visible(x, y)) {
+        const mob = this.world.findMob(x, y);
+        if (mob) {
+          mobTile = mob.tile;
+        }
       }
+
       items = compactItems(this.world.findItems(x, y));
     }
 
