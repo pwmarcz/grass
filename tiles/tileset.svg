@@ -14,7 +14,7 @@
    viewBox="0 0 320 320.00001"
    id="svg3336"
    version="1.1"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
    sodipodi:docname="tileset.svg"
    inkscape:export-filename="C:\Dropbox\grass\tiles\tileset.png"
    inkscape:export-xdpi="90"
@@ -29,17 +29,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.0000001"
-     inkscape:cx="7.8250566"
-     inkscape:cy="74.058492"
+     inkscape:zoom="45.254836"
+     inkscape:cx="83.325328"
+     inkscape:cy="149.195"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
      units="px"
-     inkscape:window-width="1600"
-     inkscape:window-height="1116"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
+     inkscape:window-width="1920"
+     inkscape:window-height="996"
+     inkscape:window-x="0"
+     inkscape:window-y="28"
      inkscape:window-maximized="1"
      inkscape:snap-bbox="true"
      inkscape:snap-object-midpoints="false"
@@ -83,7 +83,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -389,6 +389,17 @@
        cy="901.86218"
        rx="2.875"
        ry="2.9999843" />
+    <path
+       style="fill:#969696;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 80 162 C 75.227392 162 66 165 66 165 C 66 165 65.105379 174.08857 67 178 C 69.570812 183.30742 80 190 80 190 C 80 190 90.429188 183.30742 93 178 C 94.894624 174.08857 94 165 94 165 C 94 165 84.772607 162 80 162 z M 80 164 C 84.090602 164 92 166.5 92 166.5 C 92 166.5 92.623882 173.64751 91 177 C 88.796557 181.54899 80 187 80 187 C 80 187 71.203443 181.54899 69 177 C 67.37612 173.64751 68 166.5 68 166.5 C 68 166.5 75.909398 164 80 164 z "
+       transform="translate(0,732.36216)"
+       id="path864" />
+    <path
+       style="fill:#969696;fill-opacity:1;stroke:none;stroke-width:0.78570002px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 69,899.36216 c 0,0 7.25016,-2 11,-2 3.74984,0 11,2 11,2 0,0 0.4886,6.92679 -1,10 -2.01989,4.17004 -10,9 -10,9 0,0 -7.980113,-4.82997 -10,-9.00001 -1.488604,-3.07321 -1,-10 -1,-10"
+       id="path864-1"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cscscsc" />
   </g>
   <g
      inkscape:groupmode="layer"

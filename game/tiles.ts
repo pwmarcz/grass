@@ -35,4 +35,5 @@ export const TILES: Record<string, TileMeta> = {
   GOLD: new TileMeta({ id: 0 }),
   KEY: new TileMeta({ id: 50 }),
   SWORD: new TileMeta({ id: 51 }),
+  SHIELD: new TileMeta({ id: 52 }),
 };
