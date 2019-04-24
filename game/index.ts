@@ -67,6 +67,7 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
             dx,
             dy,
           };
+          view.path = path;
         }
       } else {
         const items = world.findItems(world.player.pos.x, world.player.pos.y);
@@ -92,6 +93,7 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
 
     if (triedGoal && !world.player.action) {
       input.goalPos = null;
+      view.path = null;
     }
   }
 

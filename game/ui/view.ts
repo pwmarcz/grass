@@ -99,7 +99,6 @@ export class View {
     this.updateViewport(time);
 
     if (dirty) {
-      this.calculatePath();
       this.redrawInfo();
     }
     this.redrawHighlight();
@@ -222,14 +221,6 @@ export class View {
     }
 
     this.sidebar.setState({ inventory, terrainTile, mobTile, items });
-  }
-
-  calculatePath(): void {
-    if (this.goalPos) {
-      this.path = this.world.distanceMap.findPathToAdjacent(this.goalPos.x, this.goalPos.y);
-    } else {
-      this.path = null;
-    }
   }
 
   redrawPath(): void {
