@@ -1,6 +1,5 @@
 body {
   background: black;
-  padding: 1em;
   font-family: 'Inconsolata', monospace;
 }
 
@@ -22,7 +21,6 @@ body {
 #app {
   width: 800px;
   height: 640px;
-  border-right: solid 1px #333;
 }
 
 #info {
@@ -62,4 +60,11 @@ body {
 
 .tile-row > .tile {
   margin-right: 10px;
+}
+
+@media screen and (max-width: 450px) {
+  .container { width: 500px; }
+  #app { width: auto; height: 480px; }
+  #game { flex-direction: column; }
+  h1 { margin: 0; }
 }
