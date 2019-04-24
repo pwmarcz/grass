@@ -15,9 +15,15 @@ import { loadTextures } from './ui/textures';
 import { posEqual } from './utils';
 
 let mapFile = mapFile1;
+let speed = 1;
+
 const parsedUrl = new URL(window.location.href);
 if (parsedUrl.searchParams.get('map') === '2') {
   mapFile = mapFile2;
+}
+
+if (parsedUrl.searchParams.get('speed') !== null) {
+  speed = parseFloat(parsedUrl.searchParams.get('speed')!);
 }
 
 const appElement = document.getElementById('app');
@@ -45,7 +51,7 @@ Promise.all([mapPromise, loadPromise])
 let time = 0;
 
 function gameLoop(world: World, input: Input, view: View, delta: number): void {
-  time += delta;
+  time += delta * speed;
   let dirty = false;
 
   while (world.time < Math.floor(time)) {
