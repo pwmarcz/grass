@@ -34,7 +34,6 @@ export class View {
   goalPos: Pos | null = null;
   path: Pos[] | null = null;
 
-
   constructor(world: World, element: Element, infoElement: Element) {
     this.world = world;
     this.element = element;
@@ -119,6 +118,15 @@ export class View {
     this.frontLayer.flush();
   }
 
+  shouldDrawTile(x: number, y: number): boolean {
+    const x0 = x * TILE_SIZE + this.app.stage.position.x;
+    const y0 = y * TILE_SIZE + this.app.stage.position.y;
+    return (
+      -TILE_SIZE < x0 && x0 < this.app.view.width &&
+      -TILE_SIZE < y0 && y0 < this.app.view.height
+    );
+  }
+
   updateViewport(time: number): void {
     const player = this.world.player;
 
@@ -146,6 +154,10 @@ export class View {
   redrawMap(alphaMap: number[][]): void {
     for (let y = 0; y < this.world.mapH; y++) {
       for (let x = 0; x < this.world.mapW; x++) {
+        if (!this.shouldDrawTile(x, y)) {
+          continue;
+        }
+
         let tile = this.world.map[y][x];
         const items = this.world.findItems(x, y);
         if (items.length > 0) {
