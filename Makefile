@@ -3,8 +3,6 @@ all: files
 
 TS_FILES=$(shell find game/ -name '*.ts' -or -name '*.tsx')
 
-MAPS = $(patsubst tiles/%.tmx,game/%.auto.xml,$(wildcard tiles/*.tmx))
-
 .PHONY: files
 files: game/tileset.auto.png game/icon.auto.png $(MAPS)
 
@@ -26,8 +24,5 @@ deploy: check dist
 serve: files
 	./node_modules/.bin/parcel game/index.html
 
-game/%.auto.png: tiles/%.svg
+game/%.auto.png: game/%.svg
 	inkscape $< --export-png=$@
-
-game/%.auto.xml: tiles/%.tmx
-	cp $< $@

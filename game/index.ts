@@ -2,9 +2,9 @@ import './lib/normalize.css';
 import './style.css';
 
 // @ts-ignore
-import mapFile1 from './map.auto.xml';
+import mapFile1 from './maps/map1.xml';
 // @ts-ignore
-import mapFile2 from './map2.auto.xml';
+import mapFile2 from './maps/map2.xml';
 
 import { loadMap } from './map-loader';
 import { View } from './ui/view';
