@@ -1,6 +1,6 @@
 import { Component, ComponentChild, h, VNode } from 'preact';
 import { TILES } from '../tiles';
-import { TILE_SIZE, RESOLUTION } from './textures';
+import { TILE_SIZE } from './textures';
 import { Item } from '../types';
 
 export interface ItemInfo {
@@ -75,7 +75,7 @@ function Tile({tile}: { tile: string }): preact.VNode {
   const x = (id % 10) * TILE_SIZE, y = Math.floor(id / 10) * TILE_SIZE;
 
   return h('span', {
-    className: 'tile tile-res-' + RESOLUTION,
+    className: 'tile',
     style: {
       backgroundPositionX: -x + 'px',
       backgroundPositionY: -y + 'px',

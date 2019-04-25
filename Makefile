@@ -5,7 +5,7 @@ TS_FILES = $(shell find game/ -name '*.ts' -or -name '*.tsx')
 
 ICONS = game/icon-16.auto.png game/icon-32.auto.png game/icon-96.auto.png
 
-TILESETS = game/tileset-32.auto.png game/tileset-64.auto.png game/tileset-128.auto.png
+TILESETS = game/tileset.auto.svg
 
 .PHONY: files
 files: game/tileset.auto.png $(ICONS) $(TILESETS)
@@ -31,5 +31,5 @@ serve: files
 game/icon-%.auto.png: game/icon.svg
 	inkscape $< --export-png=$@ --export-width=$*
 
-game/tileset-%.auto.png: game/tileset.svg
-	inkscape $< --export-png=$@ --export-width=$$(( $* * 10 ))
+game/tileset.auto.svg: game/tileset.svg
+	inkscape $< --export-plain-svg=$@ --export-text-to-path
