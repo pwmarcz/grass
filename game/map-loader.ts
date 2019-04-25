@@ -1,6 +1,7 @@
 import { TILES } from './tiles';
 import { Mob, Item } from './types';
 import { makeEmptyGrid } from './utils';
+import { Terrain } from './terrain';
 
 function parseTmx(xml: string): { width: number; height: number; layers: number[][] } {
   const parser = new DOMParser;
@@ -29,7 +30,7 @@ function getTile(x: number, y: number, width: number, layer: number[]): string |
 }
 
 export function loadMap(xml: string):
- { map: string[][]; mobs: Mob[]; items: Item[] } {
+ { map: Terrain[][]; mobs: Mob[]; items: Item[] } {
   const { width, height, layers } = parseTmx(xml);
   const terrainLayer = layers[1];
   const itemLayer = layers[2];
@@ -40,12 +41,12 @@ export function loadMap(xml: string):
   const items: Item[] = [];
   let itemCounter = 0;
 
-  const map: string[][] = makeEmptyGrid(width, height, '');
+  const map: Terrain[][] = makeEmptyGrid(width, height, Terrain.EMPTY);
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const terrainTile = getTile(x, y, width, terrainLayer);
-      map[y][x] = terrainTile || 'WALL';
+      map[y][x] = terrainTile as Terrain || Terrain.WALL;
 
       const mobTile = getTile(x, y, width, mobLayer);
       if (mobTile) {

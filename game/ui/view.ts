@@ -6,6 +6,7 @@ import { makeEmptyGrid, renderWithRef } from '../utils';
 import { Sidebar, compactItems, ItemInfo } from './sidebar';
 import { h } from 'preact';
 import { StringRenderer, IndexRenderer } from './renderer';
+import { Terrain } from '../terrain';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -182,7 +183,7 @@ export class View {
           continue;
         }
 
-        let tile = this.world.map[y][x];
+        let tile = Terrain.tile(this.world.map[y][x]);
         const items = this.world.findItems(x, y);
         if (items.length > 0) {
           tile = items[items.length - 1].tile;

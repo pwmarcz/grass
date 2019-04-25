@@ -1,8 +1,8 @@
-import { TILES } from './tiles';
 import { DistanceMap } from './path';
 import { Command, Mob, CommandType, ActionType, Item } from './types';
 import { makeEmptyGrid } from './utils';
 import { VisibilityMap } from './fov';
+import { Terrain } from './terrain';
 
 const MOVEMENT_TIME: Record<string, number> = {
   'HUMAN': 10,
@@ -14,7 +14,7 @@ const ATTACK_TIME = 45;
 const PICK_UP_TIME = 20;
 
 export class World {
-  map: string[][];
+  map: Terrain[][];
   mobMap: (Mob | null)[][];
   mobs: Mob[];
   items: Item[];
@@ -29,7 +29,7 @@ export class World {
   visibilityMap: VisibilityMap;
   nextVisibilityMap: VisibilityMap;
 
-  constructor(map: string[][], mobs: Mob[], items: Item[]) {
+  constructor(map: Terrain[][], mobs: Mob[], items: Item[]) {
     this.map = map;
     this.mobs = mobs;
     this.items = items;
@@ -136,10 +136,10 @@ export class World {
       return;
     }
 
-    const newTile = this.map[y][x];
+    const newTerrain = this.map[y][x];
 
-    if (newTile === 'DOOR_CLOSED') {
-      this.map[y][x] = 'DOOR_OPEN';
+    if (newTerrain === Terrain.DOOR_CLOSED) {
+      this.map[y][x] = Terrain.DOOR_OPEN;
       this.visibilityMap.update(this.player.pos.x, this.player.pos.y);
       this.updateMemory(this.visibilityMap);
       mob.action = {
@@ -189,16 +189,7 @@ export class World {
   }
 
   canMove(x: number, y: number): boolean {
-    if (!this.inBounds(x, y)) {
-      return false;
-    }
-
-    const newTile = this.map[y][x];
-    if (!TILES[newTile].passThrough) {
-      return false;
-    }
-
-    return true;
+    return this.inBounds(x, y) && Terrain.passThrough(this.map[y][x]);
   }
 
   canPlayerPath(x: number, y: number): boolean {
@@ -211,20 +202,11 @@ export class World {
       return false;
     }
 
-    const newTile = this.map[y][x];
-    if (!(TILES[newTile].passThrough || newTile === 'DOOR_CLOSED')) {
-      return false;
-    }
-
-    return true;
+    return Terrain.passThrough(this.map[y][x]);
   }
 
   canPlayerSeeThrough(x: number, y: number): boolean {
-    if (!this.inBounds(x, y)) {
-      return false;
-    }
-    const tile = this.map[y][x];
-    return TILES[tile].seeThrough;
+    return this.inBounds(x, y) && Terrain.seeThrough(this.map[y][x]);
   }
 
 
