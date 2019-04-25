@@ -3,8 +3,10 @@ all: files
 
 TS_FILES=$(shell find game/ -name '*.ts' -or -name '*.tsx')
 
+ICONS=game/icon-16.auto.png game/icon-32.auto.png game/icon-96.auto.png
+
 .PHONY: files
-files: game/tileset.auto.png game/icon.auto.png $(MAPS)
+files: game/tileset.auto.png $(ICONS)
 
 .PHONY: check
 check:
@@ -24,5 +26,5 @@ deploy: check dist
 serve: files
 	./node_modules/.bin/parcel game/index.html
 
-game/%.auto.png: game/%.svg
-	inkscape $< --export-png=$@
+game/icon-%.auto.png: game/icon.svg
+	inkscape $< --export-png=$@ --export-width=$*
