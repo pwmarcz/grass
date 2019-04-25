@@ -2,19 +2,25 @@
 import tilesetImage32 from '../tileset-32.auto.png';
 // @ts-ignore
 import tilesetImage64 from '../tileset-64.auto.png';
+// @ts-ignore
+import tilesetImage128 from '../tileset-128.auto.png';
 
 import * as PIXI from 'pixi.js';
 import { TILES } from '../tiles';
 
 export const TILE_SIZE = 32;
-export const RESOLUTION = window.devicePixelRatio >= 2 ? 2 : 1;
+export const [RESOLUTION, TILESET_IMAGE] = (function() {
+  const ratio = window.devicePixelRatio;
+  if (ratio > 2) {
+    return [4, tilesetImage128];
+  } else if (ratio > 1) {
+    return [2, tilesetImage64];
+  } else {
+    return [1, tilesetImage32];
+  }
+})();
 
 export const TEXTURE_SIZE = RESOLUTION * TILE_SIZE;
-
-export const TILESET_IMAGE = {
-  1: tilesetImage32,
-  2: tilesetImage64,
-}[RESOLUTION];
 
 export const TILE_TEXTURES: Record<string, PIXI.Texture> = {};
 

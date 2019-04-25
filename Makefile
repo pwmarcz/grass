@@ -5,7 +5,7 @@ TS_FILES = $(shell find game/ -name '*.ts' -or -name '*.tsx')
 
 ICONS = game/icon-16.auto.png game/icon-32.auto.png game/icon-96.auto.png
 
-TILESETS = game/tileset-32.auto.png game/tileset-64.auto.png
+TILESETS = game/tileset-32.auto.png game/tileset-64.auto.png game/tileset-128.auto.png
 
 .PHONY: files
 files: game/tileset.auto.png $(ICONS) $(TILESETS)
