@@ -8,7 +8,7 @@ ICONS = game/icon-16.auto.png game/icon-32.auto.png game/icon-96.auto.png
 TILESETS = game/tileset.auto.svg
 
 .PHONY: files
-files: game/tileset.auto.png $(ICONS) $(TILESETS)
+files: $(ICONS) $(TILESETS)
 
 .PHONY: check
 check:
