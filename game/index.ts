@@ -62,6 +62,7 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
       const playerCommand = input.getCommand();
       if (playerCommand) {
         input.goalPos = null;
+        view.path = null;
         commands.player = playerCommand;
       } else if (input.goalPos) {
         triedGoal = true;
