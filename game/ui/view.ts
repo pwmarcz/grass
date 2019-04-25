@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { TILE_SIZE, TILE_TEXTURES } from './textures';
+import { TILE_SIZE, TILE_TEXTURES, RESOLUTION } from './textures';
 import { World } from '../world';
 import { ActionType, Mob, Pos } from '../types';
 import { makeEmptyGrid, renderWithRef } from '../utils';
@@ -34,6 +34,9 @@ export class View {
   app: PIXI.Application;
   private sidebar: Sidebar | null = null;
 
+  private width: number;
+  private height: number;
+
   private backLayer: StringRenderer;
   private mapLayer: IndexRenderer;
   private mobLayer: StringRenderer;
@@ -48,9 +51,13 @@ export class View {
     this.element = element;
     this.infoElement = infoElement;
 
+    this.width = this.element.clientWidth;
+    this.height = this.element.clientHeight;
     this.app = new PIXI.Application({
-      width: this.element.clientWidth,
-      height: this.element.clientHeight,
+      width: this.width,
+      height: this.height,
+      resolution: RESOLUTION,
+      autoResize: true,
     });
 
     this.backLayer = new StringRenderer(this.app.stage);
@@ -71,6 +78,8 @@ export class View {
   private redrawMob(mob: Mob, time: number, alphaMap: number[][], movement: Movement): void {
     const sprite = this.mobLayer.make(mob.id, PIXI.Sprite, sprite => {
       sprite.texture = TILE_TEXTURES[mob.tile];
+      sprite.width = TILE_SIZE;
+      sprite.height = TILE_SIZE;
     });
 
     let actionTime = 0;
@@ -139,8 +148,8 @@ export class View {
     const x0 = x * TILE_SIZE + this.app.stage.position.x;
     const y0 = y * TILE_SIZE + this.app.stage.position.y;
     return (
-      -TILE_SIZE < x0 && x0 < this.app.view.width &&
-      -TILE_SIZE < y0 && y0 < this.app.view.height
+      -TILE_SIZE < x0 && x0 < this.width &&
+      -TILE_SIZE < y0 && y0 < this.height
     );
   }
 
@@ -150,12 +159,12 @@ export class View {
     const x = lerp(x0, x1, t);
     const y = lerp(y0, y1, t);
 
-    let dx = -((x + 0.5) * TILE_SIZE - this.app.view.width / 2);
-    let dy = -((y + 0.5) * TILE_SIZE - this.app.view.height / 2);
+    let dx = -((x + 0.5) * TILE_SIZE - this.width / 2);
+    let dy = -((y + 0.5) * TILE_SIZE - this.height / 2);
 
     // Don't scroll past map edge.
-    dx = clamp(dx, -this.world.mapW * TILE_SIZE + this.app.view.width, 0);
-    dy = clamp(dy, -this.world.mapH * TILE_SIZE + this.app.view.height, 0);
+    dx = clamp(dx, -this.world.mapW * TILE_SIZE + this.width, 0);
+    dy = clamp(dy, -this.world.mapH * TILE_SIZE + this.height, 0);
 
     this.app.stage.x = dx;
     this.app.stage.y = dy;
@@ -183,6 +192,8 @@ export class View {
           const sprite = this.mapLayer.make(x * this.world.mapW + y, PIXI.Sprite, sprite => {
             sprite.x = x * TILE_SIZE;
             sprite.y = y * TILE_SIZE;
+            sprite.width = TILE_SIZE;
+            sprite.height = TILE_SIZE;
           });
 
           sprite.alpha = alphaMap[y][x] * multiplier;

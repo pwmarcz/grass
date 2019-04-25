@@ -62,7 +62,15 @@ body {
   vertical-align: middle;
   width: 32px;
   height: 32px;
-  background-image: url("tileset.auto.png");
+}
+
+.tile-res-1 {
+  background-image: url("tileset-32.auto.png");
+}
+
+.tile-res-2 {
+  background-image: url("tileset-64.auto.png");
+  background-size: 320px;
 }
 
 .tile-row > .tile {
