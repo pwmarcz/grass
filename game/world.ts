@@ -202,7 +202,7 @@ export class World {
       return false;
     }
 
-    return Terrain.passThrough(this.map[y][x]);
+    return Terrain.pathThrough(this.map[y][x]);
   }
 
   canPlayerSeeThrough(x: number, y: number): boolean {
