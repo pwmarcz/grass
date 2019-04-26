@@ -97,6 +97,7 @@ export class Input {
   }
 
   click(event: InteractionEvent): void {
+    this.mouse.point = event.data.global;
     this.mouse.lmb = true;
   }
 
