@@ -71,5 +71,3 @@ export interface Item {
   mobId: string | null;
   readonly tile: string;
 }
-
-export type MapFunc = (x: number, y: number) => boolean;

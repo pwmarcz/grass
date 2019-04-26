@@ -197,12 +197,18 @@ export class World {
       return false;
     }
 
-    const mob = this.findMob(x, y);
-    if (mob && mob.id !== 'player') {
+    if (!this.memory[y][x]) {
       return false;
     }
 
-    return Terrain.passThrough(this.map[y][x]);
+    if (this.visibilityMap.visible(x, y)) {
+      const mob = this.findMob(x, y);
+      if (mob && mob.id !== 'player') {
+        return false;
+      }
+    }
+
+    return Terrain.pathThrough(this.map[y][x]);
   }
 
   canPlayerSeeThrough(x: number, y: number): boolean {

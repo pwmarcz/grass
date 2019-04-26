@@ -1,7 +1,6 @@
 import { Pos } from "./types";
-import { makeEmptyGrid } from "./utils";
-import Denque from 'denque';
-import { MapFunc } from './types';
+import FastPriorityQueue from 'fastpriorityqueue';
+import { MapFunc, GlobalMap } from "./local-map";
 
 const NEIGHBORS = [
   // Prefer straight lines...
@@ -12,97 +11,80 @@ const NEIGHBORS = [
   [1, -1], [1, 1]
 ];
 
-function neighbors(x0: number, y0: number, w: number, h: number):
-  Pos[] {
+const MAX_DIST = 50;
 
-  const result = [];
-  for (const [dx, dy] of NEIGHBORS) {
-    const x = x0 + dx;
-    const y = y0 + dy;
-    const inBounds = 0 <= x && x < w && 0 <= y && y < h;
-    if (inBounds) {
-      result.push({x, y});
-    }
-  }
+export class DistanceMap extends GlobalMap<number, boolean> {
+  maxDist: number;
+  xc: number;
+  yc: number;
 
-  return result;
-}
-
-const MAX_DIST = 40;
-
-export class DistanceMap {
-  readonly data: number[][];
-  readonly mapFunc: MapFunc;
-  readonly w: number;
-  readonly h: number;
-
-  private x0: number = 0;
-  private y0: number = 0;
-  private maxDist: number = 0;
-  private dirty: boolean = true;
-
-  constructor(mapFunc: MapFunc, w: number, h: number) {
-    this.mapFunc = mapFunc;
-    this.w = w;
-    this.h = h;
-    this.data = makeEmptyGrid(this.w, this.h, -1);
-  }
-
-  update(x0: number, y0: number, maxDist = MAX_DIST): void {
-    this.x0 = x0;
-    this.y0 = y0;
+  constructor(mapFunc: MapFunc<boolean>, w: number, h: number, maxDist = MAX_DIST) {
+    super(-1, mapFunc, w, h);
     this.maxDist = maxDist;
-    this.dirty = true;
+    this.xc = 0;
+    this.yc = 0;
   }
 
-  recalculate(): void {
-    for (let y = 0; y < this.h; y++) {
-      for (let x = 0; x < this.w; x++) {
-        this.data[y][x] = -1;
-      }
+  update(xc: number, yc: number): void {
+    this.xc = xc;
+    this.yc = yc;
+  }
+
+  findPath(xGoal: number, yGoal: number): Pos[] | null {
+    this.clear();
+    if (this.runDijkstra(xGoal, yGoal)) {
+      return this.readPath(xGoal, yGoal);
     }
+    return null;
+  }
 
-    const queue = new Denque([[this.x0, this.y0, 0]]);
+  private runDijkstra(xGoal: number, yGoal: number): boolean {
+    const queue = new FastPriorityQueue((a: number[], b: number[]) => a[0] < b[0]);
+    queue.add([0, this.xc, this.yc]);
     let next;
-    while ((next = queue.pop())) {
-      const [x, y, dist] = next;
+    while ((next = queue.poll())) {
+      const [dist, x, y] = next;
 
-      if (this.data[y][x] !== -1) {
+      if (this.get(x, y) !== -1) {
         continue;
+      }
+
+      if (x === xGoal && y === yGoal) {
+        this.set(x, y, dist);
+        return true;
       }
 
       if (!this.mapFunc(x, y)) {
         continue;
       }
 
-      this.data[y][x] = dist;
+      this.set(x, y, dist);
 
-      if (dist < this.maxDist) {
-        for (const pos of neighbors(x, y, this.w, this.h)) {
-          queue.unshift([pos.x, pos.y, dist + 1]);
+      for (const [dx, dy] of NEIGHBORS) {
+        const xNext = x + dx;
+        const yNext = y + dy;
+        if (this.inBounds(xNext, yNext)) {
+          const nextDist = dist + 1;
+          queue.add([nextDist, xNext, yNext]);
         }
       }
     }
-
-    this.dirty = false;
+    return false;
   }
 
-  findPath(x0: number, y0: number): Pos[] | null {
-    if (this.dirty) {
-      this.recalculate();
-    }
-
-    if (this.data[y0][x0] === -1) {
-      return null;
-    }
+  private readPath(xGoal: number, yGoal: number): Pos[] {
     const result = [];
 
-    let pos = {x: x0, y: y0};
+    let pos = {x: xGoal, y: yGoal};
     result.push(pos);
-    while (this.data[pos.y][pos.x] !== 0) {
-      for (const pos1 of neighbors(pos.x, pos.y, this.w, this.h)) {
-        if (this.data[pos1.y][pos1.x] === this.data[pos.y][pos.x] - 1) {
-          pos = pos1;
+    let dist = this.get(xGoal, yGoal);
+    while (dist > 0) {
+      for (const [dx, dy] of NEIGHBORS) {
+        const x = pos.x + dx;
+        const y = pos.y + dy;
+        if (this.inBounds(x, y) && this.get(x, y) === dist - 1) {
+          pos = {x, y};
+          dist--;
           break;
         }
       }
@@ -111,34 +93,5 @@ export class DistanceMap {
 
     result.reverse();
     return result;
-  }
-
-  findPathToAdjacent(x: number, y: number): Pos[] | null {
-    if (this.dirty) {
-      this.recalculate();
-    }
-
-    if (this.data[y][x] !== -1) {
-      return this.findPath(x, y);
-    }
-
-    let bestDist = -1, bestPos = null;
-    for (const pos of neighbors(x, y, this.w, this.h)) {
-      const dist = this.data[pos.y][pos.x];
-      if (dist !== -1 && (bestDist === -1 || bestDist > dist)) {
-        bestDist = dist;
-        bestPos = pos;
-      }
-    }
-
-    if (bestPos) {
-      const result = this.findPath(bestPos.x, bestPos.y);
-      if (result) {
-        result.push({x, y});
-      }
-      return result;
-    }
-
-    return null;
   }
 }
