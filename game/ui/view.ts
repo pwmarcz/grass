@@ -179,7 +179,6 @@ export class View {
     let y0 = Math.floor(-py / TILE_SIZE);
     let x1 = Math.ceil((-px + this.width) / TILE_SIZE) + 1;
     let y1 = Math.ceil((-py + this.height) / TILE_SIZE) + 1;
-    console.log(x0, y0, x1, y1);
     x0 = clamp(x0, 0, this.world.mapW - 1);
     y0 = clamp(y0, 0, this.world.mapH - 1);
     y1 = clamp(y1, 0, this.world.mapH);
