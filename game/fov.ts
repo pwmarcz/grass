@@ -1,8 +1,7 @@
 // Implementation from:
 // http://www.roguebasin.com/index.php?title=Improved_Shadowcasting_in_Java
 
-import { MapFunc } from "./types";
-import { makeEmptyGrid } from "./utils";
+import { LocalMap, MapFunc } from "./local-map";
 
 const FOV_RADIUS = 12;
 
@@ -13,27 +12,9 @@ const DIAGONALS = [
   {dx: 1, dy: 1},
 ];
 
-export class VisibilityMap {
-  readonly data: boolean[][];
-  readonly radius: number;
-  readonly w: number;
-  readonly h: number;
-  readonly mapFunc: MapFunc;
-
-  // Origin on global map
-  x0: number = 0;
-  y0: number = 0;
-
-  // Center on global map
-  xc: number = 0;
-  yc: number = 0;
-
-  constructor(mapFunc: MapFunc, radius = FOV_RADIUS) {
-    this.mapFunc = mapFunc;
-    this.radius = radius;
-    this.w = 2 * radius + 1;
-    this.h = 2 * radius + 1;
-    this.data = makeEmptyGrid(this.w, this.h, false);
+export class VisibilityMap extends LocalMap<boolean, boolean> {
+  constructor(mapFunc: MapFunc<boolean>, radius = FOV_RADIUS) {
+    super(false, mapFunc, FOV_RADIUS);
   }
 
   visible(x: number, y: number): boolean {
@@ -47,16 +28,8 @@ export class VisibilityMap {
   }
 
   update(xc: number, yc: number): void {
-    this.xc = xc;
-    this.yc = yc;
-    this.x0 = xc - this.radius;
-    this.y0 = yc - this.radius;
-
-    for (let y = 0; y < this.h; y++) {
-      for (let x = 0; x < this.w; x++) {
-        this.data[y][x] = false;
-      }
-    }
+    super.update(xc, yc);
+    super.clear();
 
     this.data[this.radius][this.radius] = true;
 
