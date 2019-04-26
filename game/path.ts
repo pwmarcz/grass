@@ -1,6 +1,6 @@
 import { Pos } from "./types";
 import FastPriorityQueue from 'fastpriorityqueue';
-import { LocalMap, MapFunc } from "./local-map";
+import { MapFunc, GlobalMap } from "./local-map";
 
 const NEIGHBORS = [
   // Prefer straight lines...
@@ -11,11 +11,23 @@ const NEIGHBORS = [
   [1, -1], [1, 1]
 ];
 
-const MAX_RADIUS = 30;
+const MAX_DIST = 50;
 
-export class DistanceMap extends LocalMap<number, boolean> {
-  constructor(mapFunc: MapFunc<boolean>, radius = MAX_RADIUS) {
-    super(-1, mapFunc, radius);
+export class DistanceMap extends GlobalMap<number, boolean> {
+  maxDist: number;
+  xc: number;
+  yc: number;
+
+  constructor(mapFunc: MapFunc<boolean>, w: number, h: number, maxDist = MAX_DIST) {
+    super(-1, mapFunc, w, h);
+    this.maxDist = maxDist;
+    this.xc = 0;
+    this.yc = 0;
+  }
+
+  update(xc: number, yc: number): void {
+    this.xc = xc;
+    this.yc = yc;
   }
 
   findPath(xGoal: number, yGoal: number): Pos[] | null {

@@ -2,13 +2,44 @@ import { makeEmptyGrid } from "./utils";
 
 export type MapFunc<P> = (x: number, y: number) => P;
 
-export class LocalMap<T, P> {
+export class GlobalMap<T, P> {
   readonly data: T[][];
   readonly defaultValue: T;
-  readonly radius: number;
   readonly w: number;
   readonly h: number;
   readonly mapFunc: MapFunc<P>;
+
+  constructor(defaultValue: T, mapFunc: MapFunc<P>, w: number, h: number) {
+    this.mapFunc = mapFunc;
+    this.w = w;
+    this.h = h;
+    this.defaultValue = defaultValue;
+    this.data = makeEmptyGrid<T>(this.w, this.h, this.defaultValue);
+  }
+
+  protected clear(): void {
+    for (let y = 0; y < this.h; y++) {
+        for (let x = 0; x < this.w; x++) {
+          this.data[y][x] = this.defaultValue;
+        }
+    }
+  }
+
+  inBounds(x: number, y: number): boolean {
+    return (0 <= x && x < this.w && 0 <= y && y < this.h);
+  }
+
+  get(x: number, y: number): T {
+    return this.data[y][x];
+  }
+
+  set(x: number, y: number, value: T): void {
+    this.data[y][x] = value;
+  }
+}
+
+export class LocalMap<T, P> extends GlobalMap<T, P> {
+  readonly radius: number;
 
   // Origin on global map
   x0: number = 0;
@@ -19,12 +50,8 @@ export class LocalMap<T, P> {
   yc: number = 0;
 
   constructor(defaultValue: T, mapFunc: MapFunc<P>, radius: number) {
-    this.mapFunc = mapFunc;
+    super(defaultValue, mapFunc, 2 * radius + 1, 2 * radius + 1);
     this.radius = radius;
-    this.w = 2 * radius + 1;
-    this.h = 2 * radius + 1;
-    this.defaultValue = defaultValue;
-    this.data = makeEmptyGrid<T>(this.w, this.h, this.defaultValue);
   }
 
   update(xc: number, yc: number): void {
@@ -34,18 +61,8 @@ export class LocalMap<T, P> {
     this.y0 = yc - this.radius;
   }
 
-  protected clear(): void {
-      for (let y = 0; y < this.h; y++) {
-          for (let x = 0; x < this.w; x++) {
-            this.data[y][x] = this.defaultValue;
-          }
-      }
-  }
-
   inBounds(x: number, y: number): boolean {
-    x -= this.x0;
-    y -= this.y0;
-    return (0 <= x && x < this.w && 0 <= y && y < this.h);
+    return super.inBounds(x - this.x0, y - this.y0);
   }
 
   get(x: number, y: number): T {
