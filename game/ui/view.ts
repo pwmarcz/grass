@@ -145,15 +145,6 @@ export class View {
     this.frontLayer.flush();
   }
 
-  shouldDrawTile(x: number, y: number): boolean {
-    const x0 = x * TILE_SIZE + this.app.stage.position.x;
-    const y0 = y * TILE_SIZE + this.app.stage.position.y;
-    return (
-      -TILE_SIZE < x0 && x0 < this.width &&
-      -TILE_SIZE < y0 && y0 < this.height
-    );
-  }
-
   updateViewport(movement: Movement): void {
     const {x0, y0, x1, y1, t} = movement;
 
@@ -183,12 +174,19 @@ export class View {
   }
 
   redrawMap(alphaMap: number[][], movement: Movement): void {
-    for (let y = 0; y < this.world.mapH; y++) {
-      for (let x = 0; x < this.world.mapW; x++) {
-        if (!this.shouldDrawTile(x, y)) {
-          continue;
-        }
+    const {x: px, y: py} = this.app.stage.position;
+    let x0 = Math.floor(-px / TILE_SIZE);
+    let y0 = Math.floor(-py / TILE_SIZE);
+    let x1 = Math.ceil((-px + this.width) / TILE_SIZE) + 1;
+    let y1 = Math.ceil((-py + this.height) / TILE_SIZE) + 1;
+    console.log(x0, y0, x1, y1);
+    x0 = clamp(x0, 0, this.world.mapW - 1);
+    y0 = clamp(y0, 0, this.world.mapH - 1);
+    y1 = clamp(y1, 0, this.world.mapH);
+    x1 = clamp(x1, 0, this.world.mapW);
 
+    for (let y = y0; y < y1; y++) {
+      for (let x = x0; x < x1; x++) {
         const multiplier = this.getVisibilityMultiplier(x, y, movement);
         if (multiplier === 0) {
           continue;
