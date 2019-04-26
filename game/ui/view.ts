@@ -171,6 +171,17 @@ export class View {
     this.app.stage.y = dy;
   }
 
+  toPos(point: PIXI.Point): Pos | null {
+    const local = this.app.stage.toLocal(point);
+    const x = Math.floor(local.x / TILE_SIZE);
+    const y = Math.floor(local.y / TILE_SIZE);
+    if (0 <= x && x < this.world.mapW &&
+        0 <= y && y < this.world.mapH) {
+      return {x, y};
+    }
+    return null;
+  }
+
   redrawMap(alphaMap: number[][], movement: Movement): void {
     for (let y = 0; y < this.world.mapH; y++) {
       for (let x = 0; x < this.world.mapW; x++) {
@@ -243,8 +254,8 @@ export class View {
   redrawHighlight(): void {
     if (this.highlightPos) {
       const g = this.backLayer.make('highlight', PIXI.Graphics, g => {
-        g.lineStyle(1, 0x888888, 1, 0);
-        g.beginFill(0x222222);
+        g.lineStyle(1, 0x444444, 1, 0);
+        g.beginFill(0x111111);
         g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
       });
       g.x = this.highlightPos.x * TILE_SIZE;

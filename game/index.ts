@@ -54,20 +54,37 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
   time += delta * speed;
   let dirty = false;
 
+  const mousePoint = input.mouse.point;
+  const inputPos = mousePoint && view.toPos(mousePoint);
+  const highlightPos = inputPos;
+  let goalPos = view.goalPos;
+  let path = view.path;
+
+  if (input.mouse.lmb) {
+    goalPos = inputPos;
+    input.mouse.lmb = false;
+    // Don't update highlight until the mouse is moved
+    input.mouse.point = null;
+  }
+  if (input.mouse.rmb) {
+    goalPos = null;
+    input.mouse.rmb = false;
+  }
+
   while (world.time < Math.floor(time)) {
     const commands: Record<string, Command | null> = {};
     let triedGoal = false;
 
+
     if (!world.player.action) {
       const playerCommand = input.getCommand();
       if (playerCommand) {
-        input.goalPos = null;
-        view.path = null;
         commands.player = playerCommand;
-      } else if (input.goalPos) {
+        goalPos = null;
+      } else if (goalPos) {
         triedGoal = true;
-        if (world.memory[input.goalPos.y][input.goalPos.x]) {
-          const path = world.distanceMap.findPath(input.goalPos.x, input.goalPos.y);
+        if (world.memory[goalPos.y][goalPos.x]) {
+          path = world.distanceMap.findPath(goalPos.x, goalPos.y);
           if (path && path.length > 1) {
             const dx = path[1].x - world.player.pos.x;
             const dy = path[1].y - world.player.pos.y;
@@ -76,7 +93,6 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
               dx,
               dy,
             };
-            view.path = path;
           }
         }
       } else {
@@ -102,17 +118,17 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
     }
 
     if (triedGoal && !world.player.action) {
-      input.goalPos = null;
-      view.path = null;
+      goalPos = null;
     }
   }
 
-  if (!posEqual(view.goalPos, input.goalPos) ||
-    !posEqual(view.highlightPos, input.highlightPos)) {
-    view.goalPos = input.goalPos;
-    view.highlightPos = input.highlightPos;
+  if (!posEqual(goalPos, view.goalPos) ||
+    !posEqual(highlightPos, view.highlightPos)) {
+    view.goalPos = goalPos;
+    view.highlightPos = highlightPos;
     dirty = true;
   }
+  view.path = goalPos && path;
 
   view.redraw(dirty, time);
 }

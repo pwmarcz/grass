@@ -1,5 +1,4 @@
-import { Command, CommandType, Pos } from "../types";
-import { TILE_SIZE } from "./textures";
+import { Command, CommandType } from "../types";
 import { DisplayObject } from "pixi.js";
 
 type InteractionEvent = PIXI.interaction.InteractionEvent;
@@ -27,23 +26,27 @@ export class Input {
   stage: DisplayObject;
   mapW: number;
   mapH: number;
-  goalPos: Pos | null = null;
-  highlightPos: Pos | null = null;
+  mouse: {
+    point: PIXI.Point | null;
+    lmb: boolean;
+    rmb: boolean;
+  };
 
   constructor(appElement: Element, stage: PIXI.DisplayObject, mapW: number, mapH: number) {
     this.appElement = appElement;
     this.stage = stage;
     this.mapW = mapW;
     this.mapH = mapH;
+    this.mouse = { point: null, lmb: false, rmb: false };
   }
 
   setup(): void {
     document.addEventListener('keydown', this.keyDown.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
 
-    this.stage.on('mouseenter', this.mouse.bind(this));
-    this.stage.on('mousemove', this.mouse.bind(this));
-    this.stage.on('mouseleave', this.mouse.bind(this));
+    this.stage.on('mouseenter', this.mouseMove.bind(this));
+    this.stage.on('mousemove', this.mouseMove.bind(this));
+    this.stage.on('mouseleave', this.mouseMove.bind(this));
     this.stage.on('pointertap', this.click.bind(this));
     this.stage.on('rightclick', this.rightClick.bind(this));
     this.appElement.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -81,32 +84,22 @@ export class Input {
     return null;
   }
 
-  mouse(event: InteractionEvent): void {
-    this.highlightPos = this.getPos(event);
+  mouseMove(event: InteractionEvent): void {
+    const {x, y} = event.data.global;
+    if (0 <= x && x < this.appElement.clientWidth &&
+        0 <= y && y < this.appElement.clientHeight) {
+      this.mouse.point = event.data.global;
+    } else {
+      this.mouse.point = null;
+    }
   }
 
   click(event: InteractionEvent): void {
-    const pos = this.getPos(event);
-    if (pos) {
-      this.goalPos = pos;
-    }
+    this.mouse.lmb = true;
   }
 
   rightClick(event: InteractionEvent): void {
     event.stopPropagation();
-    if (this.goalPos) {
-      this.goalPos = null;
-    }
-  }
-
-  getPos(event: InteractionEvent): Pos | null {
-    const local = this.stage.toLocal(event.data.global);
-    const x = Math.floor(local.x / TILE_SIZE);
-    const y = Math.floor(local.y / TILE_SIZE);
-    if (!(0 <= x && x < this.mapW &&
-          0 <= y && y < this.mapH)) {
-      return null;
-    }
-    return {x, y};
+    this.mouse.rmb = true;
   }
 }
