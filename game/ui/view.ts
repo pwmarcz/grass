@@ -310,6 +310,27 @@ export class View {
         const {x, y} = this.path[i];
         g.lineTo(TILE_SIZE * (x + 0.5), TILE_SIZE * (y + 0.5));
       }
+
+      /* // Draw distance map
+      const dm = this.world.distanceMap;
+      const textStyle = new PIXI.TextStyle({
+        fill: 0xffffff,
+        fontSize: 12,
+      });
+      for (let y = 0; y < dm.h; y++) {
+        for (let x = 0; x < dm.w; x++) {
+          const val = Math.floor(dm.get(x, y));
+          if (val !== -1) {
+            const t = this.frontLayer.make(`distance(${x},${y})`, PIXI.Text, t => {
+              t.x = x * TILE_SIZE + 10;
+              t.y = y * TILE_SIZE + 10;
+              t.style = textStyle;
+            });
+            t.text = `${val}`;
+          }
+        }
+      }
+      */
     }
   }
 }

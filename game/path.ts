@@ -2,16 +2,26 @@ import { Pos } from "./types";
 import FastPriorityQueue from 'fastpriorityqueue';
 import { MapFunc, GlobalMap } from "./local-map";
 
+const eps = 1 / 16;
+
 const NEIGHBORS = [
   // Prefer straight lines...
-  [-1, 0], [1, 0],
-  [0, -1], [0, 1],
+  [-1, 0, 1],
+  [1, 0, 1],
+  [0, -1, 1],
+  [0, 1, 1],
   // to diagonals
-  [-1, -1], [-1, 1],
-  [1, -1], [1, 1]
+  [-1, -1, 1 + eps],
+  [-1, 1, 1 + eps],
+  [1, -1, 1 + eps],
+  [1, 1, 1 + eps]
 ];
 
 const MAX_DIST = 50;
+
+function distance(x0: number, y0: number, x1: number, y1: number): number {
+  return Math.max(Math.abs(x0-x1), Math.abs(y0-y1));
+}
 
 export class DistanceMap extends GlobalMap<number, boolean> {
   maxDist: number;
@@ -32,18 +42,18 @@ export class DistanceMap extends GlobalMap<number, boolean> {
 
   findPath(xGoal: number, yGoal: number): Pos[] | null {
     this.clear();
-    if (this.runDijkstra(xGoal, yGoal)) {
+    if (this.fill(xGoal, yGoal)) {
       return this.readPath(xGoal, yGoal);
     }
     return null;
   }
 
-  private runDijkstra(xGoal: number, yGoal: number): boolean {
+  private fill(xGoal: number, yGoal: number): boolean {
     const queue = new FastPriorityQueue((a: number[], b: number[]) => a[0] < b[0]);
-    queue.add([0, this.xc, this.yc]);
+    queue.add([distance(this.xc, this.yc, xGoal, yGoal), 0, this.xc, this.yc]);
     let next;
     while ((next = queue.poll())) {
-      const [dist, x, y] = next;
+      const [, dist, x, y] = next;
 
       if (this.get(x, y) !== -1) {
         continue;
@@ -60,12 +70,13 @@ export class DistanceMap extends GlobalMap<number, boolean> {
 
       this.set(x, y, dist);
 
-      for (const [dx, dy] of NEIGHBORS) {
+      for (const [dx, dy, cost] of NEIGHBORS) {
         const xNext = x + dx;
         const yNext = y + dy;
         if (this.inBounds(xNext, yNext)) {
-          const nextDist = dist + 1;
-          queue.add([nextDist, xNext, yNext]);
+          const nextDist = dist + cost;
+          const nextPriority = nextDist + distance(xNext, yNext, xGoal, yGoal);
+          queue.add([nextPriority, nextDist, xNext, yNext]);
         }
       }
     }
@@ -79,15 +90,20 @@ export class DistanceMap extends GlobalMap<number, boolean> {
     result.push(pos);
     let dist = this.get(xGoal, yGoal);
     while (dist > 0) {
+      let best: [Pos, number] | null = null;
       for (const [dx, dy] of NEIGHBORS) {
         const x = pos.x + dx;
         const y = pos.y + dy;
-        if (this.inBounds(x, y) && this.get(x, y) === dist - 1) {
-          pos = {x, y};
-          dist--;
-          break;
+        if (this.inBounds(x, y)) {
+          const dist = this.get(x, y);
+          if (dist !== -1) {
+            if (best === null || best[1] > dist) {
+              best = [{x, y}, dist];
+            }
+          }
         }
       }
+      [pos, dist] = best!;
       result.push(pos);
     }
 
