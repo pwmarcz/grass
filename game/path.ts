@@ -11,115 +11,75 @@ const NEIGHBORS = [
   [1, -1], [1, 1]
 ];
 
-function neighbors(x0: number, y0: number, w: number, h: number):
-  Pos[] {
-
-  const result = [];
-  for (const [dx, dy] of NEIGHBORS) {
-    const x = x0 + dx;
-    const y = y0 + dy;
-    const inBounds = 0 <= x && x < w && 0 <= y && y < h;
-    if (inBounds) {
-      result.push({x, y});
-    }
-  }
-
-  return result;
-}
-
 const MAX_RADIUS = 15;
 
 export class DistanceMap extends LocalMap<number, boolean> {
-  private dirty: boolean = true;
-
   constructor(mapFunc: MapFunc<boolean>, radius = MAX_RADIUS) {
     super(-1, mapFunc, radius);
   }
 
-  update(xc: number, yc: number): void {
-    super.update(xc, yc);
-    this.dirty = true;
+  findPath(xGoal: number, yGoal: number): Pos[] | null {
+    this.clear();
+    if (this.runDijkstra(xGoal, yGoal)) {
+      return this.readPath(xGoal, yGoal);
+    }
+    return null;
   }
 
-  private recalculate(): void {
-    this.clear();
-
+  private runDijkstra(xGoal: number, yGoal: number): boolean {
     const queue = new FastPriorityQueue((a: number[], b: number[]) => a[0] < b[0]);
-    queue.add([0, this.radius, this.radius, 0]);
+    queue.add([0, this.xc, this.yc]);
     let next;
     while ((next = queue.poll())) {
       const [dist, x, y] = next;
 
-      if (this.data[y][x] !== -1) {
+      if (this.get(x, y) !== -1) {
         continue;
       }
 
-      if (!this.mapFunc(x + this.x0, y + this.y0)) {
+      if (x === xGoal && y === yGoal) {
+        this.set(x, y, dist);
+        return true;
+      }
+
+      if (!this.mapFunc(x, y)) {
         continue;
       }
 
-      this.data[y][x] = dist;
+      this.set(x, y, dist);
 
-      for (const pos of neighbors(x, y, this.w, this.h)) {
-        queue.add([dist + 1, pos.x, pos.y, dist + 1]);
+      for (const [dx, dy] of NEIGHBORS) {
+        const xNext = x + dx;
+        const yNext = y + dy;
+        if (this.inBounds(xNext, yNext)) {
+          const nextDist = dist + 1;
+          queue.add([nextDist, xNext, yNext]);
+        }
       }
     }
-
-    this.dirty = false;
+    return false;
   }
 
-  findPath(x: number, y: number): Pos[] | null {
-    if (this.dirty) {
-      this.recalculate();
-    }
-
-    if (this.data[y - this.y0][x - this.x0] === -1) {
-      return null;
-    }
+  private readPath(xGoal: number, yGoal: number): Pos[] {
     const result = [];
 
-    result.push({x, y});
-    let pos = {x: x - this.x0, y: y - this.y0};
-    while (this.data[pos.y][pos.x] !== 0) {
-      for (const pos1 of neighbors(pos.x, pos.y, this.w, this.h)) {
-        if (this.data[pos1.y][pos1.x] === this.data[pos.y][pos.x] - 1) {
-          pos = pos1;
+    let pos = {x: xGoal, y: yGoal};
+    result.push(pos);
+    let dist = this.get(xGoal, yGoal);
+    while (dist > 0) {
+      for (const [dx, dy] of NEIGHBORS) {
+        const x = pos.x + dx;
+        const y = pos.y + dy;
+        if (this.inBounds(x, y) && this.get(x, y) === dist - 1) {
+          pos = {x, y};
+          dist--;
           break;
         }
       }
-      result.push({x: pos.x + this.x0, y: pos.y + this.y0});
+      result.push(pos);
     }
 
     result.reverse();
     return result;
-  }
-
-  findPathToAdjacent(x: number, y: number): Pos[] | null {
-    if (this.dirty) {
-      this.recalculate();
-    }
-
-    if (this.data[y - this.y0][x - this.x0] !== -1) {
-      return this.findPath(x, y);
-    }
-
-    let bestDist = -1, bestPos = null;
-    for (const pos of neighbors(x, y, this.w, this.h)) {
-      const dist = this.data[pos.y][pos.x];
-      if (dist !== -1 && (bestDist === -1 || bestDist > dist)) {
-        bestDist = dist;
-        bestPos = pos;
-      }
-    }
-
-    if (bestPos) {
-      const result = this.findPath(bestPos.x, bestPos.y);
-      if (result) {
-        result.push({x: x + this.x0, y: y + this.y0});
-      }
-      return result;
-    }
-
-    return null;
   }
 }

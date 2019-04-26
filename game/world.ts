@@ -43,7 +43,7 @@ export class World {
       this.mobMap[mob.pos.y][mob.pos.x] = mob;
     }
 
-    this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this), this.mapW, this.mapH);
+    this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this));
     this.distanceMap.update(this.player.pos.x, this.player.pos.y);
 
     this.visibilityMap = new VisibilityMap(this.canPlayerSeeThrough.bind(this));

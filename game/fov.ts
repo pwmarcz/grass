@@ -18,20 +18,14 @@ export class VisibilityMap extends LocalMap<boolean, boolean> {
   }
 
   visible(x: number, y: number): boolean {
-    x -= this.x0;
-    y -= this.y0;
-    if (0 <= x && x < this.w && 0 <= y && y < this.h) {
-      return this.data[y][x];
-    }
-
-    return false;
+    return this.inBounds(x, y) && this.get(x, y);
   }
 
   update(xc: number, yc: number): void {
     super.update(xc, yc);
     super.clear();
 
-    this.data[this.radius][this.radius] = true;
+    this.set(xc, yc, true);
 
     for (const {dx, dy} of DIAGONALS) {
       this.castLight(1, 1, 0, 0, dx, dy, 0);
@@ -54,12 +48,10 @@ export class VisibilityMap extends LocalMap<boolean, boolean> {
       for (let dx = -distance; dx <= 0; dx++) {
         const x = this.xc + dx * xx + dy * xy;
         const y = this.yc + dx * yx + dy * yy;
-        const mx = x - this.x0;
-        const my = y - this.y0;
         const leftSlope = (dx - 0.5) / (dy + 0.5);
         const rightSlope = (dx + 0.5) / (dy - 0.5);
 
-        if (!(0 <= mx && mx < this.w) && !(0 <= my && my <= this.h)) {
+        if (!this.inBounds(x, y)) {
           continue;
         }
 
@@ -72,7 +64,7 @@ export class VisibilityMap extends LocalMap<boolean, boolean> {
         }
 
         if (this.inRadius(dx, dy)) {
-          this.data[my][mx] = true;
+          this.set(x, y, true);
         }
 
         if (blocked) {
