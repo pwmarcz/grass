@@ -62,6 +62,7 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
 
   if (input.mouse.lmb) {
     goalPos = inputPos;
+    highlightPos = null;
     input.mouse.lmb = false;
   }
   if (input.mouse.rmb) {
