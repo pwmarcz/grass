@@ -1,5 +1,5 @@
 import { Pos } from "./types";
-import Denque from 'denque';
+import FastPriorityQueue from 'fastpriorityqueue';
 import { LocalMap, MapFunc } from "./local-map";
 
 const NEIGHBORS = [
@@ -42,16 +42,13 @@ export class DistanceMap extends LocalMap<number, boolean> {
   }
 
   private recalculate(): void {
-    for (let y = 0; y < this.h; y++) {
-      for (let x = 0; x < this.w; x++) {
-        this.data[y][x] = -1;
-      }
-    }
+    this.clear();
 
-    const queue = new Denque([[this.radius, this.radius, 0]]);
+    const queue = new FastPriorityQueue((a: number[], b: number[]) => a[0] < b[0]);
+    queue.add([0, this.radius, this.radius, 0]);
     let next;
-    while ((next = queue.pop())) {
-      const [x, y, dist] = next;
+    while ((next = queue.poll())) {
+      const [dist, x, y] = next;
 
       if (this.data[y][x] !== -1) {
         continue;
@@ -64,7 +61,7 @@ export class DistanceMap extends LocalMap<number, boolean> {
       this.data[y][x] = dist;
 
       for (const pos of neighbors(x, y, this.w, this.h)) {
-        queue.unshift([pos.x, pos.y, dist + 1]);
+        queue.add([dist + 1, pos.x, pos.y, dist + 1]);
       }
     }
 
