@@ -11,9 +11,19 @@ TILESETS = game/tileset.auto.svg
 files: $(ICONS) $(TILESETS)
 
 .PHONY: check
-check:
+check: check.eslint check.ts test
+
+.PHONY: check.eslint
+check.eslint:
 	./node_modules/.bin/eslint $(TS_FILES)
+
+.PHONY: check.ts
+check.ts:
 	./node_modules/.bin/tsc --project tsconfig.json --noEmit
+
+.PHONY: test
+test:
+	./node_modules/.bin/mocha -r ts-node/register game/**/*.test.ts
 
 .PHONY: dist
 dist: files
