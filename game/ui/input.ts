@@ -28,6 +28,7 @@ export class Input {
   mapH: number;
   mouse: {
     point: PIXI.Point | null;
+    moved: boolean;
     lmb: boolean;
     rmb: boolean;
   };
@@ -37,7 +38,7 @@ export class Input {
     this.stage = stage;
     this.mapW = mapW;
     this.mapH = mapH;
-    this.mouse = { point: null, lmb: false, rmb: false };
+    this.mouse = { point: null, moved: false, lmb: false, rmb: false };
   }
 
   setup(): void {
@@ -92,6 +93,7 @@ export class Input {
     } else {
       this.mouse.point = null;
     }
+    this.mouse.moved = true;
   }
 
   click(event: InteractionEvent): void {

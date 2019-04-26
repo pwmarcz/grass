@@ -56,19 +56,21 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
 
   const mousePoint = input.mouse.point;
   const inputPos = mousePoint && view.toPos(mousePoint);
-  const highlightPos = inputPos;
+  let highlightPos = view.highlightPos;
   let goalPos = view.goalPos;
   let path = view.path;
 
   if (input.mouse.lmb) {
     goalPos = inputPos;
     input.mouse.lmb = false;
-    // Don't update highlight until the mouse is moved
-    input.mouse.point = null;
   }
   if (input.mouse.rmb) {
     goalPos = null;
     input.mouse.rmb = false;
+  }
+  if (input.mouse.moved) {
+    highlightPos = inputPos;
+    input.mouse.moved = false;
   }
 
   while (world.time < Math.floor(time)) {
