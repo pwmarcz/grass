@@ -197,9 +197,15 @@ export class World {
       return false;
     }
 
-    const mob = this.findMob(x, y);
-    if (mob && mob.id !== 'player') {
+    if (!this.memory[y][x]) {
       return false;
+    }
+
+    if (this.visibilityMap.visible(x, y)) {
+      const mob = this.findMob(x, y);
+      if (mob && mob.id !== 'player') {
+        return false;
+      }
     }
 
     return Terrain.pathThrough(this.map[y][x]);

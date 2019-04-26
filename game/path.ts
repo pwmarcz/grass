@@ -11,7 +11,7 @@ const NEIGHBORS = [
   [1, -1], [1, 1]
 ];
 
-const MAX_RADIUS = 15;
+const MAX_RADIUS = 30;
 
 export class DistanceMap extends LocalMap<number, boolean> {
   constructor(mapFunc: MapFunc<boolean>, radius = MAX_RADIUS) {
