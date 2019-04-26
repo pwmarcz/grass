@@ -1,6 +1,5 @@
 {
     "extends": [
-        "eslint:recommended",
         "plugin:@typescript-eslint/recommended"
     ],
     "env": {
@@ -23,10 +22,7 @@
     "rules": {
         "semi": "error",
         "eqeqeq": "error",
-        "no-unused-vars": "off",
         "prefer-const": "warn",
-        "no-inner-declarations": "off",
-        "no-redeclare": "off",
         "@typescript-eslint/explicit-function-return-type": ["warn", { "allowExpressions": true }],
         "@typescript-eslint/explicit-member-accessibility": "off",
         "@typescript-eslint/indent": "off",
