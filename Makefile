@@ -33,3 +33,4 @@ game/icon-%.auto.png: game/icon.svg
 
 game/tileset.auto.svg: game/tileset.svg
 	inkscape $< --export-plain-svg=$@ --export-text-to-path
+	./node_modules/.bin/svgo --multipass $@

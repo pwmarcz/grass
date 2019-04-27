@@ -19,6 +19,7 @@
     "denque": "^1.4.1",
     "fastpriorityqueue": "^0.6.1",
     "pixi.js": "^4.8.7",
-    "preact": "^8.4.2"
+    "preact": "^8.4.2",
+    "svgo": "^1.2.2"
   }
 }
