@@ -17,6 +17,7 @@ export enum Terrain {
 
   WATER_DEEP = 'WATER_DEEP',
   WATER_SHALLOW = 'WATER_SHALLOW',
+  LAVA = 'LAVA',
 
   STAIR_UP = 'STAIR_UP',
   STAIR_DOWN = 'STAIR_DOWN',
@@ -48,6 +49,7 @@ const TERRAIN: Record<Terrain, TerrainMeta> = {
 
   [Terrain.WATER_DEEP]: {...obstacle},
   [Terrain.WATER_SHALLOW]: {...floor},
+  [Terrain.LAVA]: {...obstacle},
 
   [Terrain.STAIR_UP]: {...floor},
   [Terrain.STAIR_DOWN]: {...floor},

@@ -21,6 +21,7 @@ export const TILES: Record<string, TileMeta> = {
 
   WATER_DEEP: { id: 33 },
   WATER_SHALLOW: { id: 34 },
+  LAVA: { id: 43 },
 
   STAIR_UP: { id: 40 },
   STAIR_DOWN: { id: 41 },
