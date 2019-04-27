@@ -8,6 +8,7 @@ import { h } from 'preact';
 import { StringRenderer, IndexRenderer } from './renderer';
 import { Terrain } from '../terrain';
 import { Mob } from '../mob';
+import { Client } from '../client';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -31,6 +32,7 @@ interface Movement {
 
 export class View {
   private world: World;
+  private client: Client;
   private element: Element;
   private infoElement: Element;
   app: PIXI.Application;
@@ -48,8 +50,9 @@ export class View {
   goalPos: Pos | null = null;
   path: Pos[] | null = null;
 
-  constructor(world: World, element: Element, infoElement: Element) {
+  constructor(world: World, client: Client, element: Element, infoElement: Element) {
     this.world = world;
+    this.client = client;
     this.element = element;
     this.infoElement = infoElement;
 
@@ -214,7 +217,7 @@ export class View {
   }
 
   getMovement(time: number): Movement {
-    const player = this.world.player;
+    const player = this.client.player;
 
     const x0 = player.pos.x, y0 = player.pos.y;
     let x1: number, y1: number;
@@ -236,15 +239,15 @@ export class View {
     x: number, y: number, {t}: Movement,
     darkAlpha = DARK_ALPHA
   ): number {
-    const visible = this.world.visibilityMap.visible(x, y);
-    const remembered = this.world.memory[y][x];
+    const visible = this.client.visibilityMap.visible(x, y);
+    const remembered = this.client.memory[y][x];
     const multiplier = visible ? 1 : remembered ? darkAlpha : 0;
 
     if (t === 0) {
       return multiplier;
     }
 
-    const nextVisible = this.world.nextVisibilityMap.visible(x, y);
+    const nextVisible = this.client.nextVisibilityMap.visible(x, y);
     const nextMultiplier = nextVisible ? 1 : remembered ? darkAlpha : 0;
     return lerp(multiplier, nextMultiplier, t);
   }
@@ -278,7 +281,7 @@ export class View {
     }
 
     const inventory = compactItems(
-      this.world.findMobItems(this.world.player));
+      this.world.findMobItems(this.client.player));
 
     let terrainTile: string | null = null;
     let mobTile: string | null = null;
@@ -286,11 +289,11 @@ export class View {
     if (this.highlightPos) {
       const {x, y} = this.highlightPos;
 
-      if (this.world.memory[y][x]) {
+      if (this.client.memory[y][x]) {
 
         terrainTile = this.world.map[y][x];
 
-        if (this.world.visibilityMap.visible(x, y)) {
+        if (this.client.visibilityMap.visible(x, y)) {
           const mob = this.world.findMob(x, y);
           if (mob) {
             mobTile = mob.tile();

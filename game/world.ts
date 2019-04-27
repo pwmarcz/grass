@@ -1,9 +1,7 @@
-import { DistanceMap } from './path';
 import { Command, CommandType, ActionType } from './types';
 import { Item } from './item';
 import { Mob } from './mob';
 import { makeEmptyGrid } from './utils';
-import { VisibilityMap } from './fov';
 import { Terrain } from './terrain';
 
 const ATTACK_TIME = 45;
@@ -15,22 +13,18 @@ export class World {
   mobMap: (Mob | null)[][];
   mobs: Mob[];
   items: Item[];
-  player: Mob;
   mapW: number;
   mapH: number;
   time: number;
-  distanceMap: DistanceMap;
-  memory: boolean[][];
 
-  // Swapped to do double-buffering.
-  visibilityMap: VisibilityMap;
-  nextVisibilityMap: VisibilityMap;
+  stateChanged: boolean = false;
+  visibilityChanged: boolean = false;
+  visibilityChangedFor: Set<string> = new Set();
 
   constructor(map: Terrain[][], mobs: Mob[], items: Item[]) {
     this.map = map;
     this.mobs = mobs;
     this.items = items;
-    this.player = mobs.find(mob => mob.id === 'player')!;
     this.mapH = this.map.length;
     this.mapW = this.map[0].length;
     this.time = 0;
@@ -39,39 +33,30 @@ export class World {
     for (const mob of this.mobs) {
       this.mobMap[mob.pos.y][mob.pos.x] = mob;
     }
-
-    this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this), this.mapW, this.mapH);
-    this.distanceMap.update(this.player.pos.x, this.player.pos.y);
-
-    this.visibilityMap = new VisibilityMap(this.canPlayerSeeThrough.bind(this));
-    this.visibilityMap.update(this.player.pos.x, this.player.pos.y);
-    this.nextVisibilityMap = new VisibilityMap(this.canPlayerSeeThrough.bind(this));
-
-    this.memory = makeEmptyGrid(this.mapW, this.mapH, false);
-    this.updateMemory(this.visibilityMap);
   }
 
-  turn(commands: Record<string, Command | null>): boolean {
+  turn(commands: Record<string, Command | null>): void {
     this.time++;
-    let dirty = false;
 
     for (const mob of this.mobs) {
-      if (this.turnMob(mob, commands)) {
-        dirty = true;
+      if (!mob.action && commands[mob.id] === undefined) {
+        commands[mob.id] = getAiCommand();
       }
     }
-    if (dirty) {
-      this.distanceMap.update(this.player.pos.x, this.player.pos.y);
-    }
 
-    return dirty;
+    this.stateChanged = false;
+    this.visibilityChanged = false;
+    this.visibilityChangedFor.clear();
+
+    for (const mob of this.mobs) {
+      this.turnMob(mob, commands);
+    }
   }
 
-  turnMob(mob: Mob, commands: Record<string, Command | null>): boolean {
-    let dirty = false;
+  turnMob(mob: Mob, commands: Record<string, Command | null>): void {
     if (mob.action) {
       if (this.time < mob.action.timeEnd) {
-        return false;
+        return;
       }
 
       switch (mob.action.type) {
@@ -79,12 +64,7 @@ export class World {
           this.mobMap[mob.pos.y][mob.pos.x] = null;
           mob.pos = mob.action.pos;
 
-          if (mob.id === 'player') {
-            const temp = this.visibilityMap;
-            this.visibilityMap = this.nextVisibilityMap;
-            this.nextVisibilityMap = temp;
-            this.updateMemory(this.visibilityMap);
-          }
+          this.visibilityChangedFor.add(mob.id);
           break;
         }
         case ActionType.PICK_UP: {
@@ -97,7 +77,7 @@ export class World {
       }
 
       mob.action = null;
-      dirty = true;
+      this.stateChanged = true;
     }
 
     const command = commands[mob.id];
@@ -122,10 +102,8 @@ export class World {
           };
           break;
       }
-      dirty = true;
+      this.stateChanged = true;
     }
-
-    return dirty;
   }
 
   moveMob(mob: Mob, x: number, y: number): void {
@@ -137,8 +115,7 @@ export class World {
 
     if (newTerrain === Terrain.DOOR_CLOSED) {
       this.map[y][x] = Terrain.DOOR_OPEN;
-      this.visibilityMap.update(this.player.pos.x, this.player.pos.y);
-      this.updateMemory(this.visibilityMap);
+      this.visibilityChanged = true;
       mob.action = {
         type: ActionType.OPEN_DOOR,
         timeStart: this.time,
@@ -168,50 +145,12 @@ export class World {
       timeStart: this.time,
       timeEnd: this.time + mob.movementTime(),
     };
-    if (mob.id === 'player') {
-      this.nextVisibilityMap.update(x, y);
-    }
-  }
-
-  updateMemory(vm: VisibilityMap): void {
-    for (let my = 0; my < vm.h; my++) {
-      for (let mx = 0; mx < vm.w; mx++) {
-        const x = mx + vm.x0;
-        const y = my + vm.y0;
-        if (this.inBounds(x, y)) {
-          this.memory[y][x] = this.memory[y][x] || vm.data[my][mx];
-        }
-      }
-    }
+    this.visibilityChangedFor.add(mob.id);
   }
 
   canMove(x: number, y: number): boolean {
     return this.inBounds(x, y) && Terrain.passThrough(this.map[y][x]);
   }
-
-  canPlayerPath(x: number, y: number): boolean {
-    if (!this.inBounds(x, y)) {
-      return false;
-    }
-
-    if (!this.memory[y][x]) {
-      return false;
-    }
-
-    if (this.visibilityMap.visible(x, y)) {
-      const mob = this.findMob(x, y);
-      if (mob && mob.id !== 'player') {
-        return false;
-      }
-    }
-
-    return Terrain.pathThrough(this.map[y][x]);
-  }
-
-  canPlayerSeeThrough(x: number, y: number): boolean {
-    return this.inBounds(x, y) && Terrain.seeThrough(this.map[y][x]);
-  }
-
 
   findMob(x: number, y: number): Mob | null {
     return this.mobMap[y][x];
@@ -223,7 +162,6 @@ export class World {
     );
   }
 
-
   findMobItems(mob: Mob): Item[] {
     return this.items.filter(item =>
       item.mobId && item.mobId === mob.id
@@ -233,4 +171,17 @@ export class World {
   inBounds(x: number, y: number): boolean {
     return 0 <= x && x < this.mapW && 0 <= y && y < this.mapH;
   }
+}
+
+function getAiCommand(): Command | null {
+  if (Math.random() < 0.8) {
+    return { type: CommandType.REST, dt: Math.random() * 10 };
+  }
+
+  const dx = Math.floor(Math.random() * 3) - 1;
+  const dy = Math.floor(Math.random() * 3) - 1;
+  if (dx !== 0 || dy !== 0) {
+    return { type: CommandType.MOVE, dx, dy };
+  }
+  return null;
 }

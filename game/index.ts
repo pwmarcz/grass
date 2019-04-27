@@ -13,6 +13,7 @@ import { World } from './world';
 import { Command, CommandType } from './types';
 import { loadTextures } from './ui/textures';
 import { posEqual } from './utils';
+import { Client } from './client';
 
 let mapFile = mapFile1;
 let speed = 1;
@@ -40,17 +41,18 @@ Promise.all([mapPromise, loadPromise])
   const [xml] = result;
   const { map, mobs, items } = loadMap(xml);
   const world = new World(map, mobs, items);
-  const view = new View(world, appElement, infoElement);
+  const client = new Client(world, 'player');
+  const view = new View(world, client, appElement, infoElement);
   const input = new Input(appElement, view.app.stage, world.mapW, world.mapH);
 
   view.setup();
-  view.app.ticker.add(delta => gameLoop(world, input, view, delta));
+  view.app.ticker.add(delta => gameLoop(world, client, input, view, delta));
   input.setup();
 });
 
 let time = 0;
 
-function gameLoop(world: World, input: Input, view: View, delta: number): void {
+function gameLoop(world: World, client: Client, input: Input, view: View, delta: number): void {
   time += delta * speed;
   let dirty = false;
 
@@ -75,23 +77,21 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
   }
 
   while (world.time < Math.floor(time)) {
-    const commands: Record<string, Command | null> = {};
+    let playerCommand: Command | null = null;
     let triedGoal = false;
 
-
-    if (!world.player.action) {
-      const playerCommand = input.getCommand();
+    if (!client.player.action) {
+      playerCommand = input.getCommand();
       if (playerCommand) {
-        commands.player = playerCommand;
         goalPos = null;
       } else if (goalPos) {
         triedGoal = true;
-        if (world.memory[goalPos.y][goalPos.x]) {
-          path = world.distanceMap.findPath(goalPos.x, goalPos.y);
+        if (client.memory[goalPos.y][goalPos.x]) {
+          path = client.distanceMap.findPath(goalPos.x, goalPos.y);
           if (path && path.length > 1) {
-            const dx = path[1].x - world.player.pos.x;
-            const dy = path[1].y - world.player.pos.y;
-            commands.player = {
+            const dx = path[1].x - client.player.pos.x;
+            const dy = path[1].y - client.player.pos.y;
+            playerCommand = {
               type: CommandType.MOVE,
               dx,
               dy,
@@ -99,28 +99,21 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
           }
         }
       } else {
-        const items = world.findItems(world.player.pos.x, world.player.pos.y);
+        const items = world.findItems(client.player.pos.x, client.player.pos.y);
         if (items.length > 0) {
-          commands.player = {
+          playerCommand = {
             type: CommandType.PICK_UP,
             itemId: items[items.length - 1].id,
           };
         }
       }
     }
-    for (const mob of world.mobs) {
-      if (!mob.action) {
-        if (mob.id !== 'player') {
-          commands[mob.id] = getAiCommand();
-        }
-      }
-    }
 
-    if (world.turn(commands)) {
+    if (client.turn(playerCommand)) {
       dirty = true;
     }
 
-    if (triedGoal && !world.player.action) {
+    if (triedGoal && !client.player.action) {
       goalPos = null;
     }
   }
@@ -134,18 +127,4 @@ function gameLoop(world: World, input: Input, view: View, delta: number): void {
   view.path = goalPos && path;
 
   view.redraw(dirty, time);
-}
-
-
-function getAiCommand(): Command | null {
-  if (Math.random() < 0.8) {
-    return { type: CommandType.REST, dt: Math.random() * 10 };
-  }
-
-  const dx = Math.floor(Math.random() * 3) - 1;
-  const dy = Math.floor(Math.random() * 3) - 1;
-  if (dx !== 0 || dy !== 0) {
-    return { type: CommandType.MOVE, dx, dy };
-  }
-  return null;
 }
