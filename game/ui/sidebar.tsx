@@ -1,7 +1,7 @@
 import { Component, ComponentChild, h, VNode } from 'preact';
 import { TILES } from '../tiles';
 import { TILE_SIZE } from './textures';
-import { Item } from '../types';
+import { Item, ItemType } from '../item';
 
 export interface ItemInfo {
   tile: string;
@@ -85,15 +85,15 @@ function Tile({tile}: { tile: string }): preact.VNode {
 
 export function compactItems(items: Item[]): ItemInfo[] {
   const result = [];
-  const infos: Record<string, ItemInfo> = {};
+  const infos: Partial<Record<ItemType, ItemInfo>> = {};
 
   for (const item of items) {
-    const prev = infos[item.tile];
+    const prev = infos[item.type];
     if (prev) {
       prev.count++;
     } else {
-      const info = { tile: item.tile, count: 1};
-      infos[item.tile] = info;
+      const info = { tile: item.tile(), count: 1};
+      infos[item.type] = info;
       result.push(info);
     }
   }

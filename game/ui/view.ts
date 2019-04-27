@@ -194,7 +194,7 @@ export class View {
         let tile = Terrain.tile(this.world.map[y][x]);
         const items = this.world.findItems(x, y);
         if (items.length > 0) {
-          tile = items[items.length - 1].tile;
+          tile = items[items.length - 1].tile();
         }
 
         if (tile !== 'EMPTY') {

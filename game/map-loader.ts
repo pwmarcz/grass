@@ -1,5 +1,6 @@
 import { TILES } from './tiles';
-import { Mob, Item } from './types';
+import { Mob } from './types';
+import { Item, ItemType } from './item';
 import { makeEmptyGrid } from './utils';
 import { Terrain } from './terrain';
 
@@ -61,12 +62,11 @@ export function loadMap(xml: string):
 
       const itemTile = getTile(x, y, width, itemLayer);
       if (itemTile) {
-        items.push({
-          id: 'item' + (itemCounter++),
-          tile: itemTile,
-          pos: {x, y},
-          mobId: null,
-        });
+        items.push(new Item(
+          'item' + (itemCounter++),
+          itemTile as ItemType,
+          {x, y},
+        ));
       }
     }
   }

@@ -1,5 +1,6 @@
 import { DistanceMap } from './path';
-import { Command, Mob, CommandType, ActionType, Item } from './types';
+import { Command, Mob, CommandType, ActionType } from './types';
+import { Item } from './item';
 import { makeEmptyGrid } from './utils';
 import { VisibilityMap } from './fov';
 import { Terrain } from './terrain';
