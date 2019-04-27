@@ -1,12 +1,13 @@
 import * as PIXI from 'pixi.js';
 import { TILE_SIZE, TILE_TEXTURES, RESOLUTION } from './textures';
 import { World } from '../world';
-import { ActionType, Mob, Pos } from '../types';
+import { ActionType, Pos } from '../types';
 import { makeEmptyGrid, renderWithRef } from '../utils';
 import { Sidebar, compactItems, ItemInfo } from './sidebar';
 import { h } from 'preact';
 import { StringRenderer, IndexRenderer } from './renderer';
 import { Terrain } from '../terrain';
+import { Mob } from '../mob';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -78,7 +79,7 @@ export class View {
 
   private redrawMob(mob: Mob, time: number, alphaMap: number[][], movement: Movement): void {
     const sprite = this.mobLayer.make(mob.id, PIXI.Sprite, sprite => {
-      sprite.texture = TILE_TEXTURES[mob.tile];
+      sprite.texture = TILE_TEXTURES[mob.tile()];
       sprite.width = TILE_SIZE;
       sprite.height = TILE_SIZE;
     });
@@ -292,7 +293,7 @@ export class View {
         if (this.world.visibilityMap.visible(x, y)) {
           const mob = this.world.findMob(x, y);
           if (mob) {
-            mobTile = mob.tile;
+            mobTile = mob.tile();
           }
         }
 

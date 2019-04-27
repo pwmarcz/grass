@@ -57,10 +57,3 @@ interface ItemAction {
 }
 
 export type Action = PosAction | SimpleAction | ItemAction;
-
-export interface Mob {
-  readonly id: string;
-  pos: Pos;
-  readonly tile: string;
-  action: Action | null;
-}

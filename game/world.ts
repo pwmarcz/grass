@@ -1,14 +1,10 @@
 import { DistanceMap } from './path';
-import { Command, Mob, CommandType, ActionType } from './types';
+import { Command, CommandType, ActionType } from './types';
 import { Item } from './item';
+import { Mob } from './mob';
 import { makeEmptyGrid } from './utils';
 import { VisibilityMap } from './fov';
 import { Terrain } from './terrain';
-
-const MOVEMENT_TIME: Record<string, number> = {
-  'HUMAN': 10,
-  'GOBLIN': 20,
-};
 
 const ATTACK_TIME = 45;
 
@@ -170,7 +166,7 @@ export class World {
       type: ActionType.MOVE,
       pos: {x, y},
       timeStart: this.time,
-      timeEnd: this.time + MOVEMENT_TIME[mob.tile],
+      timeEnd: this.time + mob.movementTime(),
     };
     if (mob.id === 'player') {
       this.nextVisibilityMap.update(x, y);
