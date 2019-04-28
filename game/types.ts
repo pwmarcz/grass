@@ -3,13 +3,6 @@ export interface Pos {
   readonly y: number;
 }
 
-export enum CommandType {
-  ATTACK = 'ATTACK',
-  MOVE = 'MOVE',
-  REST = 'REST',
-  PICK_UP = 'PICK_UP',
-}
-
 export enum ActionType {
   ATTACK = 'ATTACK',
   MOVE = 'MOVE',
@@ -18,42 +11,26 @@ export enum ActionType {
   PICK_UP = 'PICK_UP',
 }
 
-interface DirCommand {
-  readonly type: CommandType.ATTACK | CommandType.MOVE;
-  readonly dx: number;
-  readonly dy: number;
+interface PosCommand {
+  readonly type: ActionType.ATTACK | ActionType.MOVE | ActionType.OPEN_DOOR;
+  readonly pos: Pos;
 }
 
 interface TimeCommand {
-  readonly type: CommandType.REST;
+  readonly type: ActionType.REST;
   readonly dt: number;
 }
 
 interface ItemCommand {
-  readonly type: CommandType.PICK_UP;
-  readonly itemId: string;
-}
-
-export type Command = DirCommand | TimeCommand | ItemCommand;
-
-interface SimpleAction {
-  readonly type: ActionType.REST | ActionType.OPEN_DOOR;
-  readonly timeStart: number;
-  readonly timeEnd: number;
-}
-
-interface PosAction {
-  readonly type: ActionType.ATTACK | ActionType.MOVE;
-  readonly timeStart: number;
-  readonly timeEnd: number;
-  readonly pos: Pos;
-}
-
-interface ItemAction {
   readonly type: ActionType.PICK_UP;
-  readonly timeStart: number;
-  readonly timeEnd: number;
   readonly itemId: string;
 }
 
-export type Action = PosAction | SimpleAction | ItemAction;
+export type Command = (PosCommand | TimeCommand | ItemCommand);
+
+interface Timed {
+  readonly timeStart: number;
+  readonly timeEnd: number;
+}
+
+export type Action = Timed & Command;

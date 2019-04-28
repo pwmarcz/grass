@@ -1,4 +1,3 @@
-import { Command, CommandType } from "../types";
 import { DisplayObject } from "pixi.js";
 
 type InteractionEvent = PIXI.interaction.InteractionEvent;
@@ -67,7 +66,7 @@ export class Input {
     }
   }
 
-  getCommand(): Command | null {
+  getDirection(): {dx: number; dy: number} | null {
     for (const {keys, dx, dy} of MOVEMENT_KEYS) {
       for (const key of keys) {
         let pressed;
@@ -78,7 +77,7 @@ export class Input {
         }
 
         if (pressed) {
-          return {type: CommandType.MOVE, dx, dy};
+          return {dx, dy};
         }
       }
     }

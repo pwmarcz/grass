@@ -10,7 +10,7 @@ import { loadMap } from './map-loader';
 import { View } from './ui/view';
 import { Input } from './ui/input';
 import { World } from './world';
-import { Command, CommandType } from './types';
+import { Command, ActionType } from './types';
 import { loadTextures } from './ui/textures';
 import { posEqual } from './utils';
 import { Client } from './client';
@@ -85,20 +85,25 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
     let triedGoal = false;
 
     if (!client.player.action) {
-      playerCommand = input.getCommand();
-      if (playerCommand) {
+      const dir = input.getDirection();
+      if (dir) {
         goalPos = null;
+        const pos = {
+          x: client.player.pos.x + dir.dx,
+          y: client.player.pos.y + dir.dy,
+        };
+        playerCommand = {
+          type: ActionType.MOVE,
+          pos,
+        };
       } else if (goalPos) {
         triedGoal = true;
         if (client.memory[goalPos.y][goalPos.x]) {
           path = client.distanceMap.findPath(goalPos.x, goalPos.y);
           if (path && path.length > 1) {
-            const dx = path[1].x - client.player.pos.x;
-            const dy = path[1].y - client.player.pos.y;
             playerCommand = {
-              type: CommandType.MOVE,
-              dx,
-              dy,
+              type: ActionType.MOVE,
+              pos: path[1],
             };
           }
         }
@@ -106,7 +111,7 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
         const items = world.findItems(client.player.pos.x, client.player.pos.y);
         if (items.length > 0) {
           playerCommand = {
-            type: CommandType.PICK_UP,
+            type: ActionType.PICK_UP,
             itemId: items[items.length - 1].id,
           };
         }

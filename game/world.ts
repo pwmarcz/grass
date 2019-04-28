@@ -1,4 +1,4 @@
-import { Command, CommandType, ActionType } from './types';
+import { Command, ActionType } from './types';
 import { Item } from './item';
 import { Mob } from './mob';
 import { makeEmptyGrid } from './utils';
@@ -40,7 +40,7 @@ export class World {
 
     for (const mob of this.mobs) {
       if (!mob.action && commands[mob.id] === undefined) {
-        commands[mob.id] = getAiCommand();
+        commands[mob.id] = getAiCommand(mob);
       }
     }
 
@@ -83,22 +83,21 @@ export class World {
     const command = commands[mob.id];
     if (command) {
       switch (command.type) {
-        case CommandType.MOVE:
-          this.moveMob(mob, mob.pos.x + command.dx, mob.pos.y + command.dy);
+        case ActionType.MOVE:
+          this.moveMob(mob, command.pos.x, command.pos.y);
           break;
-        case CommandType.REST:
+        case ActionType.REST:
           mob.action = {
-            type: ActionType.REST,
+            ...command,
             timeStart: this.time,
             timeEnd: this.time + command.dt,
           };
           break;
-        case CommandType.PICK_UP:
+        case ActionType.PICK_UP:
           mob.action = {
-            type: ActionType.PICK_UP,
+            ...command,
             timeStart: this.time,
             timeEnd: this.time + PICK_UP_TIME,
-            itemId: command.itemId,
           };
           break;
       }
@@ -118,6 +117,7 @@ export class World {
       this.visibilityChanged = true;
       mob.action = {
         type: ActionType.OPEN_DOOR,
+        pos: {x, y},
         timeStart: this.time,
         timeEnd: this.time + 5,
       };
@@ -173,15 +173,16 @@ export class World {
   }
 }
 
-function getAiCommand(): Command | null {
+function getAiCommand(mob: Mob): Command | null {
   if (Math.random() < 0.8) {
-    return { type: CommandType.REST, dt: Math.random() * 10 };
+    return { type: ActionType.REST, dt: Math.random() * 10 };
   }
 
   const dx = Math.floor(Math.random() * 3) - 1;
   const dy = Math.floor(Math.random() * 3) - 1;
+  const x = mob.pos.x + dx, y = mob.pos.y + dy;
   if (dx !== 0 || dy !== 0) {
-    return { type: CommandType.MOVE, dx, dy };
+    return { type: ActionType.MOVE, pos: {x, y} };
   }
   return null;
 }
