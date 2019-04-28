@@ -20,7 +20,7 @@ export class Item {
     this.pos = pos;
   }
 
-  tile(): Tile {
+  get tile(): Tile {
     return this.type as string;
   }
 }

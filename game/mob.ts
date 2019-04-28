@@ -49,27 +49,27 @@ export class Mob {
     this.regenCounter = 0;
   }
 
-  tile(): Tile {
+  get tile(): Tile {
     return this.type as string;
   }
 
-  movementTime(): number {
+  get movementTime(): number {
     return MOB_META[this.type].movementTime;
   }
 
-  damage(): number {
+  get damage(): number {
     return MOB_META[this.type].damage;
   }
 
-  alive(): boolean {
+  get alive(): boolean {
     return this.health >= 0;
   }
 
-  regenRate(): number {
+  get regenRate(): number {
     return MOB_META[this.type].regenRate;
   }
 
-  team(): string {
+  get team(): string {
     return MOB_META[this.type].team;
   }
 }

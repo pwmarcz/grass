@@ -43,7 +43,7 @@ export class World {
     this.time++;
 
     for (const mob of this.mobs) {
-      if (mob.alive() && !mob.action && commands[mob.id] === undefined) {
+      if (mob.alive && !mob.action && commands[mob.id] === undefined) {
         commands[mob.id] = this.getAiCommand(mob);
       }
     }
@@ -114,8 +114,8 @@ export class World {
   }
 
   regenerate(mob: Mob): void {
-    if (mob.alive() && mob.health < mob.maxHealth) {
-      if (++mob.regenCounter === mob.regenRate()) {
+    if (mob.alive && mob.health < mob.maxHealth) {
+      if (++mob.regenCounter === mob.regenRate) {
         mob.regenCounter = 0;
         mob.health++;
         this.stateChanged = true;
@@ -132,9 +132,9 @@ export class World {
       }
       case ActionType.ATTACK: {
         const targetMob = this.mobsById[action.mobId];
-        if (targetMob && targetMob.alive()) {
-          targetMob.health -= mob.damage();
-          if (!targetMob.alive()) {
+        if (targetMob && targetMob.alive) {
+          targetMob.health -= mob.damage;
+          if (!targetMob.alive) {
             if (targetMob.action) {
               this.actionCancel(targetMob);
             }
@@ -233,7 +233,7 @@ export class World {
       type: ActionType.MOVE,
       pos: {x, y},
       timeStart: this.time,
-      timeEnd: this.time + mob.movementTime(),
+      timeEnd: this.time + mob.movementTime,
     };
     this.visibilityChangedFor.add(mob.id);
   }
@@ -243,11 +243,11 @@ export class World {
   }
 
   canAttack(mob: Mob, targetMob: Mob): boolean {
-    if (!targetMob.alive()) {
+    if (!targetMob.alive) {
       return false;
     }
 
-    if (mob.team() === targetMob.team()) {
+    if (mob.team === targetMob.team) {
       return false;
     }
 
@@ -291,7 +291,7 @@ export class World {
 
   getAiCommand(mob: Mob): Command | null {
     const player = this.mobsById['player'];
-    if (player && player.alive()) {
+    if (player && player.alive) {
       const dxPlayer = player.pos.x - mob.pos.x;
       const dyPlayer = player.pos.y - mob.pos.y;
 

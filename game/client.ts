@@ -65,7 +65,7 @@ export class Client {
     }
 
     if (this.enemy) {
-      if (!this.enemy.alive() || !this.canSeeMob(this.enemy)) {
+      if (!this.enemy.alive || !this.canSeeMob(this.enemy)) {
         this.enemy = null;
       } else if (--this.enemyTime <= 0) {
         this.enemy = null;

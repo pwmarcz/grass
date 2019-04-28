@@ -82,12 +82,12 @@ export class View {
   }
 
   private redrawMob(mob: Mob, time: number, alphaMap: number[][], movement: Movement): void {
-    if (!mob.alive() && !mob.action) {
+    if (!mob.alive && !mob.action) {
       return;
     }
 
     const sprite = this.mobLayer.make(mob.id, PIXI.Sprite, sprite => {
-      sprite.texture = TILE_TEXTURES[mob.tile()];
+      sprite.texture = TILE_TEXTURES[mob.tile];
       sprite.width = TILE_SIZE;
       sprite.height = TILE_SIZE;
     });
@@ -240,7 +240,7 @@ export class View {
         let tile = Terrain.tile(this.world.map[y][x]);
         const items = this.world.findItems(x, y);
         if (items.length > 0) {
-          tile = items[items.length - 1].tile();
+          tile = items[items.length - 1].tile;
         }
 
         if (tile !== 'EMPTY') {
@@ -353,7 +353,7 @@ export class View {
     let enemy = null;
     if (this.client.enemy) {
       enemy = {
-        tile: this.client.enemy.tile(),
+        tile: this.client.enemy.tile,
         health: this.client.enemy.health,
         maxHealth: this.client.enemy.maxHealth
       };

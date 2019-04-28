@@ -143,7 +143,7 @@ export function describeItems(items: Item[]): ItemInfo[] {
     if (prev) {
       prev.count++;
     } else {
-      const info = { tile: item.tile(), count: 1};
+      const info = { tile: item.tile, count: 1};
       infos[item.type] = info;
       result.push(info);
     }
@@ -157,7 +157,7 @@ export function describeMob(mob: Mob | null): MobInfo | null {
     return null;
   }
   return {
-    tile: mob.tile(),
+    tile: mob.tile,
     health: mob.health,
     maxHealth: mob.maxHealth,
   };
