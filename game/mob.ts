@@ -10,6 +10,7 @@ interface MobMeta {
   movementTime: number;
   maxHealth: number;
   damage: number;
+  regenRate: number;
 };
 
 const MOB_META: Record<MobType, MobMeta> = {
@@ -17,11 +18,13 @@ const MOB_META: Record<MobType, MobMeta> = {
     movementTime: 20,
     maxHealth: 15,
     damage: 3,
+    regenRate: 120,
   },
   [MobType.HUMAN]: {
     movementTime: 10,
     maxHealth: 25,
     damage: 5,
+    regenRate: 60,
   },
 };
 
@@ -32,6 +35,7 @@ export class Mob {
   action: Action | null = null;
   health: number;
   maxHealth: number;
+  regenCounter: number;
 
   constructor(id: string, type: MobType, pos: Pos) {
     this.id = id;
@@ -39,6 +43,7 @@ export class Mob {
     this.pos = pos;
 
     this.maxHealth = this.health = MOB_META[type].maxHealth;
+    this.regenCounter = 0;
   }
 
   tile(): Tile {
@@ -55,5 +60,9 @@ export class Mob {
 
   alive(): boolean {
     return this.health >= 0;
+  }
+
+  regenRate(): number {
+    return MOB_META[this.type].regenRate;
   }
 }

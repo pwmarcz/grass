@@ -62,6 +62,9 @@ export class World {
   turnMob(mob: Mob, commands: Record<string, Command | null>): void {
     if (mob.action) {
       if (this.time < mob.action.timeEnd) {
+        if (mob.action.type === ActionType.REST) {
+          this.regenerate(mob);
+        }
         return;
       }
 
@@ -70,6 +73,8 @@ export class World {
       mob.action = null;
       this.stateChanged = true;
     }
+
+    this.regenerate(mob);
 
     const command = commands[mob.id];
     if (command) {
@@ -115,6 +120,16 @@ export class World {
         this.actionStart(mob);
       }
       this.stateChanged = true;
+    }
+  }
+
+  regenerate(mob: Mob): void {
+    if (mob.alive() && mob.health < mob.maxHealth) {
+      if (++mob.regenCounter === mob.regenRate()) {
+        mob.regenCounter = 0;
+        mob.health++;
+        this.stateChanged = true;
+      }
     }
   }
 
