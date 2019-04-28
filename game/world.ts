@@ -7,6 +7,7 @@ import { Terrain } from './terrain';
 const ATTACK_TIME = 45;
 const PICK_UP_TIME = 20;
 const DIE_TIME = 40;
+const SEEK_DISTANCE = 10;
 
 export class World {
   map: Terrain[][];
@@ -43,7 +44,7 @@ export class World {
 
     for (const mob of this.mobs) {
       if (mob.alive() && !mob.action && commands[mob.id] === undefined) {
-        commands[mob.id] = getAiCommand(mob);
+        commands[mob.id] = this.getAiCommand(mob);
       }
     }
 
@@ -243,18 +244,38 @@ export class World {
   inBounds(x: number, y: number): boolean {
     return 0 <= x && x < this.mapW && 0 <= y && y < this.mapH;
   }
-}
 
-function getAiCommand(mob: Mob): Command | null {
-  if (Math.random() < 0.8) {
-    return { type: ActionType.REST, dt: Math.random() * 10 };
-  }
+  getAiCommand(mob: Mob): Command | null {
+    const player = this.mobsById['player'];
+    if (player.alive()) {
+      const dxPlayer = player.pos.x - mob.pos.x;
+      const dyPlayer = player.pos.y - mob.pos.y;
 
-  const dx = Math.floor(Math.random() * 3) - 1;
-  const dy = Math.floor(Math.random() * 3) - 1;
-  const x = mob.pos.x + dx, y = mob.pos.y + dy;
-  if (dx !== 0 || dy !== 0) {
-    return { type: ActionType.MOVE, pos: {x, y} };
+      if (Math.abs(dxPlayer) <= SEEK_DISTANCE && Math.abs(dyPlayer) <= SEEK_DISTANCE) {
+        const x = mob.pos.x + Math.sign(dxPlayer);
+        const y = mob.pos.y + Math.sign(dyPlayer);
+        if (this.canMove(x, y)) {
+          return {
+            type: ActionType.MOVE,
+            pos: {
+              x: mob.pos.x + Math.sign(dxPlayer),
+              y: mob.pos.y + Math.sign(dyPlayer),
+            }
+          };
+        }
+      }
+    }
+
+    if (Math.random() < 0.8) {
+      return { type: ActionType.REST, dt: Math.random() * 10 };
+    }
+
+    const dx = Math.floor(Math.random() * 3) - 1;
+    const dy = Math.floor(Math.random() * 3) - 1;
+    const x = mob.pos.x + dx, y = mob.pos.y + dy;
+    if (dx !== 0 || dy !== 0) {
+      return { type: ActionType.MOVE, pos: {x, y} };
+    }
+    return null;
   }
-  return null;
 }
