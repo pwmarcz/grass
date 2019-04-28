@@ -6,6 +6,9 @@ import { makeEmptyGrid } from "./utils";
 import { Command, ActionType } from "./types";
 import { Terrain } from "./terrain";
 
+// Display enemy for how long
+const ENEMY_TIME = 60 * 5;
+
 export class Client {
   world: World;
   player: Mob;
@@ -17,6 +20,7 @@ export class Client {
   nextVisibilityMap: VisibilityMap;
 
   enemy: Mob | null;
+  enemyTime: number;
 
   constructor(world: World, playerId: string) {
     this.world = world;
@@ -33,6 +37,7 @@ export class Client {
     this.updateMemory(this.visibilityMap);
 
     this.enemy = null;
+    this.enemyTime = 0;
   }
 
   turn(command: Command | null): boolean {
@@ -56,10 +61,13 @@ export class Client {
 
     if (this.player.action && this.player.action.type === ActionType.ATTACK) {
       this.enemy = this.world.mobsById[this.player.action.mobId];
+      this.enemyTime = ENEMY_TIME;
     }
 
     if (this.enemy) {
       if (!this.enemy.alive() || !this.canSeeMob(this.enemy)) {
+        this.enemy = null;
+      } else if (--this.enemyTime <= 0) {
         this.enemy = null;
       }
     }
