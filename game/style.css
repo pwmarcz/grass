@@ -79,6 +79,29 @@ body {
   margin-right: 10px;
 }
 
+#info .stat {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+#info .stat label {
+  width: 80px;
+}
+
+#info .stat .bar {
+  display: inline-block;
+  border: solid 1px #555;
+  flex-grow: 1;
+}
+
+#info .stat .bar .inner {
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 5px;
+  background: #555;
+}
+
 @media screen and (max-width: 450px) {
   .container { width: 500px; }
   #app { width: auto; height: 480px; }

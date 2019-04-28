@@ -9,6 +9,8 @@ export interface ItemInfo {
 }
 
 export interface SidebarState {
+  health: number;
+  maxHealth: number;
   inventory: ItemInfo[];
   terrainTile: string | null;
   mobTile: string | null;
@@ -19,6 +21,8 @@ export class Sidebar extends Component<{}, SidebarState> {
   constructor() {
     super();
     this.state = {
+      health: 100,
+      maxHealth: 100,
       inventory: [],
       terrainTile: null,
       mobTile: null,
@@ -27,10 +31,24 @@ export class Sidebar extends Component<{}, SidebarState> {
   }
 
   render(props: {}, state: SidebarState): ComponentChild {
-    const { inventory, terrainTile, mobTile, items } = state;
+    const {
+      health,
+      maxHealth,
+      inventory,
+      terrainTile,
+      mobTile,
+      items
+    } = state;
 
     return (
       <div id="info">
+        <section>
+          <h2>Stats:</h2>
+          <div class="stat">
+            <label>Health:</label>
+            <StatBar value={health} max={maxHealth}/>
+          </div>
+        </section>
         <section>
           <h2>Inventory:</h2>
           <div class="item-list">
@@ -51,6 +69,22 @@ export class Sidebar extends Component<{}, SidebarState> {
   }
 }
 
+interface StatBarProps {
+  value: number;
+  max: number;
+}
+
+function StatBar({value, max}: StatBarProps): VNode {
+  const width = Math.round(100 * value / max) + '%';
+
+  return (
+    <span class="bar">
+      <span class="inner" style={{width}}>
+        {value}/{max}
+      </span>
+    </span>
+  );
+}
 
 interface TileRowProps {
   tile: string;

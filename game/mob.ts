@@ -20,11 +20,16 @@ export class Mob {
   readonly type: MobType;
   pos: Pos;
   action: Action | null = null;
+  health: number;
+  maxHealth: number;
 
   constructor(id: string, type: MobType, pos: Pos) {
     this.id = id;
     this.type = type;
     this.pos = pos;
+
+    this.maxHealth = 100;
+    this.health = 75;
   }
 
   tile(): Tile {

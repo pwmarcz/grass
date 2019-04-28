@@ -334,6 +334,11 @@ export class View {
     }
 
     this.sidebar.setState({ inventory, terrainTile, mobTile, items });
+
+    this.sidebar.setState({
+      health: this.client.player.health,
+      maxHealth: this.client.player.maxHealth
+    });
   }
 
   redrawPath(): void {
