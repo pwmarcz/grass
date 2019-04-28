@@ -6,7 +6,8 @@ type InteractionEvent = PIXI.interaction.InteractionEvent;
 const CAPTURED_KEYS = [
   'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
   '1', '2', '3', '4', '5', '6', '7', '8', '9',
-  'y', 'u', 'h', 'j', 'k', 'l', 'b', 'n'
+  'y', 'u', 'h', 'j', 'k', 'l', 'b', 'n',
+  'Shift'
 ];
 
 const MOVEMENT_KEYS = [
@@ -104,5 +105,9 @@ export class Input {
   rightClick(event: InteractionEvent): void {
     event.stopPropagation();
     this.mouse.rmb = true;
+  }
+
+  aiming(): boolean {
+    return !!this.keys['Shift'];
   }
 }

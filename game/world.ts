@@ -8,6 +8,8 @@ const ATTACK_TIME = 45;
 
 const PICK_UP_TIME = 20;
 
+const SHOOT_TIME = 45;
+
 export class World {
   map: Terrain[][];
   mobMap: (Mob | null)[][];
@@ -85,6 +87,14 @@ export class World {
       switch (command.type) {
         case CommandType.MOVE:
           this.moveMob(mob, mob.pos.x + command.dx, mob.pos.y + command.dy);
+          break;
+        case CommandType.SHOOT:
+          mob.action = {
+            type: ActionType.SHOOT,
+            timeStart: this.time,
+            timeEnd: this.time + SHOOT_TIME,
+            pos: { x: mob.pos.x + command.dx, y: mob.pos.y + command.dy },
+          };
           break;
         case CommandType.REST:
           mob.action = {

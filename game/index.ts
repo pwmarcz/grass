@@ -88,6 +88,15 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
       playerCommand = input.getCommand();
       if (playerCommand) {
         goalPos = null;
+      } else if (goalPos && input.aiming()) {
+        const dx = goalPos.x - client.player.pos.x;
+        const dy = goalPos.y - client.player.pos.y;
+        goalPos = null;
+        playerCommand = {
+          type: CommandType.SHOOT,
+          dx,
+          dy,
+        };
       } else if (goalPos) {
         triedGoal = true;
         if (client.memory[goalPos.y][goalPos.x]) {

@@ -6,6 +6,7 @@ export interface Pos {
 export enum CommandType {
   ATTACK = 'ATTACK',
   MOVE = 'MOVE',
+  SHOOT = 'SHOOT',
   REST = 'REST',
   PICK_UP = 'PICK_UP',
 }
@@ -13,13 +14,15 @@ export enum CommandType {
 export enum ActionType {
   ATTACK = 'ATTACK',
   MOVE = 'MOVE',
+  SHOOT = 'SHOOT',
   REST = 'REST',
   OPEN_DOOR = 'OPEN_DOOR',
   PICK_UP = 'PICK_UP',
 }
 
+// TODO convert to PosCommand
 interface DirCommand {
-  readonly type: CommandType.ATTACK | CommandType.MOVE;
+  readonly type: CommandType.ATTACK | CommandType.MOVE | CommandType.SHOOT;
   readonly dx: number;
   readonly dy: number;
 }
@@ -43,7 +46,7 @@ interface SimpleAction {
 }
 
 interface PosAction {
-  readonly type: ActionType.ATTACK | ActionType.MOVE;
+  readonly type: ActionType.ATTACK | ActionType.MOVE | ActionType.SHOOT;
   readonly timeStart: number;
   readonly timeEnd: number;
   readonly pos: Pos;

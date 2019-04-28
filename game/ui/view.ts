@@ -12,6 +12,7 @@ import { Client } from '../client';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
+const SHOT_TIME = 0.3;
 const DARK_ALPHA = 0.4;
 
 function lerp(a: number, b: number, t: number): number {
@@ -123,6 +124,30 @@ export class View {
       sprite.y = mob.pos.y * TILE_SIZE;
 
       alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
+    }
+
+    if (mob.action && mob.action.type === ActionType.SHOOT) {
+      const start = clamp(1 - (1 - actionTime) / SHOT_TIME, 0, 1);
+      const end = clamp(actionTime / SHOT_TIME, 0, 1);
+
+      const xStart = sprite.x + 0.5 * TILE_SIZE;
+      const yStart = sprite.y + 0.5 * TILE_SIZE;
+
+      const xEnd = (mob.action.pos.x + 0.5) * TILE_SIZE;
+      const yEnd = (mob.action.pos.y + 0.5) * TILE_SIZE;
+
+      const g = this.frontLayer.make('shot', PIXI.Graphics);
+      g.clear();
+      g.lineStyle(3, 0xb55d00, lerp(0.8, 0.3, actionTime));
+
+      g.moveTo(
+        lerp(xStart, xEnd, start),
+        lerp(yStart, yEnd, start),
+      );
+      g.lineTo(
+        lerp(xStart, xEnd, end),
+        lerp(yStart, yEnd, end),
+      );
     }
   }
 
