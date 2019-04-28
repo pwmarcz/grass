@@ -86,4 +86,8 @@ export class Client {
   canPlayerSeeThrough(x: number, y: number): boolean {
     return this.world.inBounds(x, y) && Terrain.seeThrough(this.world.map[y][x]);
   }
+
+  canSeeMob(mob: Mob): boolean {
+    return this.visibilityMap.visible(mob.pos.x, mob.pos.y);
+  }
 }

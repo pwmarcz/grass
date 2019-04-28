@@ -69,11 +69,13 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
 
   if (input.mouse.lmb) {
     if (inputPos) {
-      goalMob = world.findMob(inputPos.x, inputPos.y);
-      if (goalMob) {
+      const mob = world.findMob(inputPos.x, inputPos.y);
+      if (mob && client.canSeeMob(mob)) {
         goalPos = null;
+        goalMob = mob;
       } else {
         goalPos = inputPos;
+        goalMob = null;
       }
     } else {
       goalPos = null;
@@ -127,7 +129,7 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
             type: ActionType.ATTACK,
             mobId: goalMob.id,
           };
-        } else if (client.memory[goalMob.pos.y][goalMob.pos.x]) {
+        } else if (client.canSeeMob(goalMob)) {
           path = client.distanceMap.findPath(goalMob.pos.x, goalMob.pos.y);
           if (path && path.length > 1) {
             playerCommand = {
