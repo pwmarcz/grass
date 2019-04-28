@@ -1,4 +1,4 @@
-import { Command, ActionType } from './types';
+import { Command, ActionType, Action } from './types';
 import { Item } from './item';
 import { Mob } from './mob';
 import { makeEmptyGrid, nextTo } from './utils';
@@ -7,6 +7,7 @@ import { Terrain } from './terrain';
 const ATTACK_TIME = 45;
 const PICK_UP_TIME = 20;
 const DIE_TIME = 40;
+const OPEN_DOOR_TIME = 5;
 const SEEK_DISTANCE = 10;
 
 export class World {
@@ -14,7 +15,7 @@ export class World {
   private mobMap: (Mob | null)[][];
   mobs: Mob[];
   private mobsById: Partial<Record<string, Mob>>;
-  items: Item[];
+  private items: Item[];
   mapW: number;
   mapH: number;
   time: number;
@@ -57,7 +58,7 @@ export class World {
     }
   }
 
-  turnMob(mob: Mob, commands: Record<string, Command | null>): void {
+  private turnMob(mob: Mob, commands: Record<string, Command | null>): void {
     if (mob.action) {
       if (this.time < mob.action.timeEnd) {
         if (mob.action.type === ActionType.REST) {
@@ -66,10 +67,7 @@ export class World {
         return;
       }
 
-      this.actionEnd(mob);
-
-      mob.action = null;
-      this.stateChanged = true;
+      this.endAction(mob);
     }
 
     this.regenerate(mob);
@@ -83,37 +81,21 @@ export class World {
         case ActionType.ATTACK: {
           const targetMob = this.mobsById[command.mobId];
           if (targetMob && this.canAttack(mob, targetMob)) {
-            mob.action = {
-              ...command,
-              timeStart: this.time,
-              timeEnd: this.time + ATTACK_TIME,
-            };
+            this.startAction(mob, ATTACK_TIME, command);
           }
           break;
         }
         case ActionType.REST:
-          mob.action = {
-            ...command,
-            timeStart: this.time,
-            timeEnd: this.time + command.dt,
-          };
+          this.startAction(mob, command.dt, command);
           break;
         case ActionType.PICK_UP:
-          mob.action = {
-            ...command,
-            timeStart: this.time,
-            timeEnd: this.time + PICK_UP_TIME,
-          };
+          this.startAction(mob, PICK_UP_TIME, command);
           break;
       }
-      if (mob.action) {
-        this.actionStart(mob);
-      }
-      this.stateChanged = true;
     }
   }
 
-  regenerate(mob: Mob): void {
+  private regenerate(mob: Mob): void {
     if (mob.alive && mob.health < mob.maxHealth) {
       if (++mob.regenCounter === mob.regenRate) {
         mob.regenCounter = 0;
@@ -123,11 +105,19 @@ export class World {
     }
   }
 
-  actionStart(mob: Mob): void {
-    const action = mob.action!;
+  private startAction(mob: Mob, dt: number, command: Command): void {
+    if (mob.action) {
+      this.cancelAction(mob);
+    }
+    const action: Action = {
+      ...command,
+      timeStart: this.time,
+      timeEnd: this.time + dt,
+    };
     switch(action.type) {
       case ActionType.MOVE: {
         this.mobMap[action.pos.y][action.pos.x] = mob;
+        this.visibilityChangedFor.add(mob.id);
         break;
       }
       case ActionType.ATTACK: {
@@ -135,15 +125,7 @@ export class World {
         if (targetMob && targetMob.alive) {
           targetMob.health -= mob.damage;
           if (!targetMob.alive) {
-            if (targetMob.action) {
-              this.actionCancel(targetMob);
-            }
-            targetMob.action = {
-              type: ActionType.DIE,
-              timeStart: this.time,
-              timeEnd: this.time + DIE_TIME,
-            };
-            this.actionStart(targetMob);
+            this.startAction(targetMob, DIE_TIME, { type: ActionType.DIE });
           }
         }
         break;
@@ -153,9 +135,11 @@ export class World {
         this.visibilityChanged = true;
         break;
     }
+    mob.action = action;
+    this.stateChanged = true;
   }
 
-  actionCancel(mob: Mob): void {
+  private cancelAction(mob: Mob): void {
     const action = mob.action!;
     switch (action.type) {
       case ActionType.MOVE: {
@@ -163,9 +147,11 @@ export class World {
         break;
       }
     }
+    mob.action = null;
+    this.stateChanged = true;
   }
 
-  actionEnd(mob: Mob): void {
+  private endAction(mob: Mob): void {
     const action = mob.action!;
     switch (action.type) {
       case ActionType.MOVE: {
@@ -187,15 +173,17 @@ export class World {
         break;
       }
     }
+    mob.action = null;
+    this.stateChanged = true;
   }
 
-  removeMob(mob: Mob): void {
+  private removeMob(mob: Mob): void {
     delete this.mobsById[mob.id];
     this.mobMap[mob.pos.y][mob.pos.x] = null;
     this.mobs.splice(this.mobs.indexOf(mob), 1);
   }
 
-  moveMob(mob: Mob, x: number, y: number): void {
+  private moveMob(mob: Mob, x: number, y: number): void {
     if (!this.inBounds(x, y)) {
       return;
     }
@@ -203,24 +191,20 @@ export class World {
     const newTerrain = this.map[y][x];
 
     if (newTerrain === Terrain.DOOR_CLOSED) {
-      mob.action = {
+      this.startAction(mob, OPEN_DOOR_TIME, {
         type: ActionType.OPEN_DOOR,
         pos: {x, y},
-        timeStart: this.time,
-        timeEnd: this.time + 5,
-      };
+      });
       return;
     }
 
     const targetMob = this.findMob(x, y);
     if (targetMob) {
       if (this.canAttack(mob, targetMob)) {
-        mob.action = {
+        this.startAction(mob, ATTACK_TIME, {
           type: ActionType.ATTACK,
           mobId: targetMob.id,
-          timeStart: this.time,
-          timeEnd: this.time + ATTACK_TIME,
-        };
+        });
       }
       return;
     }
@@ -229,13 +213,10 @@ export class World {
       return;
     }
 
-    mob.action = {
+    this.startAction(mob, mob.movementTime, {
       type: ActionType.MOVE,
       pos: {x, y},
-      timeStart: this.time,
-      timeEnd: this.time + mob.movementTime,
-    };
-    this.visibilityChangedFor.add(mob.id);
+    });
   }
 
   canMove(x: number, y: number): boolean {
@@ -289,7 +270,7 @@ export class World {
     return 0 <= x && x < this.mapW && 0 <= y && y < this.mapH;
   }
 
-  getAiCommand(mob: Mob): Command | null {
+  private getAiCommand(mob: Mob): Command | null {
     const player = this.mobsById['player'];
     if (player && player.alive) {
       const dxPlayer = player.pos.x - mob.pos.x;
