@@ -17,14 +17,14 @@ interface MobMeta {
 const MOB_META: Record<MobType, MobMeta> = {
   [MobType.GOBLIN]: {
     movementTime: 20,
-    maxHealth: 20,
+    maxHealth: 15,
     damage: 3,
     regenRate: 120,
     team: 'goblins',
   },
   [MobType.HUMAN]: {
     movementTime: 10,
-    maxHealth: 25,
+    maxHealth: 35,
     damage: 4,
     regenRate: 60,
     team: 'humans',
