@@ -16,6 +16,8 @@ export class Client {
   visibilityMap: VisibilityMap;
   nextVisibilityMap: VisibilityMap;
 
+  enemy: Mob | null;
+
   constructor(world: World, playerId: string) {
     this.world = world;
     this.player = this.world.mobs.find(mob => mob.id === playerId)!;
@@ -29,6 +31,8 @@ export class Client {
 
     this.memory = makeEmptyGrid(this.world.mapW, this.world.mapH, false);
     this.updateMemory(this.visibilityMap);
+
+    this.enemy = null;
   }
 
   turn(command: Command | null): boolean {
@@ -49,6 +53,17 @@ export class Client {
         this.nextVisibilityMap.update(x, y);
       }
     }
+
+    if (this.player.action && this.player.action.type === ActionType.ATTACK) {
+      this.enemy = this.world.mobsById[this.player.action.mobId];
+    }
+
+    if (this.enemy) {
+      if (!this.enemy.alive() || !this.canSeeMob(this.enemy)) {
+        this.enemy = null;
+      }
+    }
+
     return this.world.stateChanged;
   }
 

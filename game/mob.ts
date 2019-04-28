@@ -16,14 +16,14 @@ interface MobMeta {
 const MOB_META: Record<MobType, MobMeta> = {
   [MobType.GOBLIN]: {
     movementTime: 20,
-    maxHealth: 15,
+    maxHealth: 20,
     damage: 3,
     regenRate: 120,
   },
   [MobType.HUMAN]: {
     movementTime: 10,
     maxHealth: 25,
-    damage: 5,
+    damage: 4,
     regenRate: 60,
   },
 };

@@ -3,7 +3,7 @@ import { TILE_SIZE, TILE_TEXTURES, RESOLUTION } from './textures';
 import { World } from '../world';
 import { ActionType, Pos } from '../types';
 import { makeEmptyGrid, renderWithRef } from '../utils';
-import { Sidebar, compactItems, ItemInfo } from './sidebar';
+import { Sidebar, ItemInfo, describeMob, MobInfo, describeItems } from './sidebar';
 import { h } from 'preact';
 import { StringRenderer, IndexRenderer } from './renderer';
 import { Terrain } from '../terrain';
@@ -319,11 +319,11 @@ export class View {
       return;
     }
 
-    const inventory = compactItems(
+    const inventory = describeItems(
       this.world.findMobItems(this.client.player));
 
     let terrainTile: string | null = null;
-    let mobTile: string | null = null;
+    let mob: MobInfo | null = null;
     let items: ItemInfo[] | null = null;
     if (this.highlightPos) {
       const {x, y} = this.highlightPos;
@@ -333,22 +333,29 @@ export class View {
         terrainTile = this.world.map[y][x];
 
         if (this.client.visibilityMap.visible(x, y)) {
-          const mob = this.world.findMob(x, y);
-          if (mob) {
-            mobTile = mob.tile();
-          }
+          mob = describeMob(this.world.findMob(x, y));
         }
 
-        items = compactItems(this.world.findItems(x, y));
+        items = describeItems(this.world.findItems(x, y));
       }
     }
 
-    this.sidebar.setState({ inventory, terrainTile, mobTile, items });
+    this.sidebar.setState({ inventory, terrainTile, mob, items });
 
     this.sidebar.setState({
       health: this.client.player.health,
       maxHealth: this.client.player.maxHealth
     });
+
+    let enemy = null;
+    if (this.client.enemy) {
+      enemy = {
+        tile: this.client.enemy.tile(),
+        health: this.client.enemy.health,
+        maxHealth: this.client.enemy.maxHealth
+      };
+    }
+    this.sidebar.setState({ enemy });
   }
 
   redrawPath(): void {

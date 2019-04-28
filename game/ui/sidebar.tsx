@@ -2,10 +2,17 @@ import { Component, ComponentChild, h, VNode } from 'preact';
 import { TILES } from '../tiles';
 import { TILE_SIZE } from './textures';
 import { Item, ItemType } from '../item';
+import { Mob } from '../mob';
 
 export interface ItemInfo {
   tile: string;
   count: number;
+}
+
+export interface MobInfo {
+  tile: string;
+  health: number;
+  maxHealth: number;
 }
 
 export interface SidebarState {
@@ -13,8 +20,10 @@ export interface SidebarState {
   maxHealth: number;
   inventory: ItemInfo[];
   terrainTile: string | null;
-  mobTile: string | null;
+  mob: MobInfo | null;
   items: ItemInfo[] | null;
+
+  enemy: MobInfo | null;
 }
 
 export class Sidebar extends Component<{}, SidebarState> {
@@ -25,8 +34,9 @@ export class Sidebar extends Component<{}, SidebarState> {
       maxHealth: 100,
       inventory: [],
       terrainTile: null,
-      mobTile: null,
+      mob: null,
       items: null,
+      enemy: null,
     };
   }
 
@@ -36,8 +46,9 @@ export class Sidebar extends Component<{}, SidebarState> {
       maxHealth,
       inventory,
       terrainTile,
-      mobTile,
-      items
+      mob,
+      items,
+      enemy,
     } = state;
 
     return (
@@ -59,11 +70,17 @@ export class Sidebar extends Component<{}, SidebarState> {
           <h2>Highlighted:</h2>
           <div class="item-list">
             {terrainTile && <TileRow tile={terrainTile}/>}
-            {mobTile && <TileRow tile={mobTile}/>}
             {items && items.map(item =>
               <TileRow tile={item.tile} count={item.count}/>)}
+            {mob && <MobRow mob={mob}/>}
           </div>
         </section>
+        {enemy && (
+          <section>
+            <h2>Enemy:</h2>
+            <MobRow mob={enemy}/>
+          </section>
+        )}
       </div>
     );
   }
@@ -117,7 +134,7 @@ function Tile({tile}: { tile: string }): preact.VNode {
   });
 }
 
-export function compactItems(items: Item[]): ItemInfo[] {
+export function describeItems(items: Item[]): ItemInfo[] {
   const result = [];
   const infos: Partial<Record<ItemType, ItemInfo>> = {};
 
@@ -133,4 +150,29 @@ export function compactItems(items: Item[]): ItemInfo[] {
   }
 
   return result;
+}
+
+export function describeMob(mob: Mob | null): MobInfo | null {
+  if (!mob) {
+    return null;
+  }
+  return {
+    tile: mob.tile(),
+    health: mob.health,
+    maxHealth: mob.maxHealth,
+  };
+}
+
+function MobRow({ mob }: { mob: MobInfo }): VNode {
+  return (
+    <div>
+      <TileRow tile={mob.tile} />
+      {mob.health < mob.maxHealth && (
+        <div class="stat">
+          <label>Health:</label>
+          <StatBar value={mob.health} max={mob.maxHealth}/>
+        </div>
+      )}
+    </div>
+  );
 }
