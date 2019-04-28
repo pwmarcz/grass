@@ -13,7 +13,7 @@ export class World {
   map: Terrain[][];
   private mobMap: (Mob | null)[][];
   mobs: Mob[];
-  private mobsById: Record<string, Mob>;
+  private mobsById: Partial<Record<string, Mob>>;
   items: Item[];
   mapW: number;
   mapH: number;
