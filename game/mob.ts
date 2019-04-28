@@ -11,6 +11,7 @@ interface MobMeta {
   maxHealth: number;
   damage: number;
   regenRate: number;
+  team: string;
 };
 
 const MOB_META: Record<MobType, MobMeta> = {
@@ -19,12 +20,14 @@ const MOB_META: Record<MobType, MobMeta> = {
     maxHealth: 20,
     damage: 3,
     regenRate: 120,
+    team: 'goblins',
   },
   [MobType.HUMAN]: {
     movementTime: 10,
     maxHealth: 25,
     damage: 4,
     regenRate: 60,
+    team: 'humans',
   },
 };
 
@@ -64,5 +67,9 @@ export class Mob {
 
   regenRate(): number {
     return MOB_META[this.type].regenRate;
+  }
+
+  team(): string {
+    return MOB_META[this.type].team;
   }
 }

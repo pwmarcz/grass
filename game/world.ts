@@ -247,6 +247,10 @@ export class World {
       return false;
     }
 
+    if (mob.team() === targetMob.team()) {
+      return false;
+    }
+
     if (nextTo(mob.pos, targetMob.pos)) {
       return true;
     }
