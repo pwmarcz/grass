@@ -48,6 +48,7 @@ export class View {
 
   highlightPos: Pos | null = null;
   goalPos: Pos | null = null;
+  goalMob: Mob | null = null;
   path: Pos[] | null = null;
 
   constructor(world: World, client: Client, element: Element, infoElement: Element) {
@@ -124,6 +125,15 @@ export class View {
       sprite.y = mob.pos.y * TILE_SIZE;
 
       alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
+    }
+
+    if (this.goalMob && this.goalMob.id === mob.id) {
+      const g = this.frontLayer.make('goalMob', PIXI.Graphics, g => {
+        g.lineStyle(1, 0x6D5000, 1, 0);
+        g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+      });
+      g.x = sprite.x;
+      g.y = sprite.y;
     }
   }
 

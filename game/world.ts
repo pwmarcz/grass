@@ -1,7 +1,7 @@
 import { Command, ActionType } from './types';
 import { Item } from './item';
 import { Mob } from './mob';
-import { makeEmptyGrid } from './utils';
+import { makeEmptyGrid, nextTo } from './utils';
 import { Terrain } from './terrain';
 
 const ATTACK_TIME = 45;
@@ -89,6 +89,13 @@ export class World {
         case ActionType.MOVE:
           this.moveMob(mob, command.pos.x, command.pos.y);
           break;
+        case ActionType.ATTACK:
+          mob.action = {
+            ...command,
+            timeStart: this.time,
+            timeEnd: this.time + ATTACK_TIME,
+          };
+          break;
         case ActionType.REST:
           mob.action = {
             ...command,
@@ -154,6 +161,18 @@ export class World {
 
   canMove(x: number, y: number): boolean {
     return this.inBounds(x, y) && Terrain.passThrough(this.map[y][x]);
+  }
+
+  canAttack(mob: Mob, targetMob: Mob): boolean {
+    if (nextTo(mob.pos, targetMob.pos)) {
+      return true;
+    }
+
+    if (targetMob.action && targetMob.action.type === ActionType.MOVE) {
+      return nextTo(mob.pos, targetMob.action.pos);
+    }
+
+    return false;
   }
 
   findMob(x: number, y: number): Mob | null {

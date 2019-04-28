@@ -49,3 +49,9 @@ export function renderWithRef<P>(
     render(node, element, mergeWith);
   });
 }
+
+export function nextTo(a: Pos, b: Pos): boolean {
+  const dx = Math.abs(a.x - b.x);
+  const dy = Math.abs(a.y - b.y);
+  return Math.max(dx, dy) === 1;
+}

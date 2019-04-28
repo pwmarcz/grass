@@ -64,15 +64,27 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
   const inputPos = mousePoint && view.toPos(mousePoint);
   let highlightPos = view.highlightPos;
   let goalPos = view.goalPos;
+  let goalMob = view.goalMob;
   let path = view.path;
 
   if (input.mouse.lmb) {
-    goalPos = inputPos;
+    if (inputPos) {
+      goalMob = world.findMob(inputPos.x, inputPos.y);
+      if (goalMob) {
+        goalPos = null;
+      } else {
+        goalPos = inputPos;
+      }
+    } else {
+      goalPos = null;
+      goalMob = null;
+    }
     highlightPos = null;
     input.mouse.lmb = false;
   }
   if (input.mouse.rmb) {
     goalPos = null;
+    goalMob = null;
     input.mouse.rmb = false;
   }
   if (input.mouse.moved) {
@@ -107,6 +119,23 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
             };
           }
         }
+      } else if (goalMob) {
+        triedGoal = true;
+        if (world.canAttack(client.player, goalMob)) {
+          path = null;
+          playerCommand = {
+            type: ActionType.ATTACK,
+            mobId: goalMob.id,
+          };
+        } else if (client.memory[goalMob.pos.y][goalMob.pos.x]) {
+          path = client.distanceMap.findPath(goalMob.pos.x, goalMob.pos.y);
+          if (path && path.length > 1) {
+            playerCommand = {
+              type: ActionType.MOVE,
+              pos: path[1],
+            };
+          }
+        }
       } else {
         const items = world.findItems(client.player.pos.x, client.player.pos.y);
         if (items.length > 0) {
@@ -124,6 +153,7 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
 
     if (triedGoal && !client.player.action) {
       goalPos = null;
+      goalMob = null;
     }
   }
 
@@ -133,7 +163,8 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
     view.highlightPos = highlightPos;
     dirty = true;
   }
-  view.path = goalPos && path;
+  view.path = (goalPos || goalMob) && path;
+  view.goalMob = goalMob;
 
   view.redraw(dirty, time);
 }
