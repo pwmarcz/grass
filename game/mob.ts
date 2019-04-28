@@ -8,11 +8,21 @@ export enum MobType {
 
 interface MobMeta {
   movementTime: number;
+  maxHealth: number;
+  damage: number;
 };
 
 const MOB_META: Record<MobType, MobMeta> = {
-  [MobType.GOBLIN]: { movementTime: 20 },
-  [MobType.HUMAN]: { movementTime: 10 },
+  [MobType.GOBLIN]: {
+    movementTime: 20,
+    maxHealth: 15,
+    damage: 3,
+  },
+  [MobType.HUMAN]: {
+    movementTime: 10,
+    maxHealth: 25,
+    damage: 5,
+  },
 };
 
 export class Mob {
@@ -28,8 +38,7 @@ export class Mob {
     this.type = type;
     this.pos = pos;
 
-    this.maxHealth = 100;
-    this.health = 75;
+    this.maxHealth = this.health = MOB_META[type].maxHealth;
   }
 
   tile(): Tile {
@@ -38,5 +47,13 @@ export class Mob {
 
   movementTime(): number {
     return MOB_META[this.type].movementTime;
+  }
+
+  damage(): number {
+    return MOB_META[this.type].damage;
+  }
+
+  alive(): boolean {
+    return this.health >= 0;
   }
 }

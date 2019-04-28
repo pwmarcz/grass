@@ -9,6 +9,11 @@ export enum ActionType {
   REST = 'REST',
   OPEN_DOOR = 'OPEN_DOOR',
   PICK_UP = 'PICK_UP',
+  DIE = 'DIE',
+}
+
+interface SimpleCommand {
+  readonly type: ActionType.DIE;
 }
 
 interface PosCommand {
@@ -31,7 +36,13 @@ interface ItemCommand {
   readonly itemId: string;
 }
 
-export type Command = (PosCommand | TimeCommand | MobCommand | ItemCommand);
+export type Command = (
+  SimpleCommand |
+  PosCommand |
+  TimeCommand |
+  MobCommand |
+  ItemCommand)
+;
 
 interface Timed {
   readonly timeStart: number;

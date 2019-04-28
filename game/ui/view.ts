@@ -82,6 +82,10 @@ export class View {
   }
 
   private redrawMob(mob: Mob, time: number, alphaMap: number[][], movement: Movement): void {
+    if (!mob.alive() && !mob.action) {
+      return;
+    }
+
     const sprite = this.mobLayer.make(mob.id, PIXI.Sprite, sprite => {
       sprite.texture = TILE_TEXTURES[mob.tile()];
       sprite.width = TILE_SIZE;
@@ -119,6 +123,12 @@ export class View {
       sprite.x = TILE_SIZE * lerp(mob.pos.x, targetPos.x, distance);
       sprite.y = TILE_SIZE * lerp(mob.pos.y, targetPos.y, distance);
 
+      alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
+    } else if (mob.action && mob.action.type === ActionType.DIE) {
+      sprite.x = mob.pos.x * TILE_SIZE;
+      sprite.y = mob.pos.y * TILE_SIZE;
+
+      sprite.alpha = lerp(sprite.alpha, 0, actionTime);
       alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
     } else {
       sprite.x = mob.pos.x * TILE_SIZE;

@@ -5,8 +5,8 @@ import { makeEmptyGrid, nextTo } from './utils';
 import { Terrain } from './terrain';
 
 const ATTACK_TIME = 45;
-
 const PICK_UP_TIME = 20;
+const DIE_TIME = 40;
 
 export class World {
   map: Terrain[][];
@@ -42,7 +42,7 @@ export class World {
     this.time++;
 
     for (const mob of this.mobs) {
-      if (!mob.action && commands[mob.id] === undefined) {
+      if (mob.alive() && !mob.action && commands[mob.id] === undefined) {
         commands[mob.id] = getAiCommand(mob);
       }
     }
@@ -52,7 +52,9 @@ export class World {
     this.visibilityChangedFor.clear();
 
     for (const mob of this.mobs) {
-      this.turnMob(mob, commands);
+      if (mob.alive() || mob.action) {
+        this.turnMob(mob, commands);
+      }
     }
   }
 
@@ -62,22 +64,7 @@ export class World {
         return;
       }
 
-      switch (mob.action.type) {
-        case ActionType.MOVE: {
-          this.mobMap[mob.pos.y][mob.pos.x] = null;
-          mob.pos = mob.action.pos;
-
-          this.visibilityChangedFor.add(mob.id);
-          break;
-        }
-        case ActionType.PICK_UP: {
-          const itemId = mob.action.itemId;
-          const item = this.items.find(item => item.id === itemId)!;
-          item.pos = null;
-          item.mobId = mob.id;
-          break;
-        }
-      }
+      this.actionEnd(mob);
 
       mob.action = null;
       this.stateChanged = true;
@@ -89,13 +76,25 @@ export class World {
         case ActionType.MOVE:
           this.moveMob(mob, command.pos.x, command.pos.y);
           break;
-        case ActionType.ATTACK:
-          mob.action = {
-            ...command,
-            timeStart: this.time,
-            timeEnd: this.time + ATTACK_TIME,
-          };
+        case ActionType.ATTACK: {
+          const targetMob = this.mobsById[command.mobId];
+          if (targetMob.alive()) {
+            mob.action = {
+              ...command,
+              timeStart: this.time,
+              timeEnd: this.time + ATTACK_TIME,
+            };
+            targetMob.health -= mob.damage();
+            if (!targetMob.alive()) {
+              targetMob.action = {
+                type: ActionType.DIE,
+                timeStart: this.time,
+                timeEnd: this.time + DIE_TIME,
+              };
+            }
+          }
           break;
+        }
         case ActionType.REST:
           mob.action = {
             ...command,
@@ -111,7 +110,59 @@ export class World {
           };
           break;
       }
+      if (mob.action) {
+        this.actionStart(mob);
+      }
       this.stateChanged = true;
+    }
+  }
+
+  actionStart(mob: Mob): void {
+    const action = mob.action!;
+    switch(action.type) {
+      case ActionType.ATTACK: {
+        const targetMob = this.mobsById[action.mobId];
+        if (targetMob.alive()) {
+          targetMob.health -= mob.damage();
+          if (!targetMob.alive()) {
+            targetMob.action = {
+              type: ActionType.DIE,
+              timeStart: this.time,
+              timeEnd: this.time + DIE_TIME,
+            };
+            this.actionStart(targetMob);
+          }
+        }
+        break;
+      }
+      case ActionType.OPEN_DOOR:
+        this.map[action.pos.y][action.pos.x] = Terrain.DOOR_OPEN;
+        this.visibilityChanged = true;
+        break;
+    }
+  }
+
+  actionEnd(mob: Mob): void {
+    const action = mob.action!;
+    switch (action.type) {
+      case ActionType.MOVE: {
+        this.mobMap[mob.pos.y][mob.pos.x] = null;
+        mob.pos = action.pos;
+
+        this.visibilityChangedFor.add(mob.id);
+        break;
+      }
+      case ActionType.PICK_UP: {
+        const itemId = action.itemId;
+        const item = this.items.find(item => item.id === itemId)!;
+        item.pos = null;
+        item.mobId = mob.id;
+        break;
+      }
+      case ActionType.DIE: {
+        this.mobMap[mob.pos.y][mob.pos.x] = null;
+        break;
+      }
     }
   }
 
@@ -123,8 +174,6 @@ export class World {
     const newTerrain = this.map[y][x];
 
     if (newTerrain === Terrain.DOOR_CLOSED) {
-      this.map[y][x] = Terrain.DOOR_OPEN;
-      this.visibilityChanged = true;
       mob.action = {
         type: ActionType.OPEN_DOOR,
         pos: {x, y},
