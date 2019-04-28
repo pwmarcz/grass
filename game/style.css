@@ -19,6 +19,16 @@ body {
   display: flex;
   flex-direction: row;
   align-items: stretch;
+  height: 673px;
+}
+
+#game.fullscreen {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: auto;
 }
 
 #game > * {
@@ -27,12 +37,12 @@ body {
 }
 
 #app {
-  width: 800px;
-  height: 672px;
+  flex-grow: 1;
 }
 
 #info {
-  flex-grow: 1;
+  box-sizing: border-box;
+  width: 298px;
   padding: 16px;
 }
 

@@ -27,6 +27,10 @@ if (parsedUrl.searchParams.get('speed') !== null) {
   speed = parseFloat(parsedUrl.searchParams.get('speed')!);
 }
 
+if (parsedUrl.searchParams.get('full') !== null) {
+  document.getElementById('game')!.classList.add('fullscreen');
+}
+
 const appElement = document.getElementById('app');
 const infoElement = document.getElementById('info');
 if (!appElement || !infoElement) {

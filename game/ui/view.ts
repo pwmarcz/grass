@@ -150,20 +150,20 @@ export class View {
   }
 
   updateViewport(movement: Movement): void {
+    if (this.element.clientWidth !== this.width ||
+        this.element.clientHeight !== this.height) {
+      this.width = this.element.clientWidth;
+      this.height = this.element.clientHeight;
+      this.app.renderer.resize(this.width, this.height);
+    }
+
     const {x0, y0, x1, y1, t} = movement;
 
     const x = lerp(x0, x1, t);
     const y = lerp(y0, y1, t);
 
-    let dx = -((x + 0.5) * TILE_SIZE - this.width / 2);
-    let dy = -((y + 0.5) * TILE_SIZE - this.height / 2);
-
-    // Don't scroll past map edge.
-    dx = clamp(dx, -this.world.mapW * TILE_SIZE + this.width, 0);
-    dy = clamp(dy, -this.world.mapH * TILE_SIZE + this.height, 0);
-
-    this.app.stage.x = dx;
-    this.app.stage.y = dy;
+    this.app.stage.x = offset(x, this.width, this.world.mapW);
+    this.app.stage.y = offset(y, this.height, this.world.mapH);
   }
 
   toPos(point: PIXI.Point): Pos | null {
@@ -345,4 +345,12 @@ export class View {
       */
     }
   }
+}
+
+function offset(x: number, width: number, mapWidth: number): number {
+  if (width > mapWidth * TILE_SIZE) {
+    return (width - mapWidth * TILE_SIZE) / 2;
+  }
+  const dx = -((x + 0.5) * TILE_SIZE - width / 2);
+  return clamp(dx, -mapWidth * TILE_SIZE + width, 0);
 }
