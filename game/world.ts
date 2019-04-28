@@ -12,6 +12,7 @@ export class World {
   map: Terrain[][];
   mobMap: (Mob | null)[][];
   mobs: Mob[];
+  mobsById: Record<string, Mob>;
   items: Item[];
   mapW: number;
   mapH: number;
@@ -30,8 +31,10 @@ export class World {
     this.time = 0;
 
     this.mobMap = makeEmptyGrid(this.mapW, this.mapH, null);
+    this.mobsById = {};
     for (const mob of this.mobs) {
       this.mobMap[mob.pos.y][mob.pos.x] = mob;
+      this.mobsById[mob.id] = mob;
     }
   }
 
@@ -124,10 +127,11 @@ export class World {
       return;
     }
 
-    if (this.findMob(x, y)) {
+    const targetMob = this.findMob(x, y);
+    if (targetMob) {
       mob.action = {
         type: ActionType.ATTACK,
-        pos: {x, y},
+        mobId: targetMob.id,
         timeStart: this.time,
         timeEnd: this.time + ATTACK_TIME,
       };

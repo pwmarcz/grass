@@ -12,7 +12,7 @@ export enum ActionType {
 }
 
 interface PosCommand {
-  readonly type: ActionType.ATTACK | ActionType.MOVE | ActionType.OPEN_DOOR;
+  readonly type: ActionType.MOVE | ActionType.OPEN_DOOR;
   readonly pos: Pos;
 }
 
@@ -21,12 +21,17 @@ interface TimeCommand {
   readonly dt: number;
 }
 
+interface MobCommand {
+  readonly type: ActionType.ATTACK;
+  readonly mobId: string;
+}
+
 interface ItemCommand {
   readonly type: ActionType.PICK_UP;
   readonly itemId: string;
 }
 
-export type Command = (PosCommand | TimeCommand | ItemCommand);
+export type Command = (PosCommand | TimeCommand | MobCommand | ItemCommand);
 
 interface Timed {
   readonly timeStart: number;

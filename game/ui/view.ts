@@ -87,10 +87,7 @@ export class View {
       sprite.height = TILE_SIZE;
     });
 
-    let actionTime = 0;
-    if (mob.action) {
-      actionTime = (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
-    }
+    const actionTime = this.getActionTime(mob, time);
 
     const a1 = this.getVisibilityMultiplier(mob.pos.x, mob.pos.y, movement, 0);
     if (mob.action && mob.action.type === ActionType.MOVE) {
@@ -101,8 +98,9 @@ export class View {
     }
 
     if (mob.action && mob.action.type === ActionType.MOVE) {
-      sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, actionTime);
-      sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, actionTime);
+      const {x, y} = this.getCurrentPos(mob, time);
+      sprite.x = TILE_SIZE * x;
+      sprite.y = TILE_SIZE * y;
 
       alphaMap[mob.pos.y][mob.pos.x] = lerp(1, actionTime, sprite.alpha);
       alphaMap[mob.action.pos.y][mob.action.pos.x] = lerp(1, 1 - actionTime, sprite.alpha);
@@ -114,8 +112,11 @@ export class View {
         distance = (1 - (actionTime - ATTACK_START_TIME) / (1 - ATTACK_START_TIME)) * ATTACK_DISTANCE;
       }
 
-      sprite.x = TILE_SIZE * lerp(mob.pos.x, mob.action.pos.x, distance);
-      sprite.y = TILE_SIZE * lerp(mob.pos.y, mob.action.pos.y, distance);
+      const targetMob = this.world.mobsById[mob.action.mobId];
+      const targetPos = this.getCurrentPos(targetMob, time);
+
+      sprite.x = TILE_SIZE * lerp(mob.pos.x, targetPos.x, distance);
+      sprite.y = TILE_SIZE * lerp(mob.pos.y, targetPos.y, distance);
 
       alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
     } else {
@@ -124,6 +125,24 @@ export class View {
 
       alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
     }
+  }
+
+  getActionTime(mob: Mob, time: number): number {
+    if (mob.action) {
+      return (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
+    }
+    return 0;
+  }
+
+  getCurrentPos(mob: Mob, time: number): Pos {
+    if (mob.action && mob.action.type === ActionType.MOVE) {
+      const actionTime = this.getActionTime(mob, time);
+      return {
+        x: lerp(mob.pos.x, mob.action.pos.x, actionTime),
+        y: lerp(mob.pos.y, mob.action.pos.y, actionTime),
+      };
+    }
+    return mob.pos;
   }
 
   redraw(dirty: boolean, time: number): void {
