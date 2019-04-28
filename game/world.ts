@@ -11,9 +11,9 @@ const SEEK_DISTANCE = 10;
 
 export class World {
   map: Terrain[][];
-  mobMap: (Mob | null)[][];
+  private mobMap: (Mob | null)[][];
   mobs: Mob[];
-  mobsById: Record<string, Mob>;
+  private mobsById: Record<string, Mob>;
   items: Item[];
   mapW: number;
   mapH: number;
@@ -53,9 +53,7 @@ export class World {
     this.visibilityChangedFor.clear();
 
     for (const mob of this.mobs) {
-      if (mob.alive() || mob.action) {
-        this.turnMob(mob, commands);
-      }
+      this.turnMob(mob, commands);
     }
   }
 
@@ -84,20 +82,12 @@ export class World {
           break;
         case ActionType.ATTACK: {
           const targetMob = this.mobsById[command.mobId];
-          if (targetMob.alive()) {
+          if (targetMob && this.canAttack(mob, targetMob)) {
             mob.action = {
               ...command,
               timeStart: this.time,
               timeEnd: this.time + ATTACK_TIME,
             };
-            targetMob.health -= mob.damage();
-            if (!targetMob.alive()) {
-              targetMob.action = {
-                type: ActionType.DIE,
-                timeStart: this.time,
-                timeEnd: this.time + DIE_TIME,
-              };
-            }
           }
           break;
         }
@@ -136,11 +126,18 @@ export class World {
   actionStart(mob: Mob): void {
     const action = mob.action!;
     switch(action.type) {
+      case ActionType.MOVE: {
+        this.mobMap[action.pos.y][action.pos.x] = mob;
+        break;
+      }
       case ActionType.ATTACK: {
         const targetMob = this.mobsById[action.mobId];
-        if (targetMob.alive()) {
+        if (targetMob && targetMob.alive()) {
           targetMob.health -= mob.damage();
           if (!targetMob.alive()) {
+            if (targetMob.action) {
+              this.actionCancel(targetMob);
+            }
             targetMob.action = {
               type: ActionType.DIE,
               timeStart: this.time,
@@ -155,6 +152,16 @@ export class World {
         this.map[action.pos.y][action.pos.x] = Terrain.DOOR_OPEN;
         this.visibilityChanged = true;
         break;
+    }
+  }
+
+  actionCancel(mob: Mob): void {
+    const action = mob.action!;
+    switch (action.type) {
+      case ActionType.MOVE: {
+        this.mobMap[action.pos.y][action.pos.x] = null;
+        break;
+      }
     }
   }
 
@@ -176,10 +183,16 @@ export class World {
         break;
       }
       case ActionType.DIE: {
-        this.mobMap[mob.pos.y][mob.pos.x] = null;
+        this.removeMob(mob);
         break;
       }
     }
+  }
+
+  removeMob(mob: Mob): void {
+    delete this.mobsById[mob.id];
+    this.mobMap[mob.pos.y][mob.pos.x] = null;
+    this.mobs.splice(this.mobs.indexOf(mob), 1);
   }
 
   moveMob(mob: Mob, x: number, y: number): void {
@@ -201,12 +214,14 @@ export class World {
 
     const targetMob = this.findMob(x, y);
     if (targetMob) {
-      mob.action = {
-        type: ActionType.ATTACK,
-        mobId: targetMob.id,
-        timeStart: this.time,
-        timeEnd: this.time + ATTACK_TIME,
-      };
+      if (this.canAttack(mob, targetMob)) {
+        mob.action = {
+          type: ActionType.ATTACK,
+          mobId: targetMob.id,
+          timeStart: this.time,
+          timeEnd: this.time + ATTACK_TIME,
+        };
+      }
       return;
     }
 
@@ -214,7 +229,6 @@ export class World {
       return;
     }
 
-    this.mobMap[y][x] = mob;
     mob.action = {
       type: ActionType.MOVE,
       pos: {x, y},
@@ -229,6 +243,10 @@ export class World {
   }
 
   canAttack(mob: Mob, targetMob: Mob): boolean {
+    if (!targetMob.alive()) {
+      return false;
+    }
+
     if (nextTo(mob.pos, targetMob.pos)) {
       return true;
     }
@@ -242,6 +260,13 @@ export class World {
 
   findMob(x: number, y: number): Mob | null {
     return this.mobMap[y][x];
+  }
+
+  getTargetMob(mob: Mob): Mob | null {
+    if (!(mob.action && mob.action.type === ActionType.ATTACK)) {
+      return null;
+    }
+    return this.mobsById[mob.action.mobId] || null;
   }
 
   findItems(x: number, y: number): Item[] {
@@ -262,7 +287,7 @@ export class World {
 
   getAiCommand(mob: Mob): Command | null {
     const player = this.mobsById['player'];
-    if (player.alive()) {
+    if (player && player.alive()) {
       const dxPlayer = player.pos.x - mob.pos.x;
       const dyPlayer = player.pos.y - mob.pos.y;
 

@@ -60,7 +60,7 @@ export class Client {
     }
 
     if (this.player.action && this.player.action.type === ActionType.ATTACK) {
-      this.enemy = this.world.mobsById[this.player.action.mobId];
+      this.enemy = this.world.getTargetMob(this.player);
       this.enemyTime = ENEMY_TIME;
     }
 

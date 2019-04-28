@@ -117,8 +117,11 @@ export class View {
         distance = (1 - (actionTime - ATTACK_START_TIME) / (1 - ATTACK_START_TIME)) * ATTACK_DISTANCE;
       }
 
-      const targetMob = this.world.mobsById[mob.action.mobId];
-      const targetPos = this.getCurrentPos(targetMob, time);
+      let targetPos = mob.pos;
+      const targetMob = this.world.getTargetMob(mob);
+      if (targetMob) {
+        targetPos = this.getCurrentPos(targetMob, time);
+      }
 
       sprite.x = TILE_SIZE * lerp(mob.pos.x, targetPos.x, distance);
       sprite.y = TILE_SIZE * lerp(mob.pos.y, targetPos.y, distance);
