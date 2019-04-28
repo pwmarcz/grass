@@ -33,9 +33,7 @@ function getTile(x: number, y: number, width: number, layer: number[]): string |
 export function loadMap(xml: string):
  { map: Terrain[][]; mobs: Mob[]; items: Item[] } {
   const { width, height, layers } = parseTmx(xml);
-  const terrainLayer = layers[1];
-  const itemLayer = layers[2];
-  const mobLayer = layers[3];
+  const [terrainLayer, itemLayer, mobLayer] = layers;
 
   const mobs: Mob[] = [];
   let mobCounter = 0;
