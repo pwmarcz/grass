@@ -325,19 +325,13 @@ export class View {
     );
 
     if (los) {
-      for (let i = 0; i < los.length; i++) {
-        const g = this.backLayer.make(`los.${i}`, PIXI.Graphics, g => {
-          g.beginFill(0x555555, 0.5);
-          g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
-        });
-        g.x = los[i].x * TILE_SIZE;
-        g.y = los[i].y * TILE_SIZE;
-      }
       const g = this.frontLayer.make('los.line', PIXI.Graphics);
       g.clear();
-      g.lineStyle(5, 0x4444FF, 1, 0.5);
+      g.lineStyle(5, 0x4444FF, 0.5, 0.5);
       g.moveTo((los[0].x + 0.5) * TILE_SIZE, (los[0].y + 0.5) * TILE_SIZE);
-      g.lineTo((los[los.length-1].x + 0.5) * TILE_SIZE, (los[los.length-1].y + 0.5) * TILE_SIZE);
+      for (let i = 1; i < los.length; i++) {
+        g.lineTo((los[i].x + 0.5) * TILE_SIZE, (los[i].y + 0.5) * TILE_SIZE);
+      }
     }
   }
 
