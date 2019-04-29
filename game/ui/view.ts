@@ -326,7 +326,7 @@ export class View {
 
     if (los) {
       for (let i = 0; i < los.length; i++) {
-        const g = this.frontLayer.make(`los.${i}`, PIXI.Graphics, g => {
+        const g = this.backLayer.make(`los.${i}`, PIXI.Graphics, g => {
           g.beginFill(0x555555, 0.5);
           g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
         });
@@ -335,7 +335,7 @@ export class View {
       }
       const g = this.frontLayer.make('los.line', PIXI.Graphics);
       g.clear();
-      g.lineStyle(3, 0x4444FF, 1, 0);
+      g.lineStyle(5, 0x4444FF, 1, 0.5);
       g.moveTo((los[0].x + 0.5) * TILE_SIZE, (los[0].y + 0.5) * TILE_SIZE);
       g.lineTo((los[los.length-1].x + 0.5) * TILE_SIZE, (los[los.length-1].y + 0.5) * TILE_SIZE);
     }
@@ -400,7 +400,7 @@ export class View {
     if (this.path) {
       const g = this.frontLayer.make('path', PIXI.Graphics);
       g.clear();
-      g.lineStyle(5, 0xFFFFFF, 0.3);
+      g.lineStyle(5, 0xFFFFFF, 0.3, 0.5);
 
       const {x: x0, y: y0} = this.mobLayer.get('player')!.position;
       g.moveTo(
