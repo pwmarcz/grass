@@ -3,6 +3,7 @@ import { Item } from './item';
 import { Mob } from './mob';
 import { makeEmptyGrid, nextTo } from './utils';
 import { Terrain } from './terrain';
+import { VisibilityMap } from './fov';
 
 const ATTACK_TIME = 45;
 const PICK_UP_TIME = 20;
@@ -21,6 +22,7 @@ export class World {
   time: number;
 
   stateChanged: boolean = false;
+  visibilityMap: VisibilityMap;
   visibilityChanged: boolean = false;
   visibilityChangedFor: Set<string> = new Set();
 
@@ -38,6 +40,9 @@ export class World {
       this.mobMap[mob.pos.y][mob.pos.x] = mob;
       this.mobsById[mob.id] = mob;
     }
+
+    this.visibilityMap = new VisibilityMap(
+      this.canSeeThrough.bind(this), this.mapW, this.mapH);
   }
 
   turn(commands: Record<string, Command | null>): void {
@@ -133,6 +138,7 @@ export class World {
       case ActionType.OPEN_DOOR:
         this.map[action.pos.y][action.pos.x] = Terrain.DOOR_OPEN;
         this.visibilityChanged = true;
+        this.visibilityMap.invalidate(action.pos.x, action.pos.y);
         break;
     }
     mob.action = action;
@@ -302,5 +308,10 @@ export class World {
       return { type: ActionType.MOVE, pos: {x, y} };
     }
     return null;
+  }
+
+
+  canSeeThrough(x: number, y: number): boolean {
+    return this.inBounds(x, y) && Terrain.seeThrough(this.map[y][x]);
   }
 }

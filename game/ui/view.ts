@@ -278,10 +278,11 @@ export class View {
   }
 
   getVisibilityMultiplier(
-    x: number, y: number, {t}: Movement,
+    x: number, y: number, {x0, y0, x1, y1, t}: Movement,
     darkAlpha = DARK_ALPHA
   ): number {
-    const visible = this.client.visibilityMap.visible(x, y);
+    const visible = this.world.visibilityMap.visible(
+      x0, y0, x, y);
     const remembered = this.client.memory[y][x];
     const multiplier = visible ? 1 : remembered ? darkAlpha : 0;
 
@@ -289,7 +290,7 @@ export class View {
       return multiplier;
     }
 
-    const nextVisible = this.client.nextVisibilityMap.visible(x, y);
+    const nextVisible = this.world.visibilityMap.visible(x1, y1, x, y);
     const nextMultiplier = nextVisible ? 1 : remembered ? darkAlpha : 0;
     return lerp(multiplier, nextMultiplier, t);
   }
@@ -335,7 +336,7 @@ export class View {
 
         terrainTile = this.world.map[y][x];
 
-        if (this.client.visibilityMap.visible(x, y)) {
+        if (this.client.canSee(x, y)) {
           mob = describeMob(this.world.findMob(x, y));
         }
 

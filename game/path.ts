@@ -1,6 +1,6 @@
 import { Pos } from "./types";
 import FastPriorityQueue from 'fastpriorityqueue';
-import { MapFunc, GlobalMap } from "./local-map";
+import { MapFunc, GlobalMap } from "./global-map";
 
 const eps = 1 / 16;
 
