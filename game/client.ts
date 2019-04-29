@@ -16,7 +16,7 @@ export class Client {
   memory: boolean[][];
 
   enemy: Mob | null;
-  enemyTime: number;
+  enemyLastSeen: number;
 
   constructor(world: World, playerId: string) {
     this.world = world;
@@ -29,7 +29,7 @@ export class Client {
     this.updateMemory();
 
     this.enemy = null;
-    this.enemyTime = 0;
+    this.enemyLastSeen = 0;
   }
 
   turn(command: Command | null): boolean {
@@ -46,20 +46,49 @@ export class Client {
       this.updateMemory();
     }
 
-    if (this.player.action && this.player.action.type === ActionType.ATTACK) {
-      this.enemy = this.world.getTargetMob(this.player);
-      this.enemyTime = ENEMY_TIME;
+    const nextEnemy = this.findEnemy();
+    if (nextEnemy) {
+      this.enemy = nextEnemy;
+      this.enemyLastSeen = this.world.time;
     }
 
     if (this.enemy) {
       if (!this.enemy.alive || !this.canSeeMob(this.enemy)) {
         this.enemy = null;
-      } else if (--this.enemyTime <= 0) {
+      }
+      if (this.world.time > this.enemyLastSeen + ENEMY_TIME) {
         this.enemy = null;
       }
     }
 
     return this.world.stateChanged;
+  }
+
+  findEnemy(): Mob | null {
+    let enemy: Mob | null = null;
+    let t = 0;
+
+    if (this.player.action && this.player.action.type === ActionType.ATTACK) {
+      const mob = this.world.getTargetMob(this.player);
+      if (mob) {
+        enemy = mob;
+        t = this.player.action.timeStart;
+      }
+    }
+
+    for (const mob of this.world.mobs) {
+      if (mob.action &&
+        mob.action.type === ActionType.ATTACK &&
+        mob.action.mobId === this.player.id
+      ) {
+        if (!enemy || t < mob.action.timeStart) {
+          enemy = mob;
+          t = mob.action.timeStart;
+        }
+      }
+    }
+
+    return enemy;
   }
 
   updateMemory(): void {

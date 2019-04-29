@@ -138,6 +138,11 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
             };
           }
         }
+      } else if (client.enemy && world.canAttack(client.player, client.enemy)) {
+        playerCommand = {
+          type: ActionType.ATTACK,
+          mobId: client.enemy.id,
+        };
       } else {
         const items = world.findItems(client.player.pos.x, client.player.pos.y);
         if (items.length > 0) {
