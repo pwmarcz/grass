@@ -9,7 +9,6 @@ const ATTACK_TIME = 45;
 const PICK_UP_TIME = 20;
 const DIE_TIME = 40;
 const OPEN_DOOR_TIME = 5;
-const SEEK_DISTANCE = 10;
 
 export class World {
   map: Terrain[][];
@@ -279,10 +278,13 @@ export class World {
   private getAiCommand(mob: Mob): Command | null {
     const player = this.mobsById['player'];
     if (player && player.alive) {
-      const dxPlayer = player.pos.x - mob.pos.x;
-      const dyPlayer = player.pos.y - mob.pos.y;
+      if (this.visibilityMap.visible(
+        mob.pos.x, mob.pos.y,
+        player.pos.x, player.pos.y
+      )) {
+        const dxPlayer = player.pos.x - mob.pos.x;
+        const dyPlayer = player.pos.y - mob.pos.y;
 
-      if (Math.abs(dxPlayer) <= SEEK_DISTANCE && Math.abs(dyPlayer) <= SEEK_DISTANCE) {
         const x = mob.pos.x + Math.sign(dxPlayer);
         const y = mob.pos.y + Math.sign(dyPlayer);
         if (this.canMove(x, y)) {
