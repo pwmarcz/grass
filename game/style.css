@@ -21,7 +21,7 @@ body {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  height: 673px;
+  height: 674px;
 }
 
 #game.fullscreen {
