@@ -9,6 +9,7 @@ import { StringRenderer, IndexRenderer } from './renderer';
 import { Terrain } from '../terrain';
 import { Mob } from '../mob';
 import { Client } from '../client';
+import { DEBUG } from '../debug';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -29,7 +30,6 @@ interface Movement {
   y1: number;
   t: number;
 }
-
 export class View {
   private world: World;
   private client: Client;
@@ -185,6 +185,13 @@ export class View {
     }
     this.redrawMap(alphaMap, movement);
 
+    if (DEBUG.showLos) {
+      this.redrawLos();
+    }
+    if (DEBUG.showDistance) {
+      this.redrawDistance();
+    }
+
     this.backLayer.flush();
     this.mapLayer.flush();
     this.mobLayer.flush();
@@ -307,6 +314,33 @@ export class View {
     }
   }
 
+  redrawLos(): void {
+    if (!this.highlightPos) {
+      return;
+    }
+
+    const los = this.world.visibilityMap.line(
+      this.client.player.pos.x, this.client.player.pos.y,
+      this.highlightPos.x, this.highlightPos.y,
+    );
+
+    if (los) {
+      for (let i = 0; i < los.length; i++) {
+        const g = this.frontLayer.make(`los.${i}`, PIXI.Graphics, g => {
+          g.beginFill(0x555555, 0.5);
+          g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+        });
+        g.x = los[i].x * TILE_SIZE;
+        g.y = los[i].y * TILE_SIZE;
+      }
+      const g = this.frontLayer.make('los.line', PIXI.Graphics);
+      g.clear();
+      g.lineStyle(3, 0x4444FF, 1, 0);
+      g.moveTo((los[0].x + 0.5) * TILE_SIZE, (los[0].y + 0.5) * TILE_SIZE);
+      g.lineTo((los[los.length-1].x + 0.5) * TILE_SIZE, (los[los.length-1].y + 0.5) * TILE_SIZE);
+    }
+  }
+
   redrawGoal(): void {
     if (this.goalPos) {
       const g = this.frontLayer.make('goal', PIXI.Graphics, g => {
@@ -377,27 +411,31 @@ export class View {
         const {x, y} = this.path[i];
         g.lineTo(TILE_SIZE * (x + 0.5), TILE_SIZE * (y + 0.5));
       }
+    }
+  }
 
-      /* // Draw distance map
-      const dm = this.world.distanceMap;
-      const textStyle = new PIXI.TextStyle({
-        fill: 0xffffff,
-        fontSize: 12,
-      });
-      for (let y = 0; y < dm.h; y++) {
-        for (let x = 0; x < dm.w; x++) {
-          const val = Math.floor(dm.get(x, y));
-          if (val !== -1) {
-            const t = this.frontLayer.make(`distance(${x},${y})`, PIXI.Text, t => {
-              t.x = x * TILE_SIZE + 10;
-              t.y = y * TILE_SIZE + 10;
-              t.style = textStyle;
-            });
-            t.text = `${val}`;
-          }
+  redrawDistance(): void {
+    if (!this.path) {
+      return;
+    }
+    // Draw distance map
+    const dm = this.client.distanceMap;
+    const textStyle = new PIXI.TextStyle({
+      fill: 0xffffff,
+      fontSize: 12,
+    });
+    for (let y = 0; y < dm.h; y++) {
+      for (let x = 0; x < dm.w; x++) {
+        const val = Math.floor(dm.get(x, y));
+        if (val !== -1) {
+          const t = this.frontLayer.make(`distance(${x},${y})`, PIXI.Text, t => {
+            t.x = x * TILE_SIZE + 10;
+            t.y = y * TILE_SIZE + 10;
+            t.style = textStyle;
+          });
+          t.text = `${val}`;
         }
       }
-      */
     }
   }
 }

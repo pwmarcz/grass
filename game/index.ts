@@ -14,20 +14,15 @@ import { Command, ActionType } from './types';
 import { loadTextures } from './ui/textures';
 import { posEqual } from './utils';
 import { Client } from './client';
+import { DEBUG } from './debug';
 
 let mapFile = mapFile1;
-let speed = 1;
 
-const parsedUrl = new URL(window.location.href);
-if (parsedUrl.searchParams.get('map') === '2') {
+if (DEBUG.mapName === '2') {
   mapFile = mapFile2;
 }
 
-if (parsedUrl.searchParams.get('speed') !== null) {
-  speed = parseFloat(parsedUrl.searchParams.get('speed')!);
-}
-
-if (parsedUrl.searchParams.get('full') !== null) {
+if (DEBUG.fullScreen) {
   document.getElementById('game')!.classList.add('fullscreen');
 }
 
@@ -57,7 +52,7 @@ Promise.all([mapPromise, loadPromise])
 let time = 0;
 
 function gameLoop(world: World, client: Client, input: Input, view: View, delta: number): void {
-  time += delta * speed;
+  time += delta * DEBUG.speed;
   let dirty = false;
 
   const mousePoint = input.mouse.point;
