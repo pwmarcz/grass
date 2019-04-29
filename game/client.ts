@@ -1,6 +1,5 @@
 import { World } from "./world";
 import { Mob } from "./mob";
-import { VisibilityMap } from "./fov";
 import { DistanceMap } from "./path";
 import { makeEmptyGrid } from "./utils";
 import { Command, ActionType } from "./types";
@@ -16,9 +15,6 @@ export class Client {
   distanceMap: DistanceMap;
   memory: boolean[][];
 
-  visibilityMap: VisibilityMap;
-  nextVisibilityMap: VisibilityMap;
-
   enemy: Mob | null;
   enemyTime: number;
 
@@ -29,12 +25,8 @@ export class Client {
     this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this), this.world.mapW, this.world.mapH);
     this.distanceMap.update(this.player.pos.x, this.player.pos.y);
 
-    this.visibilityMap = new VisibilityMap(this.canPlayerSeeThrough.bind(this));
-    this.visibilityMap.update(this.player.pos.x, this.player.pos.y);
-    this.nextVisibilityMap = new VisibilityMap(this.canPlayerSeeThrough.bind(this));
-
     this.memory = makeEmptyGrid(this.world.mapW, this.world.mapH, false);
-    this.updateMemory(this.visibilityMap);
+    this.updateMemory();
 
     this.enemy = null;
     this.enemyTime = 0;
@@ -51,12 +43,7 @@ export class Client {
     }
     if (this.world.visibilityChanged ||
       this.world.visibilityChangedFor.has(this.player.id)) {
-      this.visibilityMap.update(this.player.pos.x, this.player.pos.y);
-      this.updateMemory(this.visibilityMap);
-      if (this.player.action && this.player.action.type === ActionType.MOVE) {
-        const {x, y} = this.player.action.pos;
-        this.nextVisibilityMap.update(x, y);
-      }
+      this.updateMemory();
     }
 
     if (this.player.action && this.player.action.type === ActionType.ATTACK) {
@@ -75,16 +62,10 @@ export class Client {
     return this.world.stateChanged;
   }
 
-  updateMemory(vm: VisibilityMap): void {
-    for (let my = 0; my < vm.h; my++) {
-      for (let mx = 0; mx < vm.w; mx++) {
-        const x = mx + vm.x0;
-        const y = my + vm.y0;
-        if (this.world.inBounds(x, y)) {
-          this.memory[y][x] = this.memory[y][x] || vm.data[my][mx];
-        }
-      }
-    }
+  updateMemory(): void {
+    this.world.visibilityMap.forEach(this.player.pos.x, this.player.pos.y,
+      (x, y) => this.memory[y][x] = true
+    );
   }
 
   canPlayerPath(x: number, y: number): boolean {
@@ -96,7 +77,7 @@ export class Client {
       return false;
     }
 
-    if (this.visibilityMap.visible(x, y)) {
+    if (this.canSee(x, y)) {
       const mob = this.world.findMob(x, y);
       if (mob && mob.id !== this.player.id) {
         return false;
@@ -106,11 +87,11 @@ export class Client {
     return Terrain.pathThrough(this.world.map[y][x]);
   }
 
-  canPlayerSeeThrough(x: number, y: number): boolean {
-    return this.world.inBounds(x, y) && Terrain.seeThrough(this.world.map[y][x]);
+  canSee(x: number, y: number): boolean {
+    return this.world.visibilityMap.visible(this.player.pos.x, this.player.pos.y, x, y);
   }
 
   canSeeMob(mob: Mob): boolean {
-    return this.visibilityMap.visible(mob.pos.x, mob.pos.y);
+    return this.canSee(mob.pos.x, mob.pos.y);
   }
 }
