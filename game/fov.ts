@@ -1,6 +1,7 @@
 import { MapFunc } from "./global-map";
 import { makeEmptyGrid } from "./utils";
 import { PermissiveFov } from 'permissive-fov';
+import { Pos } from "./types";
 
 const FOV_RADIUS = 12;
 
@@ -88,4 +89,94 @@ export class VisibilityMap {
   getRadius(dx: number, dy: number): number {
     return Math.ceil(Math.sqrt(dx * dx + dy * dy));
   }
+
+  line(x0: number, y0: number, x1: number, y1: number): Pos[] {
+    const q = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+
+    let bestLine = this.truncatedLine(x0, y0, x1, y1, 0);
+    for (let eps = 1; eps < q; eps++) {
+      const line = this.truncatedLine(x0, y0, x1, y1, eps);
+      if (line.length > bestLine.length) {
+        bestLine = line;
+      }
+    }
+    return bestLine;
+  }
+
+  private truncatedLine(
+    x0: number, y0: number, x1: number, y1: number, eps: number): Pos[] {
+    const line = bresenhamLine(x0, y0, x1, y1, eps);
+    const n = this.blockLine(line);
+    line.splice(n);
+    return line;
+  }
+
+  private blockLine(line: Pos[]): number {
+    for (let i = 0; i < line.length; i++) {
+      if (!this.visible(line[0].x, line[0].y, line[i].x, line[i].y)) {
+        return i;
+      }
+      if (!this.mapFunc(line[i].x, line[i].y)) {
+        return i + 1;
+      }
+    }
+    return line.length;
+  }
+}
+
+function bresenhamLine(
+  x0: number, y0: number, x1: number, y1: number, eps: number
+): Pos[] {
+
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const adx = Math.abs(dx);
+  const ady = Math.abs(dy);
+  const n = Math.max(adx, ady);
+
+  let p, q;
+  let dx0, dx1;
+  let dy0, dy1;
+  if (adx < ady) {
+    p = adx;
+    q = ady;
+    dx0 = 0;
+    dy0 = Math.sign(dy);
+    dx1 = Math.sign(dx);
+    dy1 = Math.sign(dy);
+  } else {
+    p = ady;
+    q = adx;
+    dx0 = Math.sign(dx);
+    dy0 = 0;
+    dx1 = Math.sign(dx);
+    dy1 = Math.sign(dy);
+  }
+
+  const word = balancedWord(n, p, q, eps);
+
+  const result = [];
+  let x = x0, y = y0;
+  result.push({x, y});
+  for (const digit of word) {
+    x += (digit === 0 ? dx0 : dx1);
+    y += (digit === 0 ? dy0 : dy1);
+    result.push({x, y});
+  }
+
+  return result;
+}
+
+function balancedWord(n: number, p: number, q: number, eps: number): number[] {
+  const result = [];
+  for (let i = 0; i < n; i++) {
+    eps += p;
+    if (eps < q) {
+      result.push(0);
+    } else {
+      result.push(1);
+      eps -= q;
+    }
+  }
+  return result;
 }
