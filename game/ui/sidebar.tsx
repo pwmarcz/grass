@@ -66,7 +66,7 @@ export class Sidebar extends Component<{}, SidebarState> {
             {inventory.map(item => <TileRow tile={item.tile} count={item.count} />)}
           </div>
         </section>
-        <section>
+        <section class="highlighted">
           <h2>Highlighted:</h2>
           <div class="item-list">
             {terrainTile && <TileRow tile={terrainTile}/>}

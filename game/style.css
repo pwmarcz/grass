@@ -7,6 +7,8 @@ body {
   color: #eee;
 }
 
+* { box-sizing: border-box; }
+
 .container {
   width: 1100px;
   margin: 0 auto;
@@ -103,9 +105,16 @@ body {
   transition: width 0.25s;
 }
 
+/* Compact vertical layout */
 @media screen and (max-width: 450px) {
-  .container { width: 500px; }
-  #app { width: auto; height: 480px; }
+  .container { width: auto; }
+  #game { width: 450px; height: auto; }
   #game { flex-direction: column; }
+  #app { height: 450px; flex-grow: initial; }
+  #game #info { width: 100%; flex-grow: 1; }
+
   h1 { margin: 0; }
+
+  #info .item-list { height: 70px; }
+  #info .highlighted { display: none; }
 }
