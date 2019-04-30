@@ -1,9 +1,18 @@
+// Implementation from:
+// http://www.roguebasin.com/index.php?title=Improved_Shadowcasting_in_Java
+
 import { MapFunc } from "./global-map";
 import { makeEmptyGrid } from "./utils";
-import { PermissiveFov } from 'permissive-fov';
 import { Pos } from "./types";
 
 const FOV_RADIUS = 12;
+
+const DIAGONALS = [
+  {dx: -1, dy: -1},
+  {dx: -1, dy: 1},
+  {dx: 1, dy: -1},
+  {dx: 1, dy: 1},
+];
 
 export class VisibilityMap {
   mapFunc: MapFunc<boolean>;
@@ -14,8 +23,6 @@ export class VisibilityMap {
 
   fields: (Uint8Array | null)[][];
 
-  pfov: PermissiveFov;
-
   constructor(mapFunc: MapFunc<boolean>, width: number, height: number, radius = FOV_RADIUS) {
     this.mapFunc = mapFunc;
     this.width = width;
@@ -23,7 +30,6 @@ export class VisibilityMap {
     this.radius = radius;
     this.fieldWidth = radius * 2 + 1;
     this.fields = makeEmptyGrid(width, height, null);
-    this.pfov = new PermissiveFov(this.width, this.height, this.mapFunc);
   }
 
   invalidate(x0: number, y0: number): void {
@@ -72,18 +78,72 @@ export class VisibilityMap {
     const field = new Uint8Array(this.fieldWidth * this.fieldWidth).fill(255);
     field[this.radius * this.fieldWidth + this.radius] = 0;
 
-    this.pfov.compute(x0, y0, this.radius, (x, y) => {
-      const dx = x - x0;
-      const dy = y - y0;
-      const index = (dy + this.radius) * this.fieldWidth + dx + this.radius;
-      field[index] = this.getRadius(dx, dy);
-    });
-
+    for (const {dx, dy} of DIAGONALS) {
+      this.castLight(field, x0, y0, 1, 1, 0, 0, dx, dy, 0);
+      this.castLight(field, x0, y0, 1, 1, 0, dx, 0, 0, dy);
+    }
     return field;
   }
 
   inBounds(x: number, y: number): boolean {
     return (0 <= x && x < this.width && 0 <= y && y < this.height);
+  }
+
+  private castLight(
+    field: Uint8Array, x0: number, y0: number,
+    row: number, start: number, end: number,
+    xx: number, xy: number, yx: number, yy: number
+  ): void {
+    if (start < end) {
+      return;
+    }
+    let newStart = 0;
+    let blocked = false;
+
+    for (let distance = row; distance <= this.radius && !blocked; distance++) {
+      const dy = -distance;
+      for (let dx = -distance; dx <= 0; dx++) {
+        const x = x0 + dx * xx + dy * xy;
+        const y = y0 + dx * yx + dy * yy;
+        const leftSlope = (dx - 0.5) / (dy + 0.5);
+        const rightSlope = (dx + 0.5) / (dy - 0.5);
+
+        if (!this.inBounds(x, y)) {
+          continue;
+        }
+
+        if (start < rightSlope) {
+          continue;
+        }
+
+        if (end > leftSlope) {
+          break;
+        }
+
+        const xField = x - x0 + this.radius;
+        const yField = y - y0 + this.radius;
+        field[yField * this.fieldWidth + xField] = this.getRadius(dx, dy);
+
+        if (blocked) {
+          if (!this.mapFunc(x, y)) {
+            newStart = rightSlope;
+            continue;
+          } else {
+            blocked = false;
+            start = newStart;
+          }
+        } else {
+          if (!this.mapFunc(x, y)) {
+            blocked = true;
+            this.castLight(
+              field, x0, y0,
+              distance + 1, start, leftSlope, xx, xy, yx, yy
+            );
+            newStart = rightSlope;
+          }
+        }
+      }
+    }
   }
 
   getRadius(dx: number, dy: number): number {
