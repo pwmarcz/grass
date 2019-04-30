@@ -151,11 +151,11 @@ export class VisibilityMap {
   }
 
   line(x0: number, y0: number, x1: number, y1: number): Pos[] {
-    const q = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+    const ray = new BresenhamRay(x0, y0, x1, y1);
 
-    let bestLine = this.truncatedLine(x0, y0, x1, y1, 0);
-    for (let eps = 1; eps < q; eps++) {
-      const line = this.truncatedLine(x0, y0, x1, y1, eps);
+    let bestLine = this.truncateLine(ray.line(0));
+    for (let eps = 1; eps < ray.q; eps++) {
+      const line = this.truncateLine(ray.line(eps));
       if (line.length > bestLine.length) {
         bestLine = line;
       }
@@ -163,9 +163,7 @@ export class VisibilityMap {
     return bestLine;
   }
 
-  private truncatedLine(
-    x0: number, y0: number, x1: number, y1: number, eps: number): Pos[] {
-    const line = bresenhamLine(x0, y0, x1, y1, eps);
+  private truncateLine(line: Pos[]): Pos[] {
     const n = this.blockLine(line);
     line.splice(n);
     return line;
@@ -184,59 +182,61 @@ export class VisibilityMap {
   }
 }
 
-function bresenhamLine(
-  x0: number, y0: number, x1: number, y1: number, eps: number
-): Pos[] {
+class BresenhamRay {
+  x0: number;
+  y0: number;
+  dx0: number;
+  dx1: number;
+  dy0: number;
+  dy1: number;
+  p: number;
+  q: number;
 
-  const dx = x1 - x0;
-  const dy = y1 - y0;
-  const adx = Math.abs(dx);
-  const ady = Math.abs(dy);
-  const n = Math.max(adx, ady);
+  constructor(x0: number, y0: number, x1: number, y1: number) {
+    this.x0 = x0;
+    this.y0 = y0;
 
-  let p, q;
-  let dx0, dx1;
-  let dy0, dy1;
-  if (adx < ady) {
-    p = adx;
-    q = ady;
-    dx0 = 0;
-    dy0 = Math.sign(dy);
-    dx1 = Math.sign(dx);
-    dy1 = Math.sign(dy);
-  } else {
-    p = ady;
-    q = adx;
-    dx0 = Math.sign(dx);
-    dy0 = 0;
-    dx1 = Math.sign(dx);
-    dy1 = Math.sign(dy);
-  }
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const adx = Math.abs(dx);
+    const ady = Math.abs(dy);
 
-  const word = balancedWord(n, p, q, eps);
-
-  const result = [];
-  let x = x0, y = y0;
-  result.push({x, y});
-  for (const digit of word) {
-    x += (digit === 0 ? dx0 : dx1);
-    y += (digit === 0 ? dy0 : dy1);
-    result.push({x, y});
-  }
-
-  return result;
-}
-
-function balancedWord(n: number, p: number, q: number, eps: number): number[] {
-  const result = [];
-  for (let i = 0; i < n; i++) {
-    eps += p;
-    if (eps < q) {
-      result.push(0);
+    if (adx < ady) {
+      this.p = adx;
+      this.q = ady;
+      this.dx0 = 0;
+      this.dy0 = Math.sign(dy);
+      this.dx1 = Math.sign(dx);
+      this.dy1 = Math.sign(dy);
     } else {
-      result.push(1);
-      eps -= q;
+      this.p = ady;
+      this.q = adx;
+      this.dx0 = Math.sign(dx);
+      this.dy0 = 0;
+      this.dx1 = Math.sign(dx);
+      this.dy1 = Math.sign(dy);
     }
   }
-  return result;
+
+  line(eps: number): Pos[] {
+    const result = [];
+    const n = this.q;
+    let x = this.x0, y = this.y0;
+    result.push({x, y});
+    for (let i = 0; i < n; i++) {
+      eps += this.p;
+      if (eps < this.q) {
+        x += this.dx0;
+        y += this.dy0;
+      } else {
+        x += this.dx1;
+        y += this.dy1;
+        eps -= this.q;
+      }
+
+      result.push({x, y});
+    }
+
+    return result;
+  }
 }
