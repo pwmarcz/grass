@@ -23,6 +23,7 @@
         "semi": "error",
         "eqeqeq": "error",
         "prefer-const": "warn",
+        "no-console": "warn",
         "@typescript-eslint/explicit-function-return-type": ["warn", { "allowExpressions": true }],
         "@typescript-eslint/explicit-member-accessibility": "off",
         "@typescript-eslint/indent": "off",
