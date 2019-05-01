@@ -11,6 +11,8 @@ const CAPTURED_KEYS = [
 
 const SINGLE_COMMAND_KEYS = [
   'f',
+  '5',
+  '.',
 ];
 
 const MOVEMENT_KEYS = [

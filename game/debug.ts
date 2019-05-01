@@ -4,6 +4,7 @@ export interface DebugOptions {
   fullScreen: boolean;
   showDistance: boolean;
   showLos: boolean;
+  pause: boolean;
 }
 
 const params = new URL(window.location.href).searchParams;
@@ -14,4 +15,5 @@ export const DEBUG: DebugOptions = {
   fullScreen: params.get('full') !== null,
   showDistance: params.get('distance') !== null,
   showLos: params.get('los') !== null,
+  pause: params.get('pause') !== null,
 };

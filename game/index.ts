@@ -10,7 +10,6 @@ import { loadMap } from './map-loader';
 import { View } from './ui/view';
 import { RawInput } from './ui/raw-input';
 import { World } from './world';
-import { Command } from './types';
 import { loadTextures } from './ui/textures';
 import { Client } from './client';
 import { DEBUG } from './debug';
@@ -53,14 +52,16 @@ Promise.all([mapPromise, loadPromise])
 let time = 0;
 
 function gameLoop(world: World, client: Client, input: Input, view: View, delta: number): void {
-  time += delta * DEBUG.speed;
   let dirty = input.update();
+  const lastTime = time;
+  time += delta * DEBUG.speed;
 
   while (world.time < Math.floor(time)) {
-    let playerCommand: Command | null = null;
+    const playerCommand = client.player.action ? null : input.getPlayerCommand();
 
-    if (!client.player.action) {
-      playerCommand = input.getPlayerCommand();
+    if (DEBUG.pause && !client.player.action && !playerCommand) {
+      time = lastTime;
+      break;
     }
 
     if (client.turn(playerCommand)) {
@@ -68,5 +69,6 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
     }
   }
 
+  console.log(time);
   view.redraw(dirty, time, input.state);
 }

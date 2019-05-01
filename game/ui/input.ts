@@ -4,6 +4,7 @@ import { Mob } from "../mob";
 import { World } from "../world";
 import { Client } from "../client";
 import { simpleDistance } from "../utils";
+import { DEBUG } from "../debug";
 
 export interface InputState {
   highlightPos: Pos | null;
@@ -129,6 +130,14 @@ export class Input {
       }
     }
 
+    if (this.rawInput.singleCommands['5'] || this.rawInput.singleCommands['.']) {
+      this.cancel();
+      return {
+        type: ActionType.REST,
+        dt: 15,
+      };
+    }
+
     this.state.path = null;
     if (this.state.aimPos && this.state.shooting) {
       this.state.shooting = false;
@@ -168,7 +177,7 @@ export class Input {
       this.cancel();
     }
 
-    if (this.client.enemy && this.world.canAttack(player, this.client.enemy)) {
+    if (!DEBUG.pause && this.client.enemy && this.world.canAttack(player, this.client.enemy)) {
       return {
         type: ActionType.ATTACK,
         mobId: this.client.enemy.id,
