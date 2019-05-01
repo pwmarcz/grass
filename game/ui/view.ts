@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { TILE_SIZE, TILE_TEXTURES, RESOLUTION } from './textures';
 import { World } from '../world';
-import { ActionType, Pos, Target } from '../types';
+import { ActionType, Pos } from '../types';
 import { renderWithRef } from '../utils';
 import { Sidebar, ItemInfo, describeMob, MobInfo, describeItems } from './sidebar';
 import { h } from 'preact';
@@ -145,10 +145,18 @@ export class View {
       alphaMap[alphaMapIndex] = 1 - sprite.alpha;
     }
 
-    if (mob.action && mob.action.type === 'SHOOT') {
-      const targetPos = this.getTargetPos(mob.action.target, time);
-
-      if (targetPos) {
+    if (mob.action && mob.action.type === 'SHOOT_TERRAIN') {
+      this.redrawShot(
+        mob.id,
+        mob.pos,
+        mob.action.pos,
+        actionTime
+      );
+    }
+    if (mob.action && mob.action.type === 'SHOOT_MOB') {
+      const targetMob = this.world.getTargetMob(mob);
+      if (targetMob) {
+        const targetPos = this.getMobPos(targetMob, time);
         this.redrawShot(
           mob.id,
           mob.pos,
@@ -168,20 +176,12 @@ export class View {
     }
   }
 
-  getTargetPos(target: Target, time: number): Pos | null {
-    if (Target.isPos(target)) {
-      return target;
-    } else {
-      const targetMob = this.world.mobsById[target];
-      if (!targetMob) {
-        return null;
-      }
-      const movement = this.getMobMovement(targetMob, time);
-      return {
-        x: lerp(movement.x0, movement.x1, movement.t),
-        y: lerp(movement.y0, movement.y1, movement.t),
-      };
-    }
+  getMobPos(mob: Mob, time: number): Pos {
+    const movement = this.getMobMovement(mob, time);
+    return {
+      x: lerp(movement.x0, movement.x1, movement.t),
+      y: lerp(movement.y0, movement.y1, movement.t),
+    };
   }
 
   redrawShot(id: string, sourcePos: Pos, targetPos: Pos, actionTime: number): void {
@@ -420,15 +420,18 @@ export class View {
       this.client.player.pos, aimPos,
     );
     if (target) {
-      const targetPos = this.getTargetPos(target, time);
-      if (targetPos) {
-        const g = this.frontLayer.make('target', PIXI.Graphics, g => {
-          g.lineStyle(2, 0x6D0000, 1, 0);
-          g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
-        });
-        g.x = targetPos.x * TILE_SIZE;
-        g.y = targetPos.y * TILE_SIZE;
+      let targetPos: Pos;
+      if (target instanceof Mob) {
+        targetPos = this.getMobPos(target, time);
+      } else {
+        targetPos = target;
       }
+      const g = this.frontLayer.make('target', PIXI.Graphics, g => {
+        g.lineStyle(2, 0x6D0000, 1, 0);
+        g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+      });
+      g.x = targetPos.x * TILE_SIZE;
+      g.y = targetPos.y * TILE_SIZE;
     }
   }
 

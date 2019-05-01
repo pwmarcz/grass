@@ -1,4 +1,4 @@
-import { Command, ActionType, Action, Pos, Target } from './types';
+import { Command, ActionType, Action, Pos } from './types';
 import { Item } from './item';
 import { Mob } from './mob';
 import { makeEmptyGrid, nextTo } from './utils';
@@ -93,31 +93,35 @@ export class World {
         case ActionType.PICK_UP:
           this.startAction(mob, PICK_UP_TIME, command);
           break;
-        case ActionType.SHOOT: {
-          let target: Target | null = null;
-          if (Target.isPos(command.target)) {
-            target = this.findTarget(
-              mob.pos, command.target
-            );
-          } else {
-            const targetMob = this.mobsById[command.target];
-            if (targetMob && this.hasClearShot(mob.pos, targetMob)) {
-              target = command.target;
-            }
-          }
-          if (target) {
-            this.startAction(mob, SHOOT_TIME, {
-              type: ActionType.SHOOT,
-              target
-            });
-          }
+        case ActionType.SHOOT_MOB: {
+          const targetMob = this.mobsById[command.mobId];
+          if (targetMob && this.hasClearShot(mob.pos, targetMob)) {
+            this.startAction(mob, SHOOT_TIME, command);
           }
           break;
+        }
+        case ActionType.SHOOT_TERRAIN: {
+          const target = this.findTarget(mob.pos, command.pos);
+          if (target) {
+            if (target instanceof Mob) {
+              this.startAction(mob, SHOOT_TIME, {
+                type: ActionType.SHOOT_MOB,
+                mobId: target.id,
+              });
+            } else {
+              this.startAction(mob, SHOOT_TIME, {
+                type: ActionType.SHOOT_TERRAIN,
+                pos: target,
+              });
+            }
+          }
+          break;
+        }
       }
     }
   }
 
-  findTarget(sourcePos: Pos, aimPos: Pos): Target | null {
+  findTarget(sourcePos: Pos, aimPos: Pos): Mob | Pos | null {
     const pos = this.visibilityMap.findTarget(
       sourcePos.x, sourcePos.y, aimPos.x, aimPos.y,
       this.canShootThrough.bind(this),
@@ -127,18 +131,20 @@ export class World {
     }
     const mob = this.findMob(pos.x, pos.y);
     if (mob) {
-      return mob.id;
+      return mob;
     } else {
       return pos;
     }
   }
 
   hasClearShot(pos: Pos, targetMob: Mob): boolean {
-    if (this.findTarget(pos, targetMob.pos) === targetMob.id) {
+    const target = this.findTarget(pos, targetMob.pos);
+    if (target instanceof Mob && target.id === targetMob.id) {
       return true;
     }
     if (targetMob.action && targetMob.action.type === 'MOVE') {
-      if (this.findTarget(pos, targetMob.action.pos) === targetMob.id) {
+      const target = this.findTarget(pos, targetMob.action.pos);
+      if (target instanceof Mob && target.id === targetMob.id) {
         return true;
       }
     }
@@ -228,14 +234,12 @@ export class World {
         this.removeMob(mob);
         break;
       }
-      case ActionType.SHOOT: {
-        if (Target.isMobId(action.target)) {
-          const targetMob = this.mobsById[action.target];
-          if (targetMob && targetMob.alive) {
-            targetMob.health -= mob.damage * 2;
-            if (!targetMob.alive) {
-              this.startAction(targetMob, DIE_TIME, { type: ActionType.DIE });
-            }
+      case ActionType.SHOOT_MOB: {
+        const targetMob = this.mobsById[action.mobId];
+        if (targetMob && targetMob.alive) {
+          targetMob.health -= mob.damage * 2;
+          if (!targetMob.alive) {
+            this.startAction(targetMob, DIE_TIME, { type: ActionType.DIE });
           }
         }
         break;
@@ -337,10 +341,10 @@ export class World {
     if (!mob.action) {
       return null;
     }
-    if (mob.action.type === ActionType.ATTACK) {
+    if (mob.action.type === ActionType.ATTACK ||
+      mob.action.type === ActionType.SHOOT_MOB) {
+
       return this.mobsById[mob.action.mobId] || null;
-    } else if (mob.action.type === ActionType.SHOOT && Target.isMobId(mob.action.target)) {
-      return this.mobsById[mob.action.target] || null;
     }
     return null;
   }

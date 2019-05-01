@@ -10,7 +10,8 @@ export enum ActionType {
   OPEN_DOOR = 'OPEN_DOOR',
   PICK_UP = 'PICK_UP',
   DIE = 'DIE',
-  SHOOT = 'SHOOT',
+  SHOOT_MOB = 'SHOOT_MOB',
+  SHOOT_TERRAIN = 'SHOOT_TERRAIN',
 }
 
 interface SimpleCommand {
@@ -18,7 +19,7 @@ interface SimpleCommand {
 }
 
 interface PosCommand {
-  readonly type: ActionType.MOVE | ActionType.OPEN_DOOR;
+  readonly type: ActionType.MOVE | ActionType.OPEN_DOOR | ActionType.SHOOT_TERRAIN;
   readonly pos: Pos;
 }
 
@@ -28,25 +29,8 @@ interface TimeCommand {
 }
 
 interface MobCommand {
-  readonly type: ActionType.ATTACK;
+  readonly type: ActionType.ATTACK | ActionType.SHOOT_MOB;
   readonly mobId: string;
-}
-
-export type Target = Pos | string;
-
-export namespace Target {
-  export function isPos(target: Target): target is Pos {
-    return typeof target !== 'string';
-  }
-
-  export function isMobId(target: Target): target is string {
-    return typeof target === 'string';
-  }
-}
-
-interface TargetCommand {
-  readonly type: ActionType.SHOOT;
-  readonly target: Target;
 }
 
 interface ItemCommand {
@@ -59,7 +43,6 @@ export type Command = (
   PosCommand |
   TimeCommand |
   MobCommand |
-  TargetCommand |
   ItemCommand)
 ;
 

@@ -123,8 +123,8 @@ export class Input {
       }
       if (bestMob) {
         return {
-          type: ActionType.SHOOT,
-          target: bestMob.id,
+          type: ActionType.SHOOT_MOB,
+          mobId: bestMob.id,
         };
       }
     }
@@ -133,8 +133,8 @@ export class Input {
     if (this.state.aimPos && this.state.shooting) {
       this.state.shooting = false;
       return {
-        type: ActionType.SHOOT,
-        target: this.state.aimPos,
+        type: ActionType.SHOOT_TERRAIN,
+        pos: this.state.aimPos,
       };
     }
 
