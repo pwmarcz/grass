@@ -69,6 +69,5 @@ function gameLoop(world: World, client: Client, input: Input, view: View, delta:
     }
   }
 
-  console.log(time);
   view.redraw(dirty, time, input.state);
 }
