@@ -1,4 +1,4 @@
-import { Command, ActionType, Action, Pos } from './types';
+import { Command, ActionType, Action, Pos, Target } from './types';
 import { Item } from './item';
 import { Mob } from './mob';
 import { makeEmptyGrid, nextTo } from './utils';
@@ -15,7 +15,7 @@ export class World {
   map: Terrain[][];
   private mobMap: (Mob | null)[][];
   mobs: Mob[];
-  private mobsById: Partial<Record<string, Mob>>;
+  mobsById: Partial<Record<string, Mob>>;
   private items: Item[];
   mapW: number;
   mapH: number;
@@ -94,25 +94,36 @@ export class World {
           this.startAction(mob, PICK_UP_TIME, command);
           break;
         case ActionType.SHOOT:
-          const goal = this.findTarget(
-            mob.pos, command.pos
-          );
-          if (goal) {
-            this.startAction(mob, SHOOT_TIME, {
-              type: ActionType.SHOOT,
-              pos: goal
-            });
+          if (Target.isPos(command.target)) {
+            const target = this.findTarget(
+              mob.pos, command.target
+            );
+            if (target) {
+              this.startAction(mob, SHOOT_TIME, {
+                type: ActionType.SHOOT,
+                target
+              });
+            }
           }
           break;
       }
     }
   }
 
-  findTarget(sourcePos: Pos, aimPos: Pos): Pos | null {
-    return this.visibilityMap.findTarget(
+  findTarget(sourcePos: Pos, aimPos: Pos): Target | null {
+    const pos = this.visibilityMap.findTarget(
       sourcePos.x, sourcePos.y, aimPos.x, aimPos.y,
       this.canShootThrough.bind(this),
     );
+    if (!pos) {
+      return null;
+    }
+    const mob = this.findMob(pos.x, pos.y);
+    if (mob) {
+      return mob.id;
+    } else {
+      return pos;
+    }
   }
 
   private regenerate(mob: Mob): void {

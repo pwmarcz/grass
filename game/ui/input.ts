@@ -109,7 +109,7 @@ export class Input {
       this.state.shooting = false;
       return {
         type: ActionType.SHOOT,
-        pos: this.state.aimPos,
+        target: this.state.aimPos,
       };
     }
 

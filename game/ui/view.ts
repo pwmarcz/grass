@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { TILE_SIZE, TILE_TEXTURES, RESOLUTION } from './textures';
 import { World } from '../world';
-import { ActionType, Pos } from '../types';
+import { ActionType, Pos, Target } from '../types';
 import { renderWithRef } from '../utils';
 import { Sidebar, ItemInfo, describeMob, MobInfo, describeItems } from './sidebar';
 import { h } from 'preact';
@@ -146,12 +146,16 @@ export class View {
     }
 
     if (mob.action && mob.action.type === 'SHOOT') {
-      this.redrawShot(
-        mob.id,
-        mob.pos,
-        mob.action.pos,
-        actionTime
-      );
+      const targetPos = this.getTargetPos(mob.action.target, time);
+
+      if (targetPos) {
+        this.redrawShot(
+          mob.id,
+          mob.pos,
+          targetPos,
+          actionTime
+        );
+      }
     }
 
     if (goalMob && goalMob.id === mob.id) {
@@ -161,6 +165,22 @@ export class View {
       });
       g.x = sprite.x;
       g.y = sprite.y;
+    }
+  }
+
+  getTargetPos(target: Target, time: number): Pos | null {
+    if (Target.isPos(target)) {
+      return target;
+    } else {
+      const targetMob = this.world.mobsById[target];
+      if (!targetMob) {
+        return null;
+      }
+      const movement = this.getMobMovement(targetMob, time);
+      return {
+        x: lerp(movement.x0, movement.x1, movement.t),
+        y: lerp(movement.y0, movement.y1, movement.t),
+      };
     }
   }
 
@@ -211,7 +231,7 @@ export class View {
   }
 
   redraw(dirty: boolean, time: number, inputState: InputState): void {
-    const movement = this.getMovement(time);
+    const movement = this.getMobMovement(this.client.player, time);
     this.updateViewport(movement);
 
     if (dirty) {
@@ -224,7 +244,7 @@ export class View {
       this.redrawGoal(inputState.goalPos);
     }
     if (inputState.aimPos) {
-      this.redrawAim(inputState.aimPos);
+      this.redrawAim(inputState.aimPos, time);
     }
     if (inputState.path) {
       this.redrawPath(inputState.path);
@@ -317,16 +337,14 @@ export class View {
     }
   }
 
-  getMovement(time: number): Movement {
-    const player = this.client.player;
-
-    const x0 = player.pos.x, y0 = player.pos.y;
+  getMobMovement(mob: Mob, time: number): Movement {
+    const x0 = mob.pos.x, y0 = mob.pos.y;
     let x1: number, y1: number;
     let t: number;
-    if (player.action && player.action.type === ActionType.MOVE) {
-      t = (time - player.action.timeStart) / (player.action.timeEnd - player.action.timeStart);
-      x1 = player.action.pos.x;
-      y1 = player.action.pos.y;
+    if (mob.action && mob.action.type === ActionType.MOVE) {
+      t = (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
+      x1 = mob.action.pos.x;
+      y1 = mob.action.pos.y;
     } else {
       x1 = x0;
       y1 = y0;
@@ -390,7 +408,7 @@ export class View {
     g.y = goalPos.y * TILE_SIZE;
   }
 
-  redrawAim(aimPos: Pos): void {
+  redrawAim(aimPos: Pos, time: number): void {
     const g = this.frontLayer.make('aim', PIXI.Graphics, g => {
       g.lineStyle(1, 0x6D0000, 1, 0);
       g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
@@ -398,16 +416,19 @@ export class View {
     g.x = aimPos.x * TILE_SIZE;
     g.y = aimPos.y * TILE_SIZE;
 
-    const targetPos = this.world.findTarget(
+    const target = this.world.findTarget(
       this.client.player.pos, aimPos,
     );
-    if (targetPos) {
-      const g = this.frontLayer.make('target', PIXI.Graphics, g => {
-        g.lineStyle(2, 0x6D0000, 1, 0);
-        g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
-      });
-      g.x = targetPos.x * TILE_SIZE;
-      g.y = targetPos.y * TILE_SIZE;
+    if (target) {
+      const targetPos = this.getTargetPos(target, time);
+      if (targetPos) {
+        const g = this.frontLayer.make('target', PIXI.Graphics, g => {
+          g.lineStyle(2, 0x6D0000, 1, 0);
+          g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+        });
+        g.x = targetPos.x * TILE_SIZE;
+        g.y = targetPos.y * TILE_SIZE;
+      }
     }
   }
 

@@ -18,7 +18,7 @@ interface SimpleCommand {
 }
 
 interface PosCommand {
-  readonly type: ActionType.MOVE | ActionType.OPEN_DOOR | ActionType.SHOOT;
+  readonly type: ActionType.MOVE | ActionType.OPEN_DOOR;
   readonly pos: Pos;
 }
 
@@ -32,6 +32,23 @@ interface MobCommand {
   readonly mobId: string;
 }
 
+export type Target = Pos | string;
+
+export namespace Target {
+  export function isPos(target: Target): target is Pos {
+    return typeof target !== 'string';
+  }
+
+  export function isMobId(target: Target): target is string {
+    return typeof target === 'string';
+  }
+}
+
+interface TargetCommand {
+  readonly type: ActionType.SHOOT;
+  readonly target: Target;
+}
+
 interface ItemCommand {
   readonly type: ActionType.PICK_UP;
   readonly itemId: string;
@@ -42,6 +59,7 @@ export type Command = (
   PosCommand |
   TimeCommand |
   MobCommand |
+  TargetCommand |
   ItemCommand)
 ;
 
