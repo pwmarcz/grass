@@ -209,6 +209,18 @@ export class World {
         this.removeMob(mob);
         break;
       }
+      case ActionType.SHOOT: {
+        if (Target.isMobId(action.target)) {
+          const targetMob = this.mobsById[action.target];
+          if (targetMob && targetMob.alive) {
+            targetMob.health -= mob.damage * 2;
+            if (!targetMob.alive) {
+              this.startAction(targetMob, DIE_TIME, { type: ActionType.DIE });
+            }
+          }
+        }
+        break;
+      }
     }
     mob.action = null;
     this.stateChanged = true;
