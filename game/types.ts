@@ -10,6 +10,7 @@ export enum ActionType {
   OPEN_DOOR = 'OPEN_DOOR',
   PICK_UP = 'PICK_UP',
   DIE = 'DIE',
+  SHOOT = 'SHOOT',
 }
 
 interface SimpleCommand {
@@ -17,7 +18,7 @@ interface SimpleCommand {
 }
 
 interface PosCommand {
-  readonly type: ActionType.MOVE | ActionType.OPEN_DOOR;
+  readonly type: ActionType.MOVE | ActionType.OPEN_DOOR | ActionType.SHOOT;
   readonly pos: Pos;
 }
 

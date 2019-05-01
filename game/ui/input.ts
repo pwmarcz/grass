@@ -8,7 +8,9 @@ export interface InputState {
   highlightPos: Pos | null;
   goalPos: Pos | null;
   goalMob: Mob | null;
+  aimPos: Pos | null;
   path: Pos[] | null;
+  shooting: boolean;
 }
 
 export class Input {
@@ -22,6 +24,8 @@ export class Input {
     goalPos: null,
     goalMob: null,
     path: null,
+    aimPos: null,
+    shooting: false,
   }
 
   constructor(world: World, client: Client, rawInput: RawInput,
@@ -37,15 +41,28 @@ export class Input {
     const inputPos = mousePoint && this.toPos(mousePoint);
     let dirty = false;
 
+    if (this.rawInput.shooting() && inputPos) {
+      this.state.aimPos = inputPos;
+    } else {
+      this.state.aimPos = null;
+    }
+
     if (this.rawInput.mouse.lmb) {
-      if (inputPos) {
+      if (this.state.aimPos) {
+        this.state.goalPos = null;
+        this.state.goalMob = null;
+        this.state.shooting = true;
+      } else if (inputPos) {
         const mob = this.world.findMob(inputPos.x, inputPos.y);
+
         if (mob && this.client.canSeeMob(mob)) {
           this.state.goalPos = null;
           this.state.goalMob = mob;
+          this.state.shooting = false;
         } else {
           this.state.goalPos = inputPos;
           this.state.goalMob = null;
+          this.state.shooting = false;
         }
       } else {
         this.state.goalPos = null;
@@ -68,7 +85,6 @@ export class Input {
       this.rawInput.mouse.moved = false;
       dirty = true;
     }
-
     return dirty;
   }
 
@@ -85,6 +101,15 @@ export class Input {
       return {
         type: ActionType.MOVE,
         pos,
+      };
+    }
+
+    this.state.path = null;
+    if (this.state.aimPos && this.state.shooting) {
+      this.state.shooting = false;
+      return {
+        type: ActionType.SHOOT,
+        pos: this.state.aimPos,
       };
     }
 

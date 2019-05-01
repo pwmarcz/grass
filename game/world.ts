@@ -1,4 +1,4 @@
-import { Command, ActionType, Action } from './types';
+import { Command, ActionType, Action, Pos } from './types';
 import { Item } from './item';
 import { Mob } from './mob';
 import { makeEmptyGrid, nextTo } from './utils';
@@ -6,6 +6,7 @@ import { Terrain } from './terrain';
 import { VisibilityMap } from './fov';
 
 const ATTACK_TIME = 45;
+const SHOOT_TIME = 25;
 const PICK_UP_TIME = 20;
 const DIE_TIME = 40;
 const OPEN_DOOR_TIME = 5;
@@ -92,8 +93,28 @@ export class World {
         case ActionType.PICK_UP:
           this.startAction(mob, PICK_UP_TIME, command);
           break;
+        case ActionType.SHOOT:
+          const goal = this.findTarget(
+            mob.pos, command.pos
+          );
+          if (goal) {
+            this.startAction(mob, SHOOT_TIME, {
+              type: ActionType.SHOOT,
+              pos: goal
+            });
+          }
+          break;
       }
     }
+  }
+
+  findTarget(sourcePos: Pos, aimPos: Pos): Pos | null {
+    const line = this.visibilityMap.line(
+      sourcePos.x, sourcePos.y, aimPos.x, aimPos.y);
+    if (line.length > 1) {
+      return line[line.length-1];
+    }
+    return null;
   }
 
   private regenerate(mob: Mob): void {

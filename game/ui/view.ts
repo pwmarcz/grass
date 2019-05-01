@@ -141,6 +141,15 @@ export class View {
       alphaMap[alphaMapIndex] = 1 - sprite.alpha;
     }
 
+    if (mob.action && mob.action.type === 'SHOOT') {
+      this.redrawShot(
+        mob.id,
+        mob.pos,
+        mob.action.pos,
+        actionTime
+      );
+    }
+
     if (goalMob && goalMob.id === mob.id) {
       const g = this.frontLayer.make('goalMob', PIXI.Graphics, g => {
         g.lineStyle(1, 0x6D5000, 1, 0);
@@ -149,6 +158,14 @@ export class View {
       g.x = sprite.x;
       g.y = sprite.y;
     }
+  }
+
+  redrawShot(id: string, sourcePos: Pos, targetPos: Pos, actionTime: number): void {
+    const g = this.frontLayer.make(`shot.${id}`, PIXI.Graphics);
+    g.clear();
+    g.lineStyle(3, 0xFF0000, 0.8, 0);
+    g.moveTo((sourcePos.x + 0.5) * TILE_SIZE, (sourcePos.y + 0.5) * TILE_SIZE);
+    g.lineTo((targetPos.x + 0.5) * TILE_SIZE, (targetPos.y + 0.5) * TILE_SIZE);
   }
 
   getActionTime(mob: Mob, time: number): number {
@@ -181,6 +198,9 @@ export class View {
     }
     if (inputState.goalPos) {
       this.redrawGoal(inputState.goalPos);
+    }
+    if (inputState.aimPos) {
+      this.redrawAim(inputState.aimPos);
     }
     if (inputState.path) {
       this.redrawPath(inputState.path);
@@ -344,6 +364,27 @@ export class View {
     });
     g.x = goalPos.x * TILE_SIZE;
     g.y = goalPos.y * TILE_SIZE;
+  }
+
+  redrawAim(aimPos: Pos): void {
+    const g = this.frontLayer.make('aim', PIXI.Graphics, g => {
+      g.lineStyle(1, 0x6D0000, 1, 0);
+      g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+    });
+    g.x = aimPos.x * TILE_SIZE;
+    g.y = aimPos.y * TILE_SIZE;
+
+    const targetPos = this.world.findTarget(
+      this.client.player.pos, aimPos,
+    );
+    if (targetPos) {
+      const g = this.frontLayer.make('target', PIXI.Graphics, g => {
+        g.lineStyle(2, 0x6D0000, 1, 0);
+        g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+      });
+      g.x = targetPos.x * TILE_SIZE;
+      g.y = targetPos.y * TILE_SIZE;
+    }
   }
 
   redrawInfo(highlightPos: Pos | null): void {
