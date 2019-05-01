@@ -307,10 +307,11 @@ export class World {
   }
 
   canShootThrough(x: number, y: number): boolean {
-    if (!this.canMove(x, y)) {
-      return false;
-    }
-    return !this.findMob(x, y);
+    return (
+      this.inBounds(x, y) &&
+      Terrain.shootThrough(this.map[y][x]) &&
+      !this.findMob(x, y)
+    );
   }
 
   canAttack(mob: Mob, targetMob: Mob): boolean {

@@ -26,11 +26,13 @@ export enum Terrain {
 interface TerrainMeta {
   passThrough: boolean;
   seeThrough: boolean;
+  shootThrough: boolean;
 }
 
-const wall = {passThrough: false, seeThrough: false};
-const floor = {passThrough: true, seeThrough: true};
-const obstacle = {passThrough: false, seeThrough: true};
+const wall = {passThrough: false, seeThrough: false, shootThrough: false};
+const floor = {passThrough: true, seeThrough: true, shootThrough: true};
+const obstacle = {passThrough: false, seeThrough: true, shootThrough: false};
+const water = {passThrough: false, seeThrough: true, shootThrough: true};
 
 const TERRAIN: Record<Terrain, TerrainMeta> = {
   [Terrain.EMPTY]: {...wall},
@@ -47,9 +49,9 @@ const TERRAIN: Record<Terrain, TerrainMeta> = {
   [Terrain.DOOR_CLOSED]: {...wall},
   [Terrain.DOOR_OPEN]: {...floor},
 
-  [Terrain.WATER_DEEP]: {...obstacle},
+  [Terrain.WATER_DEEP]: {...water},
   [Terrain.WATER_SHALLOW]: {...floor},
-  [Terrain.LAVA]: {...obstacle},
+  [Terrain.LAVA]: {...water},
 
   [Terrain.STAIR_UP]: {...floor},
   [Terrain.STAIR_DOWN]: {...floor},
@@ -70,5 +72,9 @@ export namespace Terrain {
 
   export function pathThrough(terrain: Terrain): boolean {
     return TERRAIN[terrain].passThrough || terrain === Terrain.DOOR_CLOSED;
+  }
+
+  export function shootThrough(terrain: Terrain): boolean {
+    return TERRAIN[terrain].shootThrough;
   }
 }
