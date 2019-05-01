@@ -6,7 +6,7 @@ import { Terrain } from './terrain';
 import { VisibilityMap } from './fov';
 
 const ATTACK_TIME = 45;
-const SHOOT_TIME = 25;
+const SHOOT_TIME = 30;
 const PICK_UP_TIME = 20;
 const DIE_TIME = 40;
 const OPEN_DOOR_TIME = 5;

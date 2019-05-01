@@ -15,6 +15,8 @@ import { InputState } from './input';
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
 const DARK_ALPHA = 0.4;
+const SHOT_START_TIME = 0.4;
+const SHOT_LENGTH = 32;
 
 function lerp(a: number, b: number, t: number): number {
   return a * (1 - t) + b * t;
@@ -163,9 +165,26 @@ export class View {
   redrawShot(id: string, sourcePos: Pos, targetPos: Pos, actionTime: number): void {
     const g = this.frontLayer.make(`shot.${id}`, PIXI.Graphics);
     g.clear();
-    g.lineStyle(3, 0xFF0000, 0.8, 0);
-    g.moveTo((sourcePos.x + 0.5) * TILE_SIZE, (sourcePos.y + 0.5) * TILE_SIZE);
-    g.lineTo((targetPos.x + 0.5) * TILE_SIZE, (targetPos.y + 0.5) * TILE_SIZE);
+    g.lineStyle(3, 0x6D5000, 1, 0.5);
+
+    const x0 = (sourcePos.x + 0.5) * TILE_SIZE;
+    const y0 = (sourcePos.y + 0.5) * TILE_SIZE;
+
+    const x1 = (targetPos.x + 0.5) * TILE_SIZE;
+    const y1 = (targetPos.y + 0.5) * TILE_SIZE;
+
+    const dist = Math.sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
+    const shotLength = SHOT_LENGTH / dist;
+
+    const endDist = Math.min(1, actionTime / SHOT_START_TIME);
+    const startDist = Math.max(0, endDist - shotLength);
+    const xa = lerp(x0, x1, startDist);
+    const ya = lerp(y0, y1, startDist);
+    const xb = lerp(x0, x1, endDist);
+    const yb = lerp(y0, y1, endDist);
+
+    g.moveTo(xa, ya);
+    g.lineTo(xb, yb);
   }
 
   getActionTime(mob: Mob, time: number): number {
