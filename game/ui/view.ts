@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import { TILE_SIZE, TILE_TEXTURES, RESOLUTION } from './textures';
 import { World } from '../world';
 import { ActionType, Pos } from '../types';
-import { makeEmptyGrid, renderWithRef } from '../utils';
+import { renderWithRef } from '../utils';
 import { Sidebar, ItemInfo, describeMob, MobInfo, describeItems } from './sidebar';
 import { h } from 'preact';
 import { StringRenderer, IndexRenderer } from './renderer';
@@ -23,6 +23,8 @@ function lerp(a: number, b: number, t: number): number {
 function clamp(a: number, min: number, max: number): number {
   return Math.max(min, Math.min(a, max));
 }
+
+type AlphaMap = Partial<Record<number, number>>;
 
 interface Movement {
   x0: number;
@@ -77,7 +79,7 @@ export class View {
     .then(sidebar => this.sidebar = sidebar);
   }
 
-  private redrawMob(mob: Mob, time: number, alphaMap: number[][],
+  private redrawMob(mob: Mob, time: number, alphaMap: AlphaMap,
     movement: Movement, goalMob: Mob | null
   ): void {
     if (!mob.alive && !mob.action) {
@@ -100,13 +102,14 @@ export class View {
       sprite.alpha = a1;
     }
 
+    const alphaMapIndex = mob.pos.y * this.world.mapW + mob.pos.x;
     if (mob.action && mob.action.type === ActionType.MOVE) {
       const {x, y} = this.getCurrentPos(mob, time);
       sprite.x = TILE_SIZE * x;
       sprite.y = TILE_SIZE * y;
 
-      alphaMap[mob.pos.y][mob.pos.x] = lerp(1, actionTime, sprite.alpha);
-      alphaMap[mob.action.pos.y][mob.action.pos.x] = lerp(1, 1 - actionTime, sprite.alpha);
+      alphaMap[alphaMapIndex] = lerp(1, actionTime, sprite.alpha);
+      alphaMap[mob.action.pos.y * this.world.mapW + mob.action.pos.x] = lerp(1, 1 - actionTime, sprite.alpha);
     } else if (mob.action && mob.action.type === ActionType.ATTACK) {
       let distance: number;
       if (actionTime <= ATTACK_START_TIME) {
@@ -124,18 +127,18 @@ export class View {
       sprite.x = TILE_SIZE * lerp(mob.pos.x, targetPos.x, distance);
       sprite.y = TILE_SIZE * lerp(mob.pos.y, targetPos.y, distance);
 
-      alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
+      alphaMap[alphaMapIndex] = 1 - sprite.alpha;
     } else if (mob.action && mob.action.type === ActionType.DIE) {
       sprite.x = mob.pos.x * TILE_SIZE;
       sprite.y = mob.pos.y * TILE_SIZE;
 
       sprite.alpha = lerp(sprite.alpha, 0, actionTime);
-      alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
+      alphaMap[alphaMapIndex] = 1 - sprite.alpha;
     } else {
       sprite.x = mob.pos.x * TILE_SIZE;
       sprite.y = mob.pos.y * TILE_SIZE;
 
-      alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
+      alphaMap[alphaMapIndex] = 1 - sprite.alpha;
     }
 
     if (goalMob && goalMob.id === mob.id) {
@@ -183,7 +186,7 @@ export class View {
       this.redrawPath(inputState.path);
     }
 
-    const alphaMap = makeEmptyGrid(this.world.mapW, this.world.mapH, 1);
+    const alphaMap: AlphaMap = {};
     for (const mob of this.world.mobs) {
       this.redrawMob(mob, time, alphaMap, movement, inputState.goalMob);
     }
@@ -230,7 +233,7 @@ export class View {
     return null;
   }
 
-  redrawMap(alphaMap: number[][], movement: Movement): void {
+  redrawMap(alphaMap: AlphaMap, movement: Movement): void {
     const {x: px, y: py} = this.app.stage.position;
     let x0 = Math.floor(-px / TILE_SIZE);
     let y0 = Math.floor(-py / TILE_SIZE);
@@ -262,7 +265,8 @@ export class View {
             sprite.height = TILE_SIZE;
           });
 
-          sprite.alpha = alphaMap[y][x] * multiplier;
+          const alpha = alphaMap[y * this.world.mapW + x];
+          sprite.alpha = (alpha === undefined ? 1 : alpha) * multiplier;
           sprite.texture = TILE_TEXTURES[tile];
         }
       }
