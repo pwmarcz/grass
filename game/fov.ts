@@ -150,12 +150,14 @@ export class VisibilityMap {
     return Math.ceil(Math.sqrt(dx * dx + dy * dy));
   }
 
-  line(x0: number, y0: number, x1: number, y1: number): Pos[] {
+  line(x0: number, y0: number, x1: number, y1: number,
+    mapFunc?: MapFunc<boolean>
+  ): Pos[] {
     const ray = new BresenhamRay(x0, y0, x1, y1);
 
-    let bestLine = this.truncateLine(ray.line(0));
+    let bestLine = this.truncateLine(ray.line(0), mapFunc);
     for (let eps = 1; eps < ray.q; eps++) {
-      const line = this.truncateLine(ray.line(eps));
+      const line = this.truncateLine(ray.line(eps), mapFunc);
       if (line.length > bestLine.length) {
         bestLine = line;
       }
@@ -163,18 +165,30 @@ export class VisibilityMap {
     return bestLine;
   }
 
-  private truncateLine(line: Pos[]): Pos[] {
-    const n = this.blockLine(line);
+  findTarget(
+    x0: number, y0: number, x1: number, y1: number,
+    mapFunc?: MapFunc<boolean>
+  ): Pos | null {
+    const line = this.line(x0, y0, x1, y1, mapFunc);
+    if (line.length > 1) {
+      return line[line.length - 1];
+    }
+    return null;
+  }
+
+  private truncateLine(line: Pos[], mapFunc?: MapFunc<boolean>): Pos[] {
+    const n = this.blockLine(line, mapFunc);
     line.splice(n);
     return line;
   }
 
-  private blockLine(line: Pos[]): number {
-    for (let i = 0; i < line.length; i++) {
+  private blockLine(line: Pos[], mapFunc?: MapFunc<boolean>): number {
+    mapFunc = mapFunc || this.mapFunc;
+    for (let i = 1; i < line.length; i++) {
       if (!this.visible(line[0].x, line[0].y, line[i].x, line[i].y)) {
         return i;
       }
-      if (!this.mapFunc(line[i].x, line[i].y)) {
+      if (!mapFunc(line[i].x, line[i].y)) {
         return i + 1;
       }
     }

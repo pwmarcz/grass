@@ -109,12 +109,10 @@ export class World {
   }
 
   findTarget(sourcePos: Pos, aimPos: Pos): Pos | null {
-    const line = this.visibilityMap.line(
-      sourcePos.x, sourcePos.y, aimPos.x, aimPos.y);
-    if (line.length > 1) {
-      return line[line.length-1];
-    }
-    return null;
+    return this.visibilityMap.findTarget(
+      sourcePos.x, sourcePos.y, aimPos.x, aimPos.y,
+      this.canShootThrough.bind(this),
+    );
   }
 
   private regenerate(mob: Mob): void {
@@ -260,6 +258,13 @@ export class World {
       return true;
     }
     return Terrain.passThrough(this.map[y][x]);
+  }
+
+  canShootThrough(x: number, y: number): boolean {
+    if (!this.canMove(x, y)) {
+      return false;
+    }
+    return !this.findMob(x, y);
   }
 
   canAttack(mob: Mob, targetMob: Mob): boolean {
