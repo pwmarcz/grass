@@ -2,7 +2,7 @@ import { World } from "./world";
 import { Mob } from "./mob";
 import { DistanceMap } from "./path";
 import { makeEmptyGrid } from "./utils";
-import { Command, ActionType } from "./types";
+import { Command } from "./types";
 import { Terrain } from "./terrain";
 
 // Display enemy for how long
@@ -68,7 +68,7 @@ export class Client {
     let enemy: Mob | null = null;
     let t = 0;
 
-    if (this.player.action && this.player.action.type === ActionType.ATTACK) {
+    if (this.player.action) {
       const mob = this.world.getTargetMob(this.player);
       if (mob) {
         enemy = mob;
@@ -77,11 +77,11 @@ export class Client {
     }
 
     for (const mob of this.world.mobs) {
-      if (mob.action &&
-        mob.action.type === ActionType.ATTACK &&
-        mob.action.mobId === this.player.id
-      ) {
-        if (!enemy || t < mob.action.timeStart) {
+      if (mob.action) {
+        const targetMob = this.world.getTargetMob(mob);
+        if (targetMob && targetMob.id === this.player.id &&
+          mob.action.timeStart > t) {
+
           enemy = mob;
           t = mob.action.timeStart;
         }

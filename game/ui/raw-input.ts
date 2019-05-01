@@ -9,6 +9,10 @@ const CAPTURED_KEYS = [
   'Shift',
 ];
 
+const SINGLE_COMMAND_KEYS = [
+  'f',
+];
+
 const MOVEMENT_KEYS = [
   {keys: [['ArrowLeft', 'ArrowUp'], 'y', '7'], dx: -1, dy: -1},
   {keys: [['ArrowRight', 'ArrowUp'], 'u', '9'], dx: 1, dy: -1},
@@ -22,6 +26,7 @@ const MOVEMENT_KEYS = [
 
 export class RawInput {
   keys: Record<string, boolean> = {};
+  singleCommands: Record<string, boolean> = {};
   appElement: Element;
   stage: DisplayObject;
   mouse: {
@@ -53,6 +58,10 @@ export class RawInput {
     if (CAPTURED_KEYS.indexOf(event.key) !== -1) {
       event.preventDefault();
       this.keys[event.key] = true;
+    }
+    if (SINGLE_COMMAND_KEYS.indexOf(event.key) !== -1) {
+      event.preventDefault();
+      this.singleCommands[event.key] = true;
     }
   }
 

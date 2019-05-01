@@ -3,6 +3,7 @@ import { Pos, Command, ActionType } from "../types";
 import { Mob } from "../mob";
 import { World } from "../world";
 import { Client } from "../client";
+import { simpleDistance } from "../utils";
 
 export interface InputState {
   highlightPos: Pos | null;
@@ -104,6 +105,30 @@ export class Input {
       };
     }
 
+    if (this.rawInput.singleCommands['f']) {
+      this.cancel();
+      let bestMob;
+      let bestDistance = 0;
+      for (const mob of this.world.mobs) {
+        if (mob.id !== this.client.player.id &&
+          this.client.canSeeMob(mob) &&
+          this.world.hasClearShot(this.client.player.pos, mob))
+        {
+          const distance = simpleDistance(this.client.player.pos, mob.pos);
+          if (!bestMob || bestDistance > distance) {
+            bestMob = mob;
+            bestDistance = distance;
+          }
+        }
+      }
+      if (bestMob) {
+        return {
+          type: ActionType.SHOOT,
+          target: bestMob.id,
+        };
+      }
+    }
+
     this.state.path = null;
     if (this.state.aimPos && this.state.shooting) {
       this.state.shooting = false;
@@ -165,5 +190,6 @@ export class Input {
     this.state.path = null;
     this.state.goalPos = null;
     this.state.goalMob = null;
+    this.rawInput.singleCommands = {};
   }
 }

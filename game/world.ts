@@ -93,17 +93,24 @@ export class World {
         case ActionType.PICK_UP:
           this.startAction(mob, PICK_UP_TIME, command);
           break;
-        case ActionType.SHOOT:
+        case ActionType.SHOOT: {
+          let target: Target | null = null;
           if (Target.isPos(command.target)) {
-            const target = this.findTarget(
+            target = this.findTarget(
               mob.pos, command.target
             );
-            if (target) {
-              this.startAction(mob, SHOOT_TIME, {
-                type: ActionType.SHOOT,
-                target
-              });
+          } else {
+            const targetMob = this.mobsById[command.target];
+            if (targetMob && this.hasClearShot(mob.pos, targetMob)) {
+              target = command.target;
             }
+          }
+          if (target) {
+            this.startAction(mob, SHOOT_TIME, {
+              type: ActionType.SHOOT,
+              target
+            });
+          }
           }
           break;
       }
@@ -124,6 +131,18 @@ export class World {
     } else {
       return pos;
     }
+  }
+
+  hasClearShot(pos: Pos, targetMob: Mob): boolean {
+    if (this.findTarget(pos, targetMob.pos) === targetMob.id) {
+      return true;
+    }
+    if (targetMob.action && targetMob.action.type === 'MOVE') {
+      if (this.findTarget(pos, targetMob.action.pos) === targetMob.id) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private regenerate(mob: Mob): void {
@@ -315,10 +334,15 @@ export class World {
   }
 
   getTargetMob(mob: Mob): Mob | null {
-    if (!(mob.action && mob.action.type === ActionType.ATTACK)) {
+    if (!mob.action) {
       return null;
     }
-    return this.mobsById[mob.action.mobId] || null;
+    if (mob.action.type === ActionType.ATTACK) {
+      return this.mobsById[mob.action.mobId] || null;
+    } else if (mob.action.type === ActionType.SHOOT && Target.isMobId(mob.action.target)) {
+      return this.mobsById[mob.action.target] || null;
+    }
+    return null;
   }
 
   findItems(x: number, y: number): Item[] {
