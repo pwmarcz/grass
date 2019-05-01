@@ -96,7 +96,7 @@ export class View {
       sprite.height = TILE_SIZE;
     });
 
-    const [mobPos, mobAlpha] = this.getMobPosAndAlpha(mob, time);
+    const [mobPos, mobAlpha] = this.getMobPosAndAlpha(mob, time, movement);
     sprite.x = TILE_SIZE * mobPos.x;
     sprite.y = TILE_SIZE * mobPos.y;
     sprite.alpha = mobAlpha;
@@ -106,10 +106,9 @@ export class View {
     const alphaMapIndex = mob.pos.y * this.world.mapW + mob.pos.x;
     alphaMap[alphaMapIndex] = 1 - sprite.alpha;
 
-
     if (mob.action && mob.action.type === ActionType.MOVE) {
-      alphaMap[alphaMapIndex] = lerp(1, actionTime, sprite.alpha);
-      alphaMap[mob.action.pos.y * this.world.mapW + mob.action.pos.x] = lerp(1, 1 - actionTime, sprite.alpha);
+      alphaMap[alphaMapIndex] = lerp(1 - sprite.alpha, 1, actionTime);
+      alphaMap[mob.action.pos.y * this.world.mapW + mob.action.pos.x] = lerp(1, 1 - sprite.alpha, actionTime);
     } else if (mob.action && mob.action.type === ActionType.ATTACK) {
       let distance: number;
       if (actionTime <= ATTACK_START_TIME) {
@@ -121,13 +120,14 @@ export class View {
       let targetPos = mob.pos;
       const targetMob = this.world.getTargetMob(mob);
       if (targetMob) {
-        [targetPos] = this.getMobPosAndAlpha(targetMob, time);
+        [targetPos] = this.getMobPosAndAlpha(targetMob, time, movement);
       }
 
       sprite.x = TILE_SIZE * lerp(mob.pos.x, targetPos.x, distance);
       sprite.y = TILE_SIZE * lerp(mob.pos.y, targetPos.y, distance);
     } else if (mob.action && mob.action.type === ActionType.DIE) {
       sprite.alpha = lerp(sprite.alpha, 0, actionTime);
+      alphaMap[alphaMapIndex] = 1 - sprite.alpha;
     }
 
     if (mob.action && mob.action.type === 'SHOOT_TERRAIN') {
@@ -142,7 +142,7 @@ export class View {
     if (mob.action && mob.action.type === 'SHOOT_MOB') {
       const targetMob = this.world.getTargetMob(mob);
       if (targetMob) {
-        const [targetPos, targetAlpha] = this.getMobPosAndAlpha(targetMob, time);
+        const [targetPos, targetAlpha] = this.getMobPosAndAlpha(targetMob, time, movement);
         this.redrawShot(
           mob.id,
           mob.pos,
@@ -163,20 +163,20 @@ export class View {
     }
   }
 
-  getMobPosAndAlpha(mob: Mob, time: number): [Pos, number] {
-    const movement = this.getMobMovement(mob, time);
-    let alpha;
+  getMobPosAndAlpha(mob: Mob, time: number, movement: Movement): [Pos, number] {
     const a1 = this.getVisibilityMultiplier(mob.pos.x, mob.pos.y, movement, 0);
     if (mob.action && mob.action.type === ActionType.MOVE) {
+      const actionTime = this.getActionTime(mob, time);
       const a2 = this.getVisibilityMultiplier(mob.action.pos.x, mob.action.pos.y, movement, 0);
-      alpha = lerp(a1, a2, movement.t);
+      const pos = {
+        x: lerp(mob.pos.x, mob.action.pos.x, actionTime),
+        y: lerp(mob.pos.y, mob.action.pos.y, actionTime),
+      };
+      const alpha = lerp(a1, a2, actionTime);
+      return [pos, alpha];
     } else {
-      alpha = a1;
+      return [mob.pos, a1];
     }
-    return [{
-      x: lerp(movement.x0, movement.x1, movement.t),
-      y: lerp(movement.y0, movement.y1, movement.t),
-    }, alpha];
   }
 
   redrawShot(
@@ -217,7 +217,7 @@ export class View {
   }
 
   redraw(dirty: boolean, time: number, inputState: InputState): void {
-    const movement = this.getMobMovement(this.client.player, time);
+    const movement = this.getPlayerMovement(time);
     this.updateViewport(movement);
 
     if (dirty) {
@@ -230,7 +230,7 @@ export class View {
       this.redrawGoal(inputState.goalPos);
     }
     if (inputState.aimPos) {
-      this.redrawAim(inputState.aimPos, time);
+      this.redrawAim(inputState.aimPos, time, movement);
     }
     if (inputState.path) {
       this.redrawPath(inputState.path);
@@ -323,7 +323,9 @@ export class View {
     }
   }
 
-  getMobMovement(mob: Mob, time: number): Movement {
+  getPlayerMovement(time: number): Movement {
+    const mob = this.client.player;
+
     const x0 = mob.pos.x, y0 = mob.pos.y;
     let x1: number, y1: number;
     let t: number;
@@ -394,7 +396,7 @@ export class View {
     g.y = goalPos.y * TILE_SIZE;
   }
 
-  redrawAim(aimPos: Pos, time: number): void {
+  redrawAim(aimPos: Pos, time: number, movement: Movement): void {
     const g = this.frontLayer.make('aim', PIXI.Graphics, g => {
       g.lineStyle(1, 0x6D0000, 1, 0);
       g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
@@ -408,7 +410,7 @@ export class View {
     if (target) {
       let targetPos: Pos;
       if (target instanceof Mob) {
-        [targetPos, ] = this.getMobPosAndAlpha(target, time);
+        [targetPos, ] = this.getMobPosAndAlpha(target, time, movement);
       } else {
         targetPos = target;
       }
