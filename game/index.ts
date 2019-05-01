@@ -8,7 +8,7 @@ import mapFile2 from './maps/map2.xml';
 
 import { loadMap } from './map-loader';
 import { View } from './ui/view';
-import { Input } from './ui/input';
+import { RawInput } from './ui/raw-input';
 import { World } from './world';
 import { Command, ActionType } from './types';
 import { loadTextures } from './ui/textures';
@@ -42,7 +42,7 @@ Promise.all([mapPromise, loadPromise])
   const world = new World(map, mobs, items);
   const client = new Client(world, 'player');
   const view = new View(world, client, appElement, infoElement);
-  const input = new Input(appElement, view.app.stage, world.mapW, world.mapH);
+  const input = new RawInput(appElement, view.app.stage, world.mapW, world.mapH);
 
   view.setup();
   view.app.ticker.add(delta => gameLoop(world, client, input, view, delta));
@@ -51,7 +51,7 @@ Promise.all([mapPromise, loadPromise])
 
 let time = 0;
 
-function gameLoop(world: World, client: Client, input: Input, view: View, delta: number): void {
+function gameLoop(world: World, client: Client, input: RawInput, view: View, delta: number): void {
   time += delta * DEBUG.speed;
   let dirty = false;
 

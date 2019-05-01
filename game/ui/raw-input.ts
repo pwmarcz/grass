@@ -19,7 +19,7 @@ const MOVEMENT_KEYS = [
   {keys: ['ArrowDown', 'j', '2'], dx: 0, dy: 1},
 ];
 
-export class Input {
+export class RawInput {
   keys: Record<string, boolean> = {};
   appElement: Element;
   stage: DisplayObject;
