@@ -23,8 +23,6 @@ export class RawInput {
   keys: Record<string, boolean> = {};
   appElement: Element;
   stage: DisplayObject;
-  mapW: number;
-  mapH: number;
   mouse: {
     point: PIXI.Point | null;
     moved: boolean;
@@ -32,11 +30,9 @@ export class RawInput {
     rmb: boolean;
   };
 
-  constructor(appElement: Element, stage: PIXI.DisplayObject, mapW: number, mapH: number) {
+  constructor(appElement: Element, stage: PIXI.DisplayObject) {
     this.appElement = appElement;
     this.stage = stage;
-    this.mapW = mapW;
-    this.mapH = mapH;
     this.mouse = { point: null, moved: false, lmb: false, rmb: false };
   }
 

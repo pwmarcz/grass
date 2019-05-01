@@ -1,7 +1,6 @@
 import { RawInput } from "./raw-input";
 import { Pos, Command, ActionType } from "../types";
 import { Mob } from "../mob";
-import { View } from "./view";
 import { World } from "../world";
 import { Client } from "../client";
 
@@ -16,7 +15,7 @@ export class Input {
   world: World;
   client: Client;
   rawInput: RawInput;
-  view: View;
+  toPos: (point: PIXI.Point) => Pos | null;
 
   state: InputState = {
     highlightPos: null,
@@ -25,16 +24,17 @@ export class Input {
     path: null,
   }
 
-  constructor(world: World, client: Client, rawInput: RawInput, view: View) {
+  constructor(world: World, client: Client, rawInput: RawInput,
+    toPos: (point: PIXI.Point) => Pos | null) {
     this.world = world;
     this.client = client;
     this.rawInput = rawInput;
-    this.view = view;
+    this.toPos = toPos;
   }
 
   update(): boolean {
     const mousePoint = this.rawInput.mouse.point;
-    const inputPos = mousePoint && this.view.toPos(mousePoint);
+    const inputPos = mousePoint && this.toPos(mousePoint);
     let dirty = false;
 
     if (this.rawInput.mouse.lmb) {

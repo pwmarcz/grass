@@ -42,8 +42,8 @@ Promise.all([mapPromise, loadPromise])
   const world = new World(map, mobs, items);
   const client = new Client(world, 'player');
   const view = new View(world, client, appElement, infoElement);
-  const rawInput = new RawInput(appElement, view.app.stage, world.mapW, world.mapH);
-  const input = new Input(world, client, rawInput, view);
+  const rawInput = new RawInput(appElement, view.app.stage);
+  const input = new Input(world, client, rawInput, view.toPos.bind(view));
 
   view.setup();
   view.app.ticker.add(delta => gameLoop(world, client, input, view, delta));
