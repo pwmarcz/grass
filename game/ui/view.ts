@@ -96,22 +96,18 @@ export class View {
       sprite.height = TILE_SIZE;
     });
 
+    const [mobPos, mobAlpha] = this.getMobPosAndAlpha(mob, time);
+    sprite.x = TILE_SIZE * mobPos.x;
+    sprite.y = TILE_SIZE * mobPos.y;
+    sprite.alpha = mobAlpha;
+
     const actionTime = this.getActionTime(mob, time);
 
-    const a1 = this.getVisibilityMultiplier(mob.pos.x, mob.pos.y, movement, 0);
-    if (mob.action && mob.action.type === ActionType.MOVE) {
-      const a2 = this.getVisibilityMultiplier(mob.action.pos.x, mob.action.pos.y, movement, 0);
-      sprite.alpha = lerp(a1, a2, actionTime);
-    } else {
-      sprite.alpha = a1;
-    }
-
     const alphaMapIndex = mob.pos.y * this.world.mapW + mob.pos.x;
-    if (mob.action && mob.action.type === ActionType.MOVE) {
-      const {x, y} = this.getCurrentPos(mob, time);
-      sprite.x = TILE_SIZE * x;
-      sprite.y = TILE_SIZE * y;
+    alphaMap[alphaMapIndex] = 1 - sprite.alpha;
 
+
+    if (mob.action && mob.action.type === ActionType.MOVE) {
       alphaMap[alphaMapIndex] = lerp(1, actionTime, sprite.alpha);
       alphaMap[mob.action.pos.y * this.world.mapW + mob.action.pos.x] = lerp(1, 1 - actionTime, sprite.alpha);
     } else if (mob.action && mob.action.type === ActionType.ATTACK) {
@@ -125,24 +121,13 @@ export class View {
       let targetPos = mob.pos;
       const targetMob = this.world.getTargetMob(mob);
       if (targetMob) {
-        targetPos = this.getCurrentPos(targetMob, time);
+        [targetPos] = this.getMobPosAndAlpha(targetMob, time);
       }
 
       sprite.x = TILE_SIZE * lerp(mob.pos.x, targetPos.x, distance);
       sprite.y = TILE_SIZE * lerp(mob.pos.y, targetPos.y, distance);
-
-      alphaMap[alphaMapIndex] = 1 - sprite.alpha;
     } else if (mob.action && mob.action.type === ActionType.DIE) {
-      sprite.x = mob.pos.x * TILE_SIZE;
-      sprite.y = mob.pos.y * TILE_SIZE;
-
       sprite.alpha = lerp(sprite.alpha, 0, actionTime);
-      alphaMap[alphaMapIndex] = 1 - sprite.alpha;
-    } else {
-      sprite.x = mob.pos.x * TILE_SIZE;
-      sprite.y = mob.pos.y * TILE_SIZE;
-
-      alphaMap[alphaMapIndex] = 1 - sprite.alpha;
     }
 
     if (mob.action && mob.action.type === 'SHOOT_TERRAIN') {
@@ -150,17 +135,19 @@ export class View {
         mob.id,
         mob.pos,
         mob.action.pos,
+        1,
         actionTime
       );
     }
     if (mob.action && mob.action.type === 'SHOOT_MOB') {
       const targetMob = this.world.getTargetMob(mob);
       if (targetMob) {
-        const targetPos = this.getMobPos(targetMob, time);
+        const [targetPos, targetAlpha] = this.getMobPosAndAlpha(targetMob, time);
         this.redrawShot(
           mob.id,
           mob.pos,
           targetPos,
+          targetAlpha,
           actionTime
         );
       }
@@ -176,18 +163,29 @@ export class View {
     }
   }
 
-  getMobPos(mob: Mob, time: number): Pos {
+  getMobPosAndAlpha(mob: Mob, time: number): [Pos, number] {
     const movement = this.getMobMovement(mob, time);
-    return {
+    let alpha;
+    const a1 = this.getVisibilityMultiplier(mob.pos.x, mob.pos.y, movement, 0);
+    if (mob.action && mob.action.type === ActionType.MOVE) {
+      const a2 = this.getVisibilityMultiplier(mob.action.pos.x, mob.action.pos.y, movement, 0);
+      alpha = lerp(a1, a2, movement.t);
+    } else {
+      alpha = a1;
+    }
+    return [{
       x: lerp(movement.x0, movement.x1, movement.t),
       y: lerp(movement.y0, movement.y1, movement.t),
-    };
+    }, alpha];
   }
 
-  redrawShot(id: string, sourcePos: Pos, targetPos: Pos, actionTime: number): void {
+  redrawShot(
+    id: string, sourcePos: Pos,
+    targetPos: Pos, targetAlpha: number, actionTime: number
+  ): void {
     const g = this.frontLayer.make(`shot.${id}`, PIXI.Graphics);
     g.clear();
-    g.lineStyle(4, 0x6D5000, 1, 0.5);
+    g.lineStyle(4, 0x6D5000, targetAlpha, 0.5);
 
     const x0 = (sourcePos.x + 0.5) * TILE_SIZE;
     const y0 = (sourcePos.y + 0.5) * TILE_SIZE;
@@ -199,7 +197,6 @@ export class View {
     const shotLength = SHOT_LENGTH / dist;
 
     const time = SHOT_START_TIME * dist / SHOT_FULL_DISTANCE;
-    console.log(time);
 
     const endDist = Math.min(1, actionTime / time);
     const startDist = Math.max(0, endDist - shotLength);
@@ -217,17 +214,6 @@ export class View {
       return (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
     }
     return 0;
-  }
-
-  getCurrentPos(mob: Mob, time: number): Pos {
-    if (mob.action && mob.action.type === ActionType.MOVE) {
-      const actionTime = this.getActionTime(mob, time);
-      return {
-        x: lerp(mob.pos.x, mob.action.pos.x, actionTime),
-        y: lerp(mob.pos.y, mob.action.pos.y, actionTime),
-      };
-    }
-    return mob.pos;
   }
 
   redraw(dirty: boolean, time: number, inputState: InputState): void {
@@ -422,7 +408,7 @@ export class View {
     if (target) {
       let targetPos: Pos;
       if (target instanceof Mob) {
-        targetPos = this.getMobPos(target, time);
+        [targetPos, ] = this.getMobPosAndAlpha(target, time);
       } else {
         targetPos = target;
       }
