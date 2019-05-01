@@ -62,7 +62,7 @@ export class Mob {
   }
 
   get alive(): boolean {
-    return this.health >= 0;
+    return this.health > 0;
   }
 
   get regenRate(): number {
