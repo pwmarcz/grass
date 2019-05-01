@@ -10,6 +10,7 @@ import { Terrain } from '../terrain';
 import { Mob } from '../mob';
 import { Client } from '../client';
 import { DEBUG } from '../debug';
+import { InputState } from './input';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -46,11 +47,6 @@ export class View {
   private mobLayer: StringRenderer;
   private frontLayer: StringRenderer;
 
-  highlightPos: Pos | null = null;
-  goalPos: Pos | null = null;
-  goalMob: Mob | null = null;
-  path: Pos[] | null = null;
-
   constructor(world: World, client: Client, element: Element, infoElement: Element) {
     this.world = world;
     this.client = client;
@@ -81,7 +77,9 @@ export class View {
     .then(sidebar => this.sidebar = sidebar);
   }
 
-  private redrawMob(mob: Mob, time: number, alphaMap: number[][], movement: Movement): void {
+  private redrawMob(mob: Mob, time: number, alphaMap: number[][],
+    movement: Movement, goalMob: Mob | null
+  ): void {
     if (!mob.alive && !mob.action) {
       return;
     }
@@ -140,7 +138,7 @@ export class View {
       alphaMap[mob.pos.y][mob.pos.x] = 1 - sprite.alpha;
     }
 
-    if (this.goalMob && this.goalMob.id === mob.id) {
+    if (goalMob && goalMob.id === mob.id) {
       const g = this.frontLayer.make('goalMob', PIXI.Graphics, g => {
         g.lineStyle(1, 0x6D5000, 1, 0);
         g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
@@ -168,27 +166,33 @@ export class View {
     return mob.pos;
   }
 
-  redraw(dirty: boolean, time: number): void {
+  redraw(dirty: boolean, time: number, inputState: InputState): void {
     const movement = this.getMovement(time);
     this.updateViewport(movement);
 
     if (dirty) {
-      this.redrawInfo();
+      this.redrawInfo(inputState.highlightPos);
     }
-    this.redrawHighlight();
-    this.redrawGoal();
-    this.redrawPath();
+    if (inputState.highlightPos){
+      this.redrawHighlight(inputState.highlightPos);
+    }
+    if (inputState.goalPos) {
+      this.redrawGoal(inputState.goalPos);
+    }
+    if (inputState.path) {
+      this.redrawPath(inputState.path);
+    }
 
     const alphaMap = makeEmptyGrid(this.world.mapW, this.world.mapH, 1);
     for (const mob of this.world.mobs) {
-      this.redrawMob(mob, time, alphaMap, movement);
+      this.redrawMob(mob, time, alphaMap, movement, inputState.goalMob);
     }
     this.redrawMap(alphaMap, movement);
 
-    if (DEBUG.showLos) {
-      this.redrawLos();
+    if (DEBUG.showLos && inputState.highlightPos) {
+      this.redrawLos(inputState.highlightPos);
     }
-    if (DEBUG.showDistance) {
+    if (DEBUG.showDistance && inputState.path) {
       this.redrawDistance();
     }
 
@@ -302,26 +306,20 @@ export class View {
     return lerp(multiplier, nextMultiplier, t);
   }
 
-  redrawHighlight(): void {
-    if (this.highlightPos) {
-      const g = this.backLayer.make('highlight', PIXI.Graphics, g => {
-        g.lineStyle(1, 0x444444, 1, 0);
-        g.beginFill(0x111111);
-        g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
-      });
-      g.x = this.highlightPos.x * TILE_SIZE;
-      g.y = this.highlightPos.y * TILE_SIZE;
-    }
+  redrawHighlight(highlightPos: Pos): void {
+    const g = this.backLayer.make('highlight', PIXI.Graphics, g => {
+      g.lineStyle(1, 0x444444, 1, 0);
+      g.beginFill(0x111111);
+      g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+    });
+    g.x = highlightPos.x * TILE_SIZE;
+    g.y = highlightPos.y * TILE_SIZE;
   }
 
-  redrawLos(): void {
-    if (!this.highlightPos) {
-      return;
-    }
-
+  redrawLos(highlightPos: Pos): void {
     const los = this.world.visibilityMap.line(
       this.client.player.pos.x, this.client.player.pos.y,
-      this.highlightPos.x, this.highlightPos.y,
+      highlightPos.x, highlightPos.y,
     );
 
     if (los) {
@@ -335,18 +333,16 @@ export class View {
     }
   }
 
-  redrawGoal(): void {
-    if (this.goalPos) {
-      const g = this.frontLayer.make('goal', PIXI.Graphics, g => {
-        g.lineStyle(1, 0x6D5000, 1, 0);
-        g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
-      });
-      g.x = this.goalPos.x * TILE_SIZE;
-      g.y = this.goalPos.y * TILE_SIZE;
-    }
+  redrawGoal(goalPos: Pos): void {
+    const g = this.frontLayer.make('goal', PIXI.Graphics, g => {
+      g.lineStyle(1, 0x6D5000, 1, 0);
+      g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
+    });
+    g.x = goalPos.x * TILE_SIZE;
+    g.y = goalPos.y * TILE_SIZE;
   }
 
-  redrawInfo(): void {
+  redrawInfo(highlightPos: Pos | null): void {
     if (!this.sidebar) {
       return;
     }
@@ -357,8 +353,8 @@ export class View {
     let terrainTile: string | null = null;
     let mob: MobInfo | null = null;
     let items: ItemInfo[] | null = null;
-    if (this.highlightPos) {
-      const {x, y} = this.highlightPos;
+    if (highlightPos) {
+      const {x, y} = highlightPos;
 
       if (this.client.memory[y][x]) {
 
@@ -390,28 +386,23 @@ export class View {
     this.sidebar.setState({ enemy });
   }
 
-  redrawPath(): void {
-    if (this.path) {
-      const g = this.frontLayer.make('path', PIXI.Graphics);
-      g.clear();
-      g.lineStyle(5, 0xFFFFFF, 0.3, 0.5);
+  redrawPath(path: Pos[]): void {
+    const g = this.frontLayer.make('path', PIXI.Graphics);
+    g.clear();
+    g.lineStyle(5, 0xFFFFFF, 0.3, 0.5);
 
-      const {x: x0, y: y0} = this.mobLayer.get('player')!.position;
-      g.moveTo(
-        x0 + 0.5 * TILE_SIZE,
-        y0 + 0.5 * TILE_SIZE
-      );
-      for (let i = 1; i < this.path.length; i++) {
-        const {x, y} = this.path[i];
-        g.lineTo(TILE_SIZE * (x + 0.5), TILE_SIZE * (y + 0.5));
-      }
+    const {x: x0, y: y0} = this.mobLayer.get('player')!.position;
+    g.moveTo(
+      x0 + 0.5 * TILE_SIZE,
+      y0 + 0.5 * TILE_SIZE
+    );
+    for (let i = 1; i < path.length; i++) {
+      const {x, y} = path[i];
+      g.lineTo(TILE_SIZE * (x + 0.5), TILE_SIZE * (y + 0.5));
     }
   }
 
   redrawDistance(): void {
-    if (!this.path) {
-      return;
-    }
     // Draw distance map
     const dm = this.client.distanceMap;
     const textStyle = new PIXI.TextStyle({

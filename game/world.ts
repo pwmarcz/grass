@@ -230,6 +230,17 @@ export class World {
     return this.inBounds(x, y) && Terrain.passThrough(this.map[y][x]);
   }
 
+  canMoveOrOpen(x: number, y: number): boolean {
+    if (!this.inBounds(x, y)) {
+      return false;
+    }
+    const newTerrain = this.map[y][x];
+    if (newTerrain === Terrain.DOOR_CLOSED) {
+      return true;
+    }
+    return Terrain.passThrough(this.map[y][x]);
+  }
+
   canAttack(mob: Mob, targetMob: Mob): boolean {
     if (!targetMob.alive) {
       return false;

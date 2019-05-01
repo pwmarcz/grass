@@ -10,11 +10,11 @@ import { loadMap } from './map-loader';
 import { View } from './ui/view';
 import { RawInput } from './ui/raw-input';
 import { World } from './world';
-import { Command, ActionType } from './types';
+import { Command } from './types';
 import { loadTextures } from './ui/textures';
-import { posEqual } from './utils';
 import { Client } from './client';
 import { DEBUG } from './debug';
+import { Input } from './ui/input';
 
 let mapFile = mapFile1;
 
@@ -42,131 +42,31 @@ Promise.all([mapPromise, loadPromise])
   const world = new World(map, mobs, items);
   const client = new Client(world, 'player');
   const view = new View(world, client, appElement, infoElement);
-  const input = new RawInput(appElement, view.app.stage, world.mapW, world.mapH);
+  const rawInput = new RawInput(appElement, view.app.stage, world.mapW, world.mapH);
+  const input = new Input(world, client, rawInput, view);
 
   view.setup();
   view.app.ticker.add(delta => gameLoop(world, client, input, view, delta));
-  input.setup();
+  rawInput.setup();
 });
 
 let time = 0;
 
-function gameLoop(world: World, client: Client, input: RawInput, view: View, delta: number): void {
+function gameLoop(world: World, client: Client, input: Input, view: View, delta: number): void {
   time += delta * DEBUG.speed;
-  let dirty = false;
-
-  const mousePoint = input.mouse.point;
-  const inputPos = mousePoint && view.toPos(mousePoint);
-  let highlightPos = view.highlightPos;
-  let goalPos = view.goalPos;
-  let goalMob = view.goalMob;
-  let path = view.path;
-
-  if (input.mouse.lmb) {
-    if (inputPos) {
-      const mob = world.findMob(inputPos.x, inputPos.y);
-      if (mob && client.canSeeMob(mob)) {
-        goalPos = null;
-        goalMob = mob;
-      } else {
-        goalPos = inputPos;
-        goalMob = null;
-      }
-    } else {
-      goalPos = null;
-      goalMob = null;
-    }
-    highlightPos = null;
-    input.mouse.lmb = false;
-  }
-  if (input.mouse.rmb) {
-    goalPos = null;
-    goalMob = null;
-    input.mouse.rmb = false;
-  }
-  if (input.mouse.moved) {
-    highlightPos = inputPos;
-    input.mouse.moved = false;
-  }
+  let dirty = input.update();
 
   while (world.time < Math.floor(time)) {
     let playerCommand: Command | null = null;
-    let triedGoal = false;
 
     if (!client.player.action) {
-      const dir = input.getDirection();
-      if (dir) {
-        goalPos = null;
-        const pos = {
-          x: client.player.pos.x + dir.dx,
-          y: client.player.pos.y + dir.dy,
-        };
-        playerCommand = {
-          type: ActionType.MOVE,
-          pos,
-        };
-      } else if (goalPos) {
-        triedGoal = true;
-        if (client.memory[goalPos.y][goalPos.x]) {
-          path = client.distanceMap.findPath(goalPos.x, goalPos.y);
-          if (path && path.length > 1) {
-            playerCommand = {
-              type: ActionType.MOVE,
-              pos: path[1],
-            };
-          }
-        }
-      } else if (goalMob) {
-        triedGoal = true;
-        if (world.canAttack(client.player, goalMob)) {
-          path = null;
-          playerCommand = {
-            type: ActionType.ATTACK,
-            mobId: goalMob.id,
-          };
-        } else if (client.canSeeMob(goalMob)) {
-          path = client.distanceMap.findPath(goalMob.pos.x, goalMob.pos.y);
-          if (path && path.length > 1) {
-            playerCommand = {
-              type: ActionType.MOVE,
-              pos: path[1],
-            };
-          }
-        }
-      } else if (client.enemy && world.canAttack(client.player, client.enemy)) {
-        playerCommand = {
-          type: ActionType.ATTACK,
-          mobId: client.enemy.id,
-        };
-      } else {
-        const items = world.findItems(client.player.pos.x, client.player.pos.y);
-        if (items.length > 0) {
-          playerCommand = {
-            type: ActionType.PICK_UP,
-            itemId: items[items.length - 1].id,
-          };
-        }
-      }
+      playerCommand = input.getPlayerCommand();
     }
 
     if (client.turn(playerCommand)) {
       dirty = true;
     }
-
-    if (triedGoal && !client.player.action) {
-      goalPos = null;
-      goalMob = null;
-    }
   }
 
-  if (!posEqual(goalPos, view.goalPos) ||
-    !posEqual(highlightPos, view.highlightPos)) {
-    view.goalPos = goalPos;
-    view.highlightPos = highlightPos;
-    dirty = true;
-  }
-  view.path = (goalPos || goalMob) && path;
-  view.goalMob = goalMob;
-
-  view.redraw(dirty, time);
+  view.redraw(dirty, time, input.state);
 }
