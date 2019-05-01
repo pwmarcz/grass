@@ -57,5 +57,5 @@ export function nextTo(a: Pos, b: Pos): boolean {
 }
 
 export function simpleDistance(a: Pos, b: Pos): number {
-  return Math.min(Math.abs(a.x-b.x), Math.abs(a.y-b.y));
+  return Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y));
 }
