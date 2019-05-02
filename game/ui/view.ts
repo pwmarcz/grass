@@ -20,6 +20,8 @@ const SHOT_START_TIME = 0.3;
 const SHOT_FULL_DISTANCE = 12 * TILE_SIZE;
 const SHOT_LENGTH = TILE_SIZE;
 
+const DEATH_OFFSET = 0.2;
+
 function lerp(a: number, b: number, t: number): number {
   return a * (1 - t) + b * t;
 }
@@ -127,6 +129,7 @@ export class View {
       sprite.y = TILE_SIZE * lerp(mob.pos.y, targetPos.y, distance);
     } else if (mob.action && mob.action.type === ActionType.DIE) {
       sprite.alpha = lerp(sprite.alpha, 0, actionTime);
+      sprite.y += actionTime * DEATH_OFFSET * TILE_SIZE;
       alphaMap[alphaMapIndex] = 1 - sprite.alpha;
     }
 
