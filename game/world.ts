@@ -373,18 +373,15 @@ export class World {
         mob.pos.x, mob.pos.y,
         player.pos.x, player.pos.y
       )) {
-        const dxPlayer = player.pos.x - mob.pos.x;
-        const dyPlayer = player.pos.y - mob.pos.y;
-
-        const x = mob.pos.x + Math.sign(dxPlayer);
-        const y = mob.pos.y + Math.sign(dyPlayer);
-        if (this.canMove(x, y)) {
+        const line = this.visibilityMap.line(
+          mob.pos.x, mob.pos.y, player.pos.x, player.pos.y,
+          this.canMove.bind(this)
+        );
+        if (line.length > 1) {
+          const pos = line[1];
           return {
             type: ActionType.MOVE,
-            pos: {
-              x: mob.pos.x + Math.sign(dxPlayer),
-              y: mob.pos.y + Math.sign(dyPlayer),
-            }
+            pos
           };
         }
       }
