@@ -101,8 +101,20 @@ body {
   display: inline-block;
   box-sizing: border-box;
   padding: 5px;
-  background: #555;
-  transition: width 0.25s;
+  transition-property: width, background-color;
+  transition-duration: 0.25s;
+}
+
+#info .stat .bar.normal .inner {
+  background: #085e00;
+}
+
+#info .stat .bar.warning .inner {
+  background: #9c6600;
+}
+
+#info .stat .bar.critical .inner {
+  background: #630000;
 }
 
 /* Compact vertical layout */

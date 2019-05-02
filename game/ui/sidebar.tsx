@@ -92,10 +92,20 @@ interface StatBarProps {
 }
 
 function StatBar({value, max}: StatBarProps): VNode {
-  const width = Math.round(100 * value / max) + '%';
+  const part = value / max;
+  const width = Math.round(100 * part) + '%';
+
+  let cls: string;
+  if (part <= 0.25) {
+    cls = 'critical';
+  } else if (part <= 0.5) {
+    cls = 'warning';
+  } else {
+    cls = 'normal';
+  }
 
   return (
-    <span class="bar">
+    <span class={'bar ' + cls}>
       <span class="inner" style={{width}}>
         {value}/{max}
       </span>
