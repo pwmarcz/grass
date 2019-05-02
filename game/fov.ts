@@ -153,6 +153,10 @@ export class VisibilityMap {
   line(x0: number, y0: number, x1: number, y1: number,
     mapFunc?: MapFunc<boolean>
   ): Pos[] {
+    if (x0 === x1 && y0 === y1) {
+      return [{x: x0, y: y0}];
+    }
+
     const ray = new BresenhamRay(x0, y0, x1, y1);
     const lines: Pos[][] = new Array(ray.q);
     for (let eps = 0; eps < ray.q; eps++) {
