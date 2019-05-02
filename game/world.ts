@@ -379,10 +379,12 @@ export class World {
         );
         if (line.length > 1) {
           const pos = line[1];
-          return {
-            type: ActionType.MOVE,
-            pos
-          };
+          if (this.canMove(pos.x, pos.y)) {
+            return {
+              type: ActionType.MOVE,
+              pos
+            };
+          }
         }
       }
     }
