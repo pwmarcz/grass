@@ -463,9 +463,9 @@ export class View {
 
 function offset(x: number, width: number, mapWidth: number): number {
   if (width > mapWidth * TILE_SIZE) {
-    return (width - mapWidth * TILE_SIZE) / 2;
+    return Math.floor((width - mapWidth * TILE_SIZE) / 2);
   }
-  const dx = -((x + 0.5) * TILE_SIZE - width / 2);
+  const dx = -Math.floor((x + 0.5) * TILE_SIZE - width / 2);
   return clamp(dx, -mapWidth * TILE_SIZE + width, 0);
 }
 
