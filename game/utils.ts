@@ -59,3 +59,23 @@ export function nextTo(a: Pos, b: Pos): boolean {
 export function simpleDistance(a: Pos, b: Pos): number {
   return Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y));
 }
+
+export function minBy<T>(sequence: T[], key: (el: T) => number | null): T | null {
+  let best = null;
+  let bestVal = 0;
+  for (let i = 0; i < sequence.length; i++) {
+    const val = key(sequence[i]);
+    if (val !== null && (best === null || val < bestVal)) {
+      best = sequence[i];
+      bestVal = val;
+    }
+  }
+  return best;
+}
+
+export function maxBy<T>(sequence: T[], key: (el: T) => number | null): T | null {
+  return minBy(sequence, el => {
+    const val = key(el);
+    return val === null ? null : -val;
+  });
+}

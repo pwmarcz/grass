@@ -2,7 +2,7 @@
 // http://www.roguebasin.com/index.php?title=Improved_Shadowcasting_in_Java
 
 import { MapFunc } from "./global-map";
-import { makeEmptyGrid } from "./utils";
+import { makeEmptyGrid, maxBy } from "./utils";
 import { Pos } from "./types";
 
 const FOV_RADIUS = 12;
@@ -154,15 +154,12 @@ export class VisibilityMap {
     mapFunc?: MapFunc<boolean>
   ): Pos[] {
     const ray = new BresenhamRay(x0, y0, x1, y1);
-
-    let bestLine = this.truncateLine(ray.line(0), mapFunc);
-    for (let eps = 1; eps < ray.q; eps++) {
-      const line = this.truncateLine(ray.line(eps), mapFunc);
-      if (line.length > bestLine.length) {
-        bestLine = line;
-      }
+    const lines: Pos[][] = new Array(ray.q);
+    for (let eps = 0; eps < ray.q; eps++) {
+      lines[eps] = this.truncateLine(ray.line(eps));
     }
-    return bestLine;
+
+    return maxBy(lines, line => line.length)!;
   }
 
   findTarget(

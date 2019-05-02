@@ -1,6 +1,7 @@
 import { Pos } from "./types";
 import FastPriorityQueue from 'fastpriorityqueue';
 import { MapFunc, GlobalMap } from "./global-map";
+import { minBy } from "./utils";
 
 const eps = 1 / 16;
 
@@ -88,22 +89,20 @@ export class DistanceMap extends GlobalMap<number, boolean> {
 
     let pos = {x: xGoal, y: yGoal};
     result.push(pos);
-    let dist = this.get(xGoal, yGoal);
-    while (dist > 0) {
-      let best: [Pos, number] | null = null;
-      for (const [dx, dy] of NEIGHBORS) {
-        const x = pos.x + dx;
-        const y = pos.y + dy;
-        if (this.inBounds(x, y)) {
-          const dist = this.get(x, y);
-          if (dist !== -1) {
-            if (best === null || best[1] > dist) {
-              best = [{x, y}, dist];
+    while (pos.x !== this.xc || pos.y !== this.yc) {
+      const {x, y} = minBy(
+        NEIGHBORS.map(([dx, dy]) => ({x: pos.x + dx, y: pos.y + dy})),
+        ({x, y}) => {
+          if (this.inBounds(x, y)) {
+            const dist = this.get(x, y);
+            if (dist !== -1) {
+              return dist;
             }
           }
-        }
-      }
-      [pos, dist] = best!;
+          return null;
+        })!;
+
+      pos = {x, y};
       result.push(pos);
     }
 
