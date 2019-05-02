@@ -11,6 +11,7 @@ import { Mob } from '../mob';
 import { Client } from '../client';
 import { DEBUG } from '../debug';
 import { InputState } from './input';
+import { Tile } from '../tiles';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -92,46 +93,11 @@ export class View {
       return;
     }
 
-    const sprite = this.mobLayer.make(mob.id, PIXI.Sprite, sprite => {
-      sprite.texture = TILE_TEXTURES[mob.tile];
-      sprite.width = TILE_SIZE;
-      sprite.height = TILE_SIZE;
-    });
-
-    const [mobPos, mobAlpha] = this.getMobPosAndAlpha(mob, time, movement);
-    sprite.x = TILE_SIZE * mobPos.x;
-    sprite.y = TILE_SIZE * mobPos.y;
-    sprite.alpha = mobAlpha;
-
     const actionTime = this.getActionTime(mob, time);
+    const desc = new MobDescription(mob, this.world, actionTime);
 
-    const alphaMapIndex = mob.pos.y * this.world.mapW + mob.pos.x;
-    alphaMap[alphaMapIndex] = 1 - sprite.alpha;
-
-    if (mob.action && mob.action.type === ActionType.MOVE) {
-      alphaMap[alphaMapIndex] = lerp(1 - sprite.alpha, 1, actionTime);
-      alphaMap[mob.action.pos.y * this.world.mapW + mob.action.pos.x] = lerp(1, 1 - sprite.alpha, actionTime);
-    } else if (mob.action && mob.action.type === ActionType.ATTACK) {
-      let distance: number;
-      if (actionTime <= ATTACK_START_TIME) {
-        distance = actionTime / ATTACK_START_TIME * ATTACK_DISTANCE;
-      } else {
-        distance = (1 - (actionTime - ATTACK_START_TIME) / (1 - ATTACK_START_TIME)) * ATTACK_DISTANCE;
-      }
-
-      let targetPos = mob.pos;
-      const targetMob = this.world.getTargetMob(mob);
-      if (targetMob) {
-        [targetPos] = this.getMobPosAndAlpha(targetMob, time, movement);
-      }
-
-      sprite.x = TILE_SIZE * lerp(mob.pos.x, targetPos.x, distance);
-      sprite.y = TILE_SIZE * lerp(mob.pos.y, targetPos.y, distance);
-    } else if (mob.action && mob.action.type === ActionType.DIE) {
-      sprite.alpha = lerp(sprite.alpha, 0, actionTime);
-      sprite.y += actionTime * DEATH_OFFSET * TILE_SIZE;
-      alphaMap[alphaMapIndex] = 1 - sprite.alpha;
-    }
+    desc.updateAlphaMap(this.world.mapW, alphaMap);
+    const sprite = desc.draw(this.mobLayer);
 
     if (mob.action && mob.action.type === 'SHOOT_TERRAIN') {
       this.redrawShot(
@@ -515,4 +481,92 @@ function offset(x: number, width: number, mapWidth: number): number {
   }
   const dx = -((x + 0.5) * TILE_SIZE - width / 2);
   return clamp(dx, -mapWidth * TILE_SIZE + width, 0);
+}
+
+class MobDescription {
+  readonly id: string;
+  readonly tile: Tile;
+
+  readonly pos: Pos;
+  readonly nextPos: Pos;
+  readonly movementTime: number;
+
+  readonly dx: number;
+  readonly dy: number;
+  readonly alpha: number;
+
+  constructor(mob: Mob, world: World, actionTime: number) {
+    this.id = mob.id;
+    this.tile = mob.tile;
+
+    this.pos = mob.pos;
+    this.nextPos = mob.pos;
+    this.movementTime = 0;
+    this.dx = 0;
+    this.dy = 0;
+    this.alpha = 1;
+
+    if (mob.action) {
+      switch (mob.action.type) {
+        case ActionType.MOVE: {
+          this.nextPos = mob.action.pos;
+          this.movementTime = actionTime;
+          break;
+        }
+
+        case ActionType.ATTACK: {
+          let distance: number;
+          if (actionTime <= ATTACK_START_TIME) {
+            distance = actionTime / ATTACK_START_TIME * ATTACK_DISTANCE;
+          } else {
+            distance = (1 - (actionTime - ATTACK_START_TIME) / (1 - ATTACK_START_TIME)) * ATTACK_DISTANCE;
+          }
+
+          let targetPos = mob.pos;
+          const targetMob = world.getTargetMob(mob);
+          if (targetMob) {
+            targetPos = targetMob.pos;
+          }
+
+          this.dx = distance * (targetPos.x - mob.pos.x);
+          this.dy = distance * (targetPos.y - mob.pos.y);
+          break;
+        }
+
+        case ActionType.DIE: {
+          this.alpha = 1 - actionTime;
+          this.dy = actionTime * DEATH_OFFSET;
+        }
+      }
+    }
+  }
+
+  updateAlphaMap(mapW: number, alphaMap: AlphaMap): void {
+    if (this.movementTime === 0) {
+      alphaMap[this.pos.y * mapW + this.pos.x] = 1 - this.alpha;
+    } else {
+      alphaMap[this.pos.y * mapW + this.pos.x] = lerp(1 - this.alpha, 1, this.movementTime);
+      alphaMap[this.nextPos.y * mapW + this.nextPos.x] = lerp(1, 1 - this.alpha, 1, this.movementTime);
+    }
+  }
+
+  draw(mobLayer: StringRenderer): PIXI.Sprite {
+    const sprite = mobLayer.make(this.id, PIXI.Sprite, sprite => {
+      sprite.texture = TILE_TEXTURES[this.tile];
+      sprite.width = TILE_SIZE;
+      sprite.height = TILE_SIZE;
+    });
+
+    sprite.x = lerp(
+      this.pos.x * TILE_SIZE, this.nextPos.x * TILE_SIZE,
+      this.movementTime
+    ) + this.dx * TILE_SIZE;
+    sprite.y = lerp(
+      this.pos.y * TILE_SIZE, this.nextPos.y * TILE_SIZE,
+      this.movementTime
+    ) + this.dy * TILE_SIZE;
+    sprite.alpha = this.alpha;
+
+    return sprite;
+  }
 }
