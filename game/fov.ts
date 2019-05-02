@@ -156,7 +156,7 @@ export class VisibilityMap {
     const ray = new BresenhamRay(x0, y0, x1, y1);
     const lines: Pos[][] = new Array(ray.q);
     for (let eps = 0; eps < ray.q; eps++) {
-      lines[eps] = this.truncateLine(ray.line(eps));
+      lines[eps] = this.truncateLine(ray.line(eps), mapFunc);
     }
 
     return maxBy(lines, line => line.length)!;
