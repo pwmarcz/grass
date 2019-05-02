@@ -15,6 +15,12 @@ import { Client } from './client';
 import { DEBUG } from './debug';
 import { Input } from './ui/input';
 
+// Hack around Parcel's inability to recognize links without index.html.
+
+for (const link of Array.from(document.querySelectorAll("a[href*='index.html']"))) {
+  link.setAttribute('href', link.getAttribute('href')!.replace('index.html', ''));
+}
+
 let mapFile = mapFile1;
 
 if (DEBUG.mapName === '2') {
