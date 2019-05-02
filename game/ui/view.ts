@@ -12,6 +12,7 @@ import { Client } from '../client';
 import { DEBUG } from '../debug';
 import { InputState } from './input';
 import { Tile } from '../tiles';
+import { VisibilityMap } from '../fov';
 
 const ATTACK_DISTANCE = 0.3;
 const ATTACK_START_TIME = 0.1;
@@ -30,8 +31,6 @@ function lerp(a: number, b: number, t: number): number {
 function clamp(a: number, min: number, max: number): number {
   return Math.max(min, Math.min(a, max));
 }
-
-type AlphaMap = Partial<Record<number, number>>;
 
 interface Movement {
   x0: number;
@@ -86,18 +85,11 @@ export class View {
     .then(sidebar => this.sidebar = sidebar);
   }
 
-  private redrawMob(mob: Mob, time: number, alphaMap: AlphaMap,
-    movement: Movement, goalMob: Mob | null
+  private redrawMobExtra(mob: Mob, time: number,
+    mobDescriptions: MobDescriptionMap,
+    goalMob: Mob | null
   ): void {
-    if (!mob.alive && !mob.action) {
-      return;
-    }
-
     const actionTime = this.getActionTime(mob, time);
-    const desc = new MobDescription(mob, this.world, actionTime);
-
-    desc.updateAlphaMap(this.world.mapW, alphaMap);
-    const sprite = desc.draw(this.mobLayer);
 
     if (mob.action && mob.action.type === 'SHOOT_TERRAIN') {
       this.redrawShot(
@@ -111,7 +103,9 @@ export class View {
     if (mob.action && mob.action.type === 'SHOOT_MOB') {
       const targetMob = this.world.getTargetMob(mob);
       if (targetMob) {
-        const [targetPos, targetAlpha] = this.getMobPosAndAlpha(targetMob, time, movement);
+        const desc = mobDescriptions[targetMob.id];
+        const targetPos = desc.getExactPos();
+        const targetAlpha = desc.alpha;
         this.redrawShot(
           mob.id,
           mob.pos,
@@ -127,24 +121,10 @@ export class View {
         g.lineStyle(1, 0x6D5000, 1, 0);
         g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
       });
-      g.x = sprite.x;
-      g.y = sprite.y;
-    }
-  }
-
-  getMobPosAndAlpha(mob: Mob, time: number, movement: Movement): [Pos, number] {
-    const a1 = this.getVisibilityMultiplier(mob.pos.x, mob.pos.y, movement, 0);
-    if (mob.action && mob.action.type === ActionType.MOVE) {
-      const actionTime = this.getActionTime(mob, time);
-      const a2 = this.getVisibilityMultiplier(mob.action.pos.x, mob.action.pos.y, movement, 0);
-      const pos = {
-        x: lerp(mob.pos.x, mob.action.pos.x, actionTime),
-        y: lerp(mob.pos.y, mob.action.pos.y, actionTime),
-      };
-      const alpha = lerp(a1, a2, actionTime);
-      return [pos, alpha];
-    } else {
-      return [mob.pos, a1];
+      const desc = mobDescriptions[mob.id];
+      const pos = desc.getExactPos();
+      g.x = pos.x * TILE_SIZE;
+      g.y = pos.y * TILE_SIZE;
     }
   }
 
@@ -189,6 +169,27 @@ export class View {
     const movement = this.getPlayerMovement(time);
     this.updateViewport(movement);
 
+    const alphaMap = new AlphaMap(
+      this.world.visibilityMap,
+      this.client.memory,
+      movement,
+    );
+
+    const mobDescriptions: MobDescriptionMap = {};
+
+    for (const mob of this.world.mobs) {
+      const actionTime = this.getActionTime(mob, time);
+      const desc = new MobDescription(mob, this.world, alphaMap, actionTime);
+      mobDescriptions[mob.id] = desc;
+      desc.updateAlphaMap(alphaMap);
+      desc.draw(this.mobLayer);
+    }
+
+    for (const mob of this.world.mobs) {
+      this.redrawMobExtra(mob, time, mobDescriptions, inputState.goalMob);
+    }
+    this.redrawMap(alphaMap);
+
     if (dirty) {
       this.redrawInfo(inputState.highlightPos);
     }
@@ -199,17 +200,11 @@ export class View {
       this.redrawGoal(inputState.goalPos);
     }
     if (inputState.aimPos) {
-      this.redrawAim(inputState.aimPos, time, movement);
+      this.redrawAim(inputState.aimPos, mobDescriptions);
     }
     if (inputState.path) {
       this.redrawPath(inputState.path);
     }
-
-    const alphaMap: AlphaMap = {};
-    for (const mob of this.world.mobs) {
-      this.redrawMob(mob, time, alphaMap, movement, inputState.goalMob);
-    }
-    this.redrawMap(alphaMap, movement);
 
     if (DEBUG.showLos && inputState.highlightPos) {
       this.redrawLos(inputState.highlightPos);
@@ -252,7 +247,7 @@ export class View {
     return null;
   }
 
-  redrawMap(alphaMap: AlphaMap, movement: Movement): void {
+  redrawMap(alphaMap: AlphaMap): void {
     const {x: px, y: py} = this.app.stage.position;
     let x0 = Math.floor(-px / TILE_SIZE);
     let y0 = Math.floor(-py / TILE_SIZE);
@@ -265,8 +260,8 @@ export class View {
 
     for (let y = y0; y < y1; y++) {
       for (let x = x0; x < x1; x++) {
-        const multiplier = this.getVisibilityMultiplier(x, y, movement);
-        if (multiplier === 0) {
+        const alpha = alphaMap.getTerrainAlpha(x, y);
+        if (alpha === 0) {
           continue;
         }
 
@@ -284,8 +279,7 @@ export class View {
             sprite.height = TILE_SIZE;
           });
 
-          const alpha = alphaMap[y * this.world.mapW + x];
-          sprite.alpha = (alpha === undefined ? 1 : alpha) * multiplier;
+          sprite.alpha = alpha;
           sprite.texture = TILE_TEXTURES[tile];
         }
       }
@@ -365,7 +359,7 @@ export class View {
     g.y = goalPos.y * TILE_SIZE;
   }
 
-  redrawAim(aimPos: Pos, time: number, movement: Movement): void {
+  redrawAim(aimPos: Pos, mobDescriptions: MobDescriptionMap): void {
     const g = this.frontLayer.make('aim', PIXI.Graphics, g => {
       g.lineStyle(1, 0x6D0000, 1, 0);
       g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
@@ -379,7 +373,7 @@ export class View {
     if (target) {
       let targetPos: Pos;
       if (target instanceof Mob) {
-        [targetPos, ] = this.getMobPosAndAlpha(target, time, movement);
+        targetPos = mobDescriptions[target.id].getExactPos();
       } else {
         targetPos = target;
       }
@@ -495,7 +489,7 @@ class MobDescription {
   readonly dy: number;
   readonly alpha: number;
 
-  constructor(mob: Mob, world: World, actionTime: number) {
+  constructor(mob: Mob, world: World, alphaMap: AlphaMap, actionTime: number) {
     this.id = mob.id;
     this.tile = mob.tile;
 
@@ -504,13 +498,18 @@ class MobDescription {
     this.movementTime = 0;
     this.dx = 0;
     this.dy = 0;
-    this.alpha = 1;
+    this.alpha = alphaMap.getMobAlpha(this.pos.x, this.pos.y);;
 
     if (mob.action) {
       switch (mob.action.type) {
         case ActionType.MOVE: {
           this.nextPos = mob.action.pos;
           this.movementTime = actionTime;
+          this.alpha = lerp(
+            this.alpha,
+            alphaMap.getMobAlpha(this.nextPos.x, this.nextPos.y),
+            actionTime,
+          );
           break;
         }
 
@@ -534,39 +533,103 @@ class MobDescription {
         }
 
         case ActionType.DIE: {
-          this.alpha = 1 - actionTime;
+          this.alpha *= 1 - actionTime;
           this.dy = actionTime * DEATH_OFFSET;
         }
       }
     }
   }
 
-  updateAlphaMap(mapW: number, alphaMap: AlphaMap): void {
+  updateAlphaMap(alphaMap: AlphaMap): void {
     if (this.movementTime === 0) {
-      alphaMap[this.pos.y * mapW + this.pos.x] = 1 - this.alpha;
+      alphaMap.update(this.pos.x, this.pos.y, 1 - this.alpha);
     } else {
-      alphaMap[this.pos.y * mapW + this.pos.x] = lerp(1 - this.alpha, 1, this.movementTime);
-      alphaMap[this.nextPos.y * mapW + this.nextPos.x] = lerp(1, 1 - this.alpha, 1, this.movementTime);
+      alphaMap.update(
+        this.pos.x, this.pos.y,
+        lerp(1 - this.alpha, 1, this.movementTime)
+      );
+      alphaMap.update(
+        this.nextPos.x, this.nextPos.y,
+        lerp(1, 1 - this.alpha, this.movementTime)
+      );
     }
   }
 
-  draw(mobLayer: StringRenderer): PIXI.Sprite {
+  draw(mobLayer: StringRenderer): PIXI.Sprite | null {
+    if (this.alpha === 0) {
+      return null;
+    }
+
     const sprite = mobLayer.make(this.id, PIXI.Sprite, sprite => {
       sprite.texture = TILE_TEXTURES[this.tile];
       sprite.width = TILE_SIZE;
       sprite.height = TILE_SIZE;
     });
 
-    sprite.x = lerp(
-      this.pos.x * TILE_SIZE, this.nextPos.x * TILE_SIZE,
-      this.movementTime
-    ) + this.dx * TILE_SIZE;
-    sprite.y = lerp(
-      this.pos.y * TILE_SIZE, this.nextPos.y * TILE_SIZE,
-      this.movementTime
-    ) + this.dy * TILE_SIZE;
+    const {x, y} = this.getExactPos();
+    sprite.x = x * TILE_SIZE;
+    sprite.y = y * TILE_SIZE;
     sprite.alpha = this.alpha;
 
     return sprite;
+  }
+
+  getExactPos(): Pos {
+    const x = lerp(
+      this.pos.x, this.nextPos.x,
+      this.movementTime
+    ) + this.dx;
+    const y = lerp(
+      this.pos.y, this.nextPos.y,
+      this.movementTime
+    ) + this.dy;
+    return {x, y};
+  }
+}
+
+type MobDescriptionMap = Record<string, MobDescription>;
+
+class AlphaMap {
+  readonly visibilityMap: VisibilityMap;
+  readonly memory: boolean[][];
+  readonly movement: Movement;
+  readonly override: Partial<Record<number, number>>;
+
+  constructor(visibilityMap: VisibilityMap, memory: boolean[][], movement: Movement) {
+    this.visibilityMap = visibilityMap;
+    this.memory = memory;
+
+    this.movement = movement;
+    this.override = {};
+  }
+
+  update(x: number, y: number, alpha: number): void {
+    this.override[y * this.visibilityMap.width + x] = alpha;
+  }
+
+  private getAlpha(x: number, y: number, darkAlpha: number): number {
+    const {x0, y0, x1, y1, t} = this.movement;
+
+    const visible = this.visibilityMap.visible(x0, y0, x, y);
+    const remembered = this.memory[y][x];
+    const alpha = visible ? 1 : remembered ? darkAlpha : 0;
+
+    if (t === 0) {
+      return alpha;
+    }
+
+    const nextVisible = this.visibilityMap.visible(x1, y1, x, y);
+    const nextAlpha = nextVisible ? 1 : remembered ? darkAlpha : 0;
+    return lerp(alpha, nextAlpha, t);
+  }
+
+  getTerrainAlpha(x: number, y: number): number {
+    const result = this.getAlpha(x, y, DARK_ALPHA);
+    const override = this.override[y * this.visibilityMap.width + x];
+    return result * (override === undefined ? 1 : override);
+  }
+
+  getMobAlpha(x: number, y: number): number {
+    return this.getAlpha(x, y, 0);
   }
 }
