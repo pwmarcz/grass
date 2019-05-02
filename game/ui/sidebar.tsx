@@ -57,7 +57,7 @@ export class Sidebar extends Component<{}, SidebarState> {
           <h2>Stats:</h2>
           <div class="stat">
             <label>Health:</label>
-            <StatBar value={health} max={maxHealth}/>
+            <StatBar value={health} max={maxHealth} color />
           </div>
         </section>
         <section>
@@ -89,19 +89,23 @@ export class Sidebar extends Component<{}, SidebarState> {
 interface StatBarProps {
   value: number;
   max: number;
+  color?: boolean;
 }
 
-function StatBar({value, max}: StatBarProps): VNode {
+function StatBar({value, max, color}: StatBarProps): VNode {
   const part = value / max;
   const width = Math.round(100 * part) + '%';
 
-  let cls: string;
-  if (part <= 0.25) {
-    cls = 'critical';
-  } else if (part <= 0.5) {
-    cls = 'warning';
-  } else {
-    cls = 'normal';
+  let cls = '';
+
+  if (color) {
+    if (part <= 0.25) {
+      cls = 'critical';
+    } else if (part <= 0.5) {
+      cls = 'warning';
+    } else {
+      cls = 'normal';
+    }
   }
 
   return (

@@ -101,6 +101,7 @@ body {
   display: inline-block;
   box-sizing: border-box;
   padding: 5px;
+  background: #555;
   transition-property: width, background-color;
   transition-duration: 0.25s;
 }
