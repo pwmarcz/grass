@@ -89,7 +89,7 @@ export class View {
     mobDescriptions: MobDescriptionMap,
     goalMob: Mob | null
   ): void {
-    const actionTime = this.getActionTime(mob, time);
+    const actionTime = mob.getActionTime(time);
 
     if (mob.action && mob.action.type === 'SHOOT_TERRAIN') {
       this.redrawShot(
@@ -158,13 +158,6 @@ export class View {
     g.lineTo(xb, yb);
   }
 
-  getActionTime(mob: Mob, time: number): number {
-    if (mob.action) {
-      return (time - mob.action.timeStart) / (mob.action.timeEnd - mob.action.timeStart);
-    }
-    return 0;
-  }
-
   redraw(dirty: boolean, time: number, inputState: InputState): void {
     const movement = this.getPlayerMovement(time);
     this.updateViewport(movement);
@@ -178,8 +171,7 @@ export class View {
     const mobDescriptions: MobDescriptionMap = {};
 
     for (const mob of this.world.mobs) {
-      const actionTime = this.getActionTime(mob, time);
-      const desc = new MobDescription(mob, this.world, alphaMap, actionTime);
+      const desc = new MobDescription(mob, this.world, alphaMap, time);
       mobDescriptions[mob.id] = desc;
       desc.updateAlphaMap(alphaMap);
       desc.draw(this.mobLayer);
@@ -489,7 +481,7 @@ class MobDescription {
   readonly dy: number;
   readonly alpha: number;
 
-  constructor(mob: Mob, world: World, alphaMap: AlphaMap, actionTime: number) {
+  constructor(mob: Mob, world: World, alphaMap: AlphaMap, time: number) {
     this.id = mob.id;
     this.tile = mob.tile;
 
@@ -498,7 +490,9 @@ class MobDescription {
     this.movementTime = 0;
     this.dx = 0;
     this.dy = 0;
-    this.alpha = alphaMap.getMobAlpha(this.pos.x, this.pos.y);;
+    this.alpha = alphaMap.getMobAlpha(this.pos.x, this.pos.y);
+
+    const actionTime = mob.getActionTime(time);
 
     if (mob.action) {
       switch (mob.action.type) {
@@ -524,7 +518,15 @@ class MobDescription {
           let targetPos = mob.pos;
           const targetMob = world.getTargetMob(mob);
           if (targetMob) {
-            targetPos = targetMob.pos;
+            if (targetMob.action && targetMob.action.type === ActionType.MOVE) {
+              const targetActionTime = targetMob.getActionTime(time);
+              targetPos = {
+                x: lerp(targetMob.pos.x, targetMob.action.pos.x, targetActionTime),
+                y: lerp(targetMob.pos.y, targetMob.action.pos.y, targetActionTime),
+              };
+            } else {
+              targetPos = targetMob.pos;
+            }
           }
 
           this.dx = distance * (targetPos.x - mob.pos.x);

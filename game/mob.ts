@@ -72,4 +72,11 @@ export class Mob {
   get team(): string {
     return MOB_META[this.type].team;
   }
+
+  getActionTime(time: number): number {
+    if (this.action) {
+      return (time - this.action.timeStart) / (this.action.timeEnd - this.action.timeStart);
+    }
+    return 0;
+  }
 }
