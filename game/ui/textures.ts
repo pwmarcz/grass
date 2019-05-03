@@ -27,9 +27,21 @@ interface TileTexture {
 
 export const TILE_TEXTURES: Record<string, TileTexture> = {};
 
+const TEXTURE_TIMEOUT = 5*1000;
+
 function waitUntilLoaded(t: PIXI.BaseTexture): Promise<PIXI.BaseTexture> {
-  return new Promise(resolve => {
-    t.on('loaded', resolve);
+  return new Promise((resolve, reject) => {
+    let rejected = false;
+    const timeoutId = setTimeout(() => {
+      rejected = true;
+      reject(`Error loading texture: ${t.imageUrl}`);
+    }, TEXTURE_TIMEOUT);
+    t.on('loaded', () => {
+      if (!rejected) {
+        clearTimeout(timeoutId);
+        resolve(t);
+      }
+    });
   });
 }
 
@@ -41,7 +53,7 @@ export function loadTextures(): Promise<void> {
     tilesetWhiteImage, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
   );
 
-  Promise.all([waitUntilLoaded(normalTexture), waitUntilLoaded(whiteTexture)])
+  return Promise.all([waitUntilLoaded(normalTexture), waitUntilLoaded(whiteTexture)])
   .then(() => {
     for (const tile in TILES) {
       const id = TILES[tile].id;
@@ -56,14 +68,5 @@ export function loadTextures(): Promise<void> {
 
       TILE_TEXTURES[tile] = {texture, tint};
     }
-  });
-  return new Promise((resolve, reject) => {
-    const baseTexture = PIXI.BaseTexture.fromImage(
-      tilesetWhiteImage, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
-    );
-    baseTexture.on('loaded', () => {
-
-      resolve();
-    });
   });
 }

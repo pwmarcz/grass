@@ -53,6 +53,8 @@ Promise.all([mapPromise, loadPromise])
   view.setup();
   view.app.ticker.add(delta => gameLoop(world, client, input, view, delta));
   rawInput.setup();
+}, error => {
+  infoElement.textContent = `Error: ${error}`;
 });
 
 let time = 0;
