@@ -139,13 +139,26 @@ function Tile({tile}: { tile: string }): preact.VNode {
   const id = TILES[tile].id;
   const x = (id % 10) * TILE_SIZE, y = Math.floor(id / 10) * TILE_SIZE;
 
+  let className = 'tile';
+  const style: Record<string, string> = {
+    backgroundPositionX: -x + 'px',
+    backgroundPositionY: -y + 'px',
+  };
+
+  const tint = TILES[tile].tint;
+  if (tint) {
+    className = 'tile tinted';
+    const color = PIXI.utils.hex2string(tint);
+    style.filter = `drop-shadow(32px 0px ${color})`;
+  }
+
   return h('span', {
-    className: 'tile',
-    style: {
-      backgroundPositionX: -x + 'px',
-      backgroundPositionY: -y + 'px',
-    }
-  });
+    className
+  },
+  h('span', {
+    className: 'inner',
+    style
+  }));
 }
 
 export function describeItems(items: Item[]): ItemInfo[] {

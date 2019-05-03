@@ -272,7 +272,8 @@ export class View {
           });
 
           sprite.alpha = alpha;
-          sprite.texture = TILE_TEXTURES[tile];
+          sprite.texture = TILE_TEXTURES[tile].texture;
+          sprite.tint = TILE_TEXTURES[tile].tint;
         }
       }
     }
@@ -563,9 +564,10 @@ class MobDescription {
     }
 
     const sprite = mobLayer.make(this.id, PIXI.Sprite, sprite => {
-      sprite.texture = TILE_TEXTURES[this.tile];
       sprite.width = TILE_SIZE;
       sprite.height = TILE_SIZE;
+      sprite.texture = TILE_TEXTURES[this.tile].texture;
+      sprite.tint = TILE_TEXTURES[this.tile].tint;
     });
 
     const {x, y} = this.getExactPos();

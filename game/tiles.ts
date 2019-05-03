@@ -3,6 +3,7 @@ export type Tile = string;
 
 interface TileMeta {
   id: number;
+  tint?: number;
 }
 
 export const TILES: Record<string, TileMeta> = {

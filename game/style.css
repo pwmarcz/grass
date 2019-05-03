@@ -74,7 +74,22 @@ body {
   vertical-align: middle;
   width: 32px;
   height: 32px;
+  overflow: hidden;
+}
+
+.tile .inner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
   background-image: url("tileset.auto.svg");
+}
+
+.tile.tinted .inner {
+  display: block;
+  /* We hack the colorized tile using drop-shadow,
+     so the original background must be shifted to the left. */
+  background-image: url("tileset-white.auto.svg");
+  margin-left: -32px;
 }
 
 .tile-row > .tile {

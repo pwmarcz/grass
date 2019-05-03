@@ -5,7 +5,7 @@ TS_FILES = $(shell find game/ -name '*.ts' -or -name '*.tsx')
 
 ICONS = game/icon-16.auto.png game/icon-32.auto.png game/icon-96.auto.png
 
-TILESETS = game/tileset.auto.svg
+TILESETS = game/tileset.auto.svg game/tileset-white.auto.svg
 
 .PHONY: files
 files: $(ICONS) $(TILESETS)
@@ -34,3 +34,6 @@ game/icon-%.auto.png: game/icon.svg
 game/tileset.auto.svg: game/tileset.svg
 	inkscape $< --export-plain-svg=$@ --export-text-to-path
 	./node_modules/.bin/svgo --multipass $@
+
+game/tileset-white.auto.svg: game/tileset.auto.svg
+	sed 's/"#[0-9a-f]\+"/"#fff"/g' $< > $@
