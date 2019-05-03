@@ -85,9 +85,16 @@ body {
 }
 
 .tile.tinted .inner {
+  /*
+  We hack the colorized tile using drop-shadow,
+  so the original background must be shifted to the left.
+
+  Source: https://stackoverflow.com/a/43959853/78145
+
+  See also code for the Tile element.
+  */
+
   display: block;
-  /* We hack the colorized tile using drop-shadow,
-     so the original background must be shifted to the left. */
   background-image: url("tileset-white.auto.svg");
   margin-left: -32px;
 }
