@@ -167,13 +167,13 @@ export class World {
       this.cancelAction(mob);
     }
 
-    const {dt, dte} = getActionTime(mob, command);
+    const {dtEnd, dtEffect} = getActionTime(mob, command);
 
     const action: Action = {
       ...command,
       timeStart: this.time,
-      timeEnd: this.time + dt,
-      timeEffect: this.time + dte,
+      timeEnd: this.time + dtEnd,
+      timeEffect: this.time + dtEffect,
     };
     switch(action.type) {
       case ActionType.MOVE: {
@@ -183,7 +183,7 @@ export class World {
       }
     }
     mob.action = action;
-    if (dte === 0) {
+    if (dtEffect === 0) {
       this.effectAction(mob);
     }
     this.stateChanged = true;
@@ -413,49 +413,49 @@ export class World {
   }
 }
 
-function getActionTime(mob: Mob, command: Command): {dt: number; dte: number} {
-  let dt: number;
-  let dte: number;
+function getActionTime(mob: Mob, command: Command): {dtEnd: number; dtEffect: number} {
+  let dtEnd: number;
+  let dtEffect: number;
 
   switch (command.type) {
     case ActionType.ATTACK:
-      dt = 45;
-      dte = 4;
+      dtEnd = 45;
+      dtEffect = 4;
       break;
 
     case ActionType.SHOOT_MOB:
     case ActionType.SHOOT_TERRAIN:
-      dt = 60;
-      dte = 18;
+      dtEnd = 60;
+      dtEffect = 18;
       break;
 
     case ActionType.PICK_UP:
-      dt = dte = 60;
+      dtEnd = dtEffect = 60;
       break;
 
     case ActionType.DIE:
-      dt = dte = 60;
+      dtEnd = dtEffect = 60;
       break;
 
     case ActionType.OPEN_DOOR:
-      dt = 5;
-      dte = 0;
+      dtEnd = 5;
+      dtEffect = 0;
       break;
 
     case ActionType.REST:
-      dt = dte = command.dt;
+      dtEnd = dtEffect = command.dt;
       break;
 
     case ActionType.MOVE:
-      dt = dte = mob.movementTime;
+      dtEnd = dtEffect = mob.movementTime;
       break;
 
     default:
       // eslint-disable-next-line no-console
       console.warn(`getActionTime: unrecognized action ${command!.type}`);
-      dt = dte = 10;
+      dtEnd = dtEffect = 10;
       break;
   }
 
-  return {dt, dte};
+  return {dtEnd, dtEffect};
 }
