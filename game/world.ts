@@ -81,8 +81,7 @@ export class World {
           this.moveMob(mob, command.pos.x, command.pos.y);
           break;
         case ActionType.ATTACK: {
-          const targetMob = this.mobsById[command.mobId];
-          if (targetMob && this.canAttack(mob, targetMob)) {
+          if (this.canAttack(mob, command.targetMob)) {
             this.startAction(mob, ATTACK_TIME, command);
           }
           break;
@@ -94,8 +93,7 @@ export class World {
           this.startAction(mob, PICK_UP_TIME, command);
           break;
         case ActionType.SHOOT_MOB: {
-          const targetMob = this.mobsById[command.mobId];
-          if (targetMob && this.hasClearShot(mob.pos, targetMob)) {
+          if (this.hasClearShot(mob.pos, command.targetMob)) {
             this.startAction(mob, SHOOT_TIME, command);
           }
           break;
@@ -106,7 +104,7 @@ export class World {
             if (target instanceof Mob) {
               this.startAction(mob, SHOOT_TIME, {
                 type: ActionType.SHOOT_MOB,
-                mobId: target.id,
+                targetMob: target,
               });
             } else {
               this.startAction(mob, SHOOT_TIME, {
@@ -182,7 +180,7 @@ export class World {
         break;
       }
       case ActionType.ATTACK: {
-        const targetMob = this.mobsById[action.mobId];
+        const targetMob = action.targetMob;
         if (targetMob && targetMob.alive) {
           targetMob.health -= mob.damage;
           if (!targetMob.alive) {
@@ -224,8 +222,7 @@ export class World {
         break;
       }
       case ActionType.PICK_UP: {
-        const itemId = action.itemId;
-        const item = this.items.find(item => item.id === itemId)!;
+        const item = action.item;
         item.pos = null;
         item.mobId = mob.id;
         break;
@@ -235,7 +232,7 @@ export class World {
         break;
       }
       case ActionType.SHOOT_MOB: {
-        const targetMob = this.mobsById[action.mobId];
+        const targetMob = action.targetMob;
         if (targetMob && targetMob.alive) {
           targetMob.health -= mob.damage * 2;
           if (!targetMob.alive) {
@@ -275,7 +272,7 @@ export class World {
       if (this.canAttack(mob, targetMob)) {
         this.startAction(mob, ATTACK_TIME, {
           type: ActionType.ATTACK,
-          mobId: targetMob.id,
+          targetMob
         });
       }
       return;
@@ -345,7 +342,7 @@ export class World {
     if (mob.action.type === ActionType.ATTACK ||
       mob.action.type === ActionType.SHOOT_MOB) {
 
-      return this.mobsById[mob.action.mobId] || null;
+      return mob.action.targetMob;
     }
     return null;
   }

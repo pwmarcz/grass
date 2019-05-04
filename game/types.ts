@@ -1,3 +1,6 @@
+import { Mob } from "./mob";
+import { Item } from "./item";
+
 export interface Pos {
   readonly x: number;
   readonly y: number;
@@ -30,12 +33,12 @@ interface TimeCommand {
 
 interface MobCommand {
   readonly type: ActionType.ATTACK | ActionType.SHOOT_MOB;
-  readonly mobId: string;
+  readonly targetMob: Mob;
 }
 
 interface ItemCommand {
   readonly type: ActionType.PICK_UP;
-  readonly itemId: string;
+  readonly item: Item;
 }
 
 export type Command = (

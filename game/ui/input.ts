@@ -122,7 +122,7 @@ export class Input {
       if (targetMob) {
         return {
           type: ActionType.SHOOT_MOB,
-          mobId: targetMob.id,
+          targetMob
         };
       }
     }
@@ -156,7 +156,7 @@ export class Input {
         this.state.path = null;
         return {
           type: ActionType.ATTACK,
-          mobId: this.state.goalMob.id,
+          targetMob: this.state.goalMob,
         };
       } else if (this.client.canSeeMob(this.state.goalMob)) {
         this.state.path = this.client.distanceMap.findPath(
@@ -177,7 +177,7 @@ export class Input {
     if (!DEBUG.pause && this.client.enemy && this.world.canAttack(player, this.client.enemy)) {
       return {
         type: ActionType.ATTACK,
-        mobId: this.client.enemy.id,
+        targetMob: this.client.enemy,
       };
     }
 
@@ -185,7 +185,7 @@ export class Input {
     if (items.length > 0) {
       return {
         type: ActionType.PICK_UP,
-        itemId: items[items.length - 1].id,
+        item: items[items.length - 1],
       };
     }
 
