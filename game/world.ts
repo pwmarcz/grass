@@ -180,13 +180,7 @@ export class World {
         break;
       }
       case ActionType.ATTACK: {
-        const targetMob = action.targetMob;
-        if (targetMob && targetMob.alive) {
-          targetMob.health -= mob.damage;
-          if (!targetMob.alive) {
-            this.startAction(targetMob, DIE_TIME, { type: ActionType.DIE });
-          }
-        }
+        this.damageMob(action.targetMob, mob.damage);
         break;
       }
       case ActionType.OPEN_DOOR:
@@ -232,13 +226,7 @@ export class World {
         break;
       }
       case ActionType.SHOOT_MOB: {
-        const targetMob = action.targetMob;
-        if (targetMob && targetMob.alive) {
-          targetMob.health -= mob.damage * 2;
-          if (!targetMob.alive) {
-            this.startAction(targetMob, DIE_TIME, { type: ActionType.DIE });
-          }
-        }
+        this.damageMob(action.targetMob, mob.damage * 2);
         break;
       }
     }
@@ -286,6 +274,14 @@ export class World {
       type: ActionType.MOVE,
       pos: {x, y},
     });
+  }
+
+  private damageMob(mob: Mob, damage: number): void {
+    const wasAlive = mob.alive;
+    mob.health -= damage;
+    if (wasAlive && !mob.alive) {
+      this.startAction(mob, DIE_TIME, { type: ActionType.DIE });
+    }
   }
 
   canMove(x: number, y: number): boolean {
