@@ -5,11 +5,6 @@ import { makeEmptyGrid, nextTo } from './utils';
 import { Terrain } from './terrain';
 import { VisibilityMap } from './fov';
 
-const ATTACK_TIME = 45;
-const SHOOT_TIME = 60;
-const PICK_UP_TIME = 20;
-const DIE_TIME = 40;
-const OPEN_DOOR_TIME = 5;
 
 export class World {
   map: Terrain[][];
@@ -82,19 +77,19 @@ export class World {
           break;
         case ActionType.ATTACK: {
           if (this.canAttack(mob, command.targetMob)) {
-            this.startAction(mob, ATTACK_TIME, command);
+            this.startAction(mob, command);
           }
           break;
         }
         case ActionType.REST:
-          this.startAction(mob, command.dt, command);
+          this.startAction(mob, command);
           break;
         case ActionType.PICK_UP:
-          this.startAction(mob, PICK_UP_TIME, command);
+          this.startAction(mob, command);
           break;
         case ActionType.SHOOT_MOB: {
           if (this.hasClearShot(mob.pos, command.targetMob)) {
-            this.startAction(mob, SHOOT_TIME, command);
+            this.startAction(mob, command);
           }
           break;
         }
@@ -102,12 +97,12 @@ export class World {
           const target = this.findTarget(mob.pos, command.pos);
           if (target) {
             if (target instanceof Mob) {
-              this.startAction(mob, SHOOT_TIME, {
+              this.startAction(mob, {
                 type: ActionType.SHOOT_MOB,
                 targetMob: target,
               });
             } else {
-              this.startAction(mob, SHOOT_TIME, {
+              this.startAction(mob, {
                 type: ActionType.SHOOT_TERRAIN,
                 pos: target,
               });
@@ -164,10 +159,13 @@ export class World {
     }
   }
 
-  private startAction(mob: Mob, dt: number, command: Command): void {
+  private startAction(mob: Mob, command: Command): void {
     if (mob.action) {
       this.cancelAction(mob);
     }
+
+    const dt = getActionTime(mob, command);
+
     const action: Action = {
       ...command,
       timeStart: this.time,
@@ -248,7 +246,7 @@ export class World {
     const newTerrain = this.map[y][x];
 
     if (newTerrain === Terrain.DOOR_CLOSED) {
-      this.startAction(mob, OPEN_DOOR_TIME, {
+      this.startAction(mob, {
         type: ActionType.OPEN_DOOR,
         pos: {x, y},
       });
@@ -258,7 +256,7 @@ export class World {
     const targetMob = this.findMob(x, y);
     if (targetMob) {
       if (this.canAttack(mob, targetMob)) {
-        this.startAction(mob, ATTACK_TIME, {
+        this.startAction(mob, {
           type: ActionType.ATTACK,
           targetMob
         });
@@ -270,7 +268,7 @@ export class World {
       return;
     }
 
-    this.startAction(mob, mob.movementTime, {
+    this.startAction(mob, {
       type: ActionType.MOVE,
       pos: {x, y},
     });
@@ -280,7 +278,7 @@ export class World {
     const wasAlive = mob.alive;
     mob.health -= damage;
     if (wasAlive && !mob.alive) {
-      this.startAction(mob, DIE_TIME, { type: ActionType.DIE });
+      this.startAction(mob, { type: ActionType.DIE });
     }
   }
 
@@ -398,5 +396,31 @@ export class World {
 
   canSeeThrough(x: number, y: number): boolean {
     return this.inBounds(x, y) && Terrain.seeThrough(this.map[y][x]);
+  }
+}
+
+function getActionTime(mob: Mob, command: Command): number {
+  switch (command.type) {
+    case ActionType.ATTACK:
+      return 45;
+
+    case ActionType.SHOOT_MOB:
+    case ActionType.SHOOT_TERRAIN:
+      return 60;
+
+    case ActionType.PICK_UP:
+      return 20;
+
+    case ActionType.DIE:
+      return 40;
+
+    case ActionType.OPEN_DOOR:
+      return 5;
+
+    case ActionType.REST:
+      return command.dt;
+
+    case ActionType.MOVE:
+      return mob.movementTime;
   }
 }
