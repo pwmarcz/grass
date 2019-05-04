@@ -1,5 +1,6 @@
 import { Tile } from "./tiles";
-import { Pos, Action } from "./types";
+import { Pos } from "./types";
+import { Action } from "./actions";
 
 export enum MobType {
   GOBLIN = 'GOBLIN',

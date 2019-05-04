@@ -1,9 +1,10 @@
-import { Command, ActionType, Action, Pos } from './types';
+import { Command, ActionType, Pos } from './types';
 import { Item } from './item';
 import { Mob } from './mob';
 import { makeEmptyGrid, nextTo } from './utils';
 import { Terrain } from './terrain';
 import { VisibilityMap } from './fov';
+import { MoveAction, ActionParams, Action, AttackAction, OpenDoorAction, DieAction, RestAction, PickUpAction, ShootMobAction, ShootTerrainAction } from './actions';
 
 const ATTACK_TIME = 45;
 const SHOOT_TIME = 60;
@@ -83,20 +84,21 @@ export class World {
         case ActionType.ATTACK: {
           const targetMob = this.mobsById[command.mobId];
           if (targetMob && this.canAttack(mob, targetMob)) {
-            this.startAction(mob, ATTACK_TIME, command);
+            this.startAction(mob, ATTACK_TIME, AttackAction.fromMob(targetMob));
           }
           break;
         }
         case ActionType.REST:
-          this.startAction(mob, command.dt, command);
+          this.startAction(mob, command.dt, RestAction.from());
           break;
         case ActionType.PICK_UP:
-          this.startAction(mob, PICK_UP_TIME, command);
+          const item = this.items.find(item => item.id === command.itemId)!;
+          this.startAction(mob, PICK_UP_TIME, PickUpAction.fromItem(item));
           break;
         case ActionType.SHOOT_MOB: {
           const targetMob = this.mobsById[command.mobId];
           if (targetMob && this.hasClearShot(mob.pos, targetMob)) {
-            this.startAction(mob, SHOOT_TIME, command);
+            this.startAction(mob, SHOOT_TIME, ShootMobAction.fromMob(targetMob));
           }
           break;
         }
@@ -104,15 +106,9 @@ export class World {
           const target = this.findTarget(mob.pos, command.pos);
           if (target) {
             if (target instanceof Mob) {
-              this.startAction(mob, SHOOT_TIME, {
-                type: ActionType.SHOOT_MOB,
-                mobId: target.id,
-              });
+              this.startAction(mob, SHOOT_TIME, ShootMobAction.fromMob(target));
             } else {
-              this.startAction(mob, SHOOT_TIME, {
-                type: ActionType.SHOOT_TERRAIN,
-                pos: target,
-              });
+              this.startAction(mob, SHOOT_TIME, ShootTerrainAction.fromPos(target));
             }
           }
           break;
@@ -142,7 +138,7 @@ export class World {
     if (target instanceof Mob && target.id === targetMob.id) {
       return true;
     }
-    if (targetMob.action && targetMob.action.type === 'MOVE') {
+    if (targetMob.action && targetMob.action instanceof MoveAction) {
       const target = this.findTarget(pos, targetMob.action.pos);
       if (target instanceof Mob && target.id === targetMob.id) {
         return true;
@@ -153,7 +149,7 @@ export class World {
 
   private regenerate(mob: Mob): void {
     if (mob.alive && mob.health < mob.maxHealth) {
-      if (mob.action && mob.action.type !== ActionType.REST) {
+      if (mob.action && mob.action instanceof RestAction) {
         mob.regenCounter += 1;
       } else {
         mob.regenCounter += 2;
@@ -166,85 +162,31 @@ export class World {
     }
   }
 
-  private startAction(mob: Mob, dt: number, command: Command): void {
+  private startAction(mob: Mob, dt: number, builder: (params: ActionParams) => Action): void {
     if (mob.action) {
       this.cancelAction(mob);
     }
-    const action: Action = {
-      ...command,
+    const action = builder({
+      mob: mob,
+      world: this,
       timeStart: this.time,
       timeEnd: this.time + dt,
-    };
-    switch(action.type) {
-      case ActionType.MOVE: {
-        this.mobMap[action.pos.y][action.pos.x] = mob;
-        this.visibilityChangedFor.add(mob.id);
-        break;
-      }
-      case ActionType.ATTACK: {
-        const targetMob = this.mobsById[action.mobId];
-        if (targetMob && targetMob.alive) {
-          targetMob.health -= mob.damage;
-          if (!targetMob.alive) {
-            this.startAction(targetMob, DIE_TIME, { type: ActionType.DIE });
-          }
-        }
-        break;
-      }
-      case ActionType.OPEN_DOOR:
-        this.map[action.pos.y][action.pos.x] = Terrain.DOOR_OPEN;
-        this.visibilityChanged = true;
-        this.visibilityMap.invalidate(action.pos.x, action.pos.y);
-        break;
-    }
+    });
     mob.action = action;
+    action.start();
     this.stateChanged = true;
   }
 
   private cancelAction(mob: Mob): void {
     const action = mob.action!;
-    switch (action.type) {
-      case ActionType.MOVE: {
-        this.mobMap[action.pos.y][action.pos.x] = null;
-        break;
-      }
-    }
+    action.cancel();
     mob.action = null;
     this.stateChanged = true;
   }
 
   private endAction(mob: Mob): void {
     const action = mob.action!;
-    switch (action.type) {
-      case ActionType.MOVE: {
-        this.mobMap[mob.pos.y][mob.pos.x] = null;
-        mob.pos = action.pos;
-
-        this.visibilityChangedFor.add(mob.id);
-        break;
-      }
-      case ActionType.PICK_UP: {
-        const itemId = action.itemId;
-        const item = this.items.find(item => item.id === itemId)!;
-        item.pos = null;
-        item.mobId = mob.id;
-        break;
-      }
-      case ActionType.DIE: {
-        this.removeMob(mob);
-        break;
-      }
-      case ActionType.SHOOT_MOB: {
-        const targetMob = this.mobsById[action.mobId];
-        if (targetMob && targetMob.alive) {
-          targetMob.health -= mob.damage * 2;
-          if (!targetMob.alive) {
-            this.startAction(targetMob, DIE_TIME, { type: ActionType.DIE });
-          }
-        }
-        break;
-      }
-    }
+    action.end();
     mob.action = null;
     this.stateChanged = true;
   }
@@ -263,20 +205,14 @@ export class World {
     const newTerrain = this.map[y][x];
 
     if (newTerrain === Terrain.DOOR_CLOSED) {
-      this.startAction(mob, OPEN_DOOR_TIME, {
-        type: ActionType.OPEN_DOOR,
-        pos: {x, y},
-      });
+      this.startAction(mob, OPEN_DOOR_TIME, OpenDoorAction.fromPos({x, y}));
       return;
     }
 
     const targetMob = this.findMob(x, y);
     if (targetMob) {
       if (this.canAttack(mob, targetMob)) {
-        this.startAction(mob, ATTACK_TIME, {
-          type: ActionType.ATTACK,
-          mobId: targetMob.id,
-        });
+        this.startAction(mob, ATTACK_TIME, AttackAction.fromMob(targetMob));
       }
       return;
     }
@@ -285,10 +221,7 @@ export class World {
       return;
     }
 
-    this.startAction(mob, mob.movementTime, {
-      type: ActionType.MOVE,
-      pos: {x, y},
-    });
+    this.startAction(mob, mob.movementTime, MoveAction.fromPos({x, y}));
   }
 
   canMove(x: number, y: number): boolean {
@@ -327,7 +260,7 @@ export class World {
       return true;
     }
 
-    if (targetMob.action && targetMob.action.type === ActionType.MOVE) {
+    if (targetMob.action && targetMob.action instanceof MoveAction) {
       return nextTo(mob.pos, targetMob.action.pos);
     }
 
@@ -342,10 +275,10 @@ export class World {
     if (!mob.action) {
       return null;
     }
-    if (mob.action.type === ActionType.ATTACK ||
-      mob.action.type === ActionType.SHOOT_MOB) {
+    if (mob.action instanceof AttackAction ||
+      mob.action instanceof ShootMobAction) {
 
-      return this.mobsById[mob.action.mobId] || null;
+      return mob.action.targetMob;
     }
     return null;
   }

@@ -45,10 +45,3 @@ export type Command = (
   MobCommand |
   ItemCommand)
 ;
-
-interface Timed {
-  readonly timeStart: number;
-  readonly timeEnd: number;
-}
-
-export type Action = Timed & Command;
