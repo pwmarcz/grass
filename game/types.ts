@@ -52,6 +52,7 @@ export type Command = (
 interface Timed {
   readonly timeStart: number;
   readonly timeEnd: number;
+  readonly timeEffect: number;
 }
 
 export type Action = Timed & Command;

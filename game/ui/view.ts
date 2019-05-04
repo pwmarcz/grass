@@ -15,7 +15,6 @@ import { Tile } from '../tiles';
 import { VisibilityMap } from '../fov';
 
 const ATTACK_DISTANCE = 0.3;
-const ATTACK_START_TIME = 0.1;
 const DARK_ALPHA = 0.4;
 
 const SHOT_START_TIME = 0.3;
@@ -510,10 +509,10 @@ class MobDescription {
 
         case ActionType.ATTACK: {
           let distance: number;
-          if (actionTime <= ATTACK_START_TIME) {
-            distance = actionTime / ATTACK_START_TIME * ATTACK_DISTANCE;
+          if (mob.isBeforeEffect(time)) {
+            distance = mob.getTimeBeforeEffect(time) * ATTACK_DISTANCE;
           } else {
-            distance = (1 - (actionTime - ATTACK_START_TIME) / (1 - ATTACK_START_TIME)) * ATTACK_DISTANCE;
+            distance = (1 - mob.getTimeAfterEffect(time)) * ATTACK_DISTANCE;
           }
 
           let targetPos = mob.pos;

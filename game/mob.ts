@@ -79,4 +79,22 @@ export class Mob {
     }
     return 0;
   }
+
+  isBeforeEffect(time: number): boolean {
+    return this.action ? (time < this.action.timeEffect) : false;
+  }
+
+  getTimeBeforeEffect(time: number): number {
+    if (this.action) {
+      return (time - this.action.timeStart) / (this.action.timeEffect - this.action.timeStart);
+    }
+    return 0;
+  }
+
+  getTimeAfterEffect(time: number): number {
+    if (this.action) {
+      return (time - this.action.timeEffect) / (this.action.timeEnd - this.action.timeEffect);
+    }
+    return 0;
+  }
 }

@@ -62,6 +62,9 @@ export class World {
     this.regenerate(mob);
 
     if (mob.action) {
+      if (this.time === mob.action.timeEffect) {
+        this.effectAction(mob);
+      }
       if (this.time < mob.action.timeEnd) {
         return;
       }
@@ -164,12 +167,13 @@ export class World {
       this.cancelAction(mob);
     }
 
-    const dt = getActionTime(mob, command);
+    const {dt, dte} = getActionTime(mob, command);
 
     const action: Action = {
       ...command,
       timeStart: this.time,
       timeEnd: this.time + dt,
+      timeEffect: this.time + dte,
     };
     switch(action.type) {
       case ActionType.MOVE: {
@@ -177,6 +181,17 @@ export class World {
         this.visibilityChangedFor.add(mob.id);
         break;
       }
+    }
+    mob.action = action;
+    if (dte === 0) {
+      this.effectAction(mob);
+    }
+    this.stateChanged = true;
+  }
+
+  private effectAction(mob: Mob): void {
+    const action = mob.action!;
+    switch(action.type) {
       case ActionType.ATTACK: {
         this.damageMob(action.targetMob, mob.damage);
         break;
@@ -186,8 +201,17 @@ export class World {
         this.visibilityChanged = true;
         this.visibilityMap.invalidate(action.pos.x, action.pos.y);
         break;
+      case ActionType.PICK_UP: {
+        const item = action.item;
+        item.pos = null;
+        item.mobId = mob.id;
+        break;
+      }
+      case ActionType.SHOOT_MOB: {
+        this.damageMob(action.targetMob, mob.damage * 2);
+        break;
+      }
     }
-    mob.action = action;
     this.stateChanged = true;
   }
 
@@ -213,18 +237,8 @@ export class World {
         this.visibilityChangedFor.add(mob.id);
         break;
       }
-      case ActionType.PICK_UP: {
-        const item = action.item;
-        item.pos = null;
-        item.mobId = mob.id;
-        break;
-      }
       case ActionType.DIE: {
         this.removeMob(mob);
-        break;
-      }
-      case ActionType.SHOOT_MOB: {
-        this.damageMob(action.targetMob, mob.damage * 2);
         break;
       }
     }
@@ -399,28 +413,49 @@ export class World {
   }
 }
 
-function getActionTime(mob: Mob, command: Command): number {
+function getActionTime(mob: Mob, command: Command): {dt: number; dte: number} {
+  let dt: number;
+  let dte: number;
+
   switch (command.type) {
     case ActionType.ATTACK:
-      return 45;
+      dt = 45;
+      dte = 4;
+      break;
 
     case ActionType.SHOOT_MOB:
     case ActionType.SHOOT_TERRAIN:
-      return 60;
+      dt = 60;
+      dte = 18;
+      break;
 
     case ActionType.PICK_UP:
-      return 20;
+      dt = dte = 60;
+      break;
 
     case ActionType.DIE:
-      return 40;
+      dt = dte = 60;
+      break;
 
     case ActionType.OPEN_DOOR:
-      return 5;
+      dt = 5;
+      dte = 0;
+      break;
 
     case ActionType.REST:
-      return command.dt;
+      dt = dte = command.dt;
+      break;
 
     case ActionType.MOVE:
-      return mob.movementTime;
+      dt = dte = mob.movementTime;
+      break;
+
+    default:
+      // eslint-disable-next-line no-console
+      console.warn(`getActionTime: unrecognized action ${command!.type}`);
+      dt = dte = 10;
+      break;
   }
+
+  return {dt, dte};
 }
