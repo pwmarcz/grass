@@ -22,7 +22,7 @@ dist: files
 
 .PHONY: deploy
 deploy: check dist
-	rsync -rva --checksum --delete dist/ pwmarcz.pl:homepage/grass/
+	rsync -rva --checksum --delete dist/ pwmarcz.pl:grass/
 
 .PHONY: serve
 serve: files
