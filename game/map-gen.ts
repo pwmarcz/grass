@@ -4,6 +4,7 @@ import { Terrain } from "./terrain";
 import { Mob, MobType } from "./mob";
 import { Item } from "./item";
 import { Pos } from "./types";
+import * as tumult from 'tumult';
 
 export function generateMap(w = 20, h = 20): MapData {
   let map = makeEmptyGrid(w, h, Terrain.WALL);
@@ -15,6 +16,16 @@ export function generateMap(w = 20, h = 20): MapData {
   map = applyCA(map, w, h, 5, 5);
   map = applyCA(map, w, h, 5, 0);
   map = applyCA(map, w, h, 5, 0);
+
+  translateWithNoise(map, w, h, Terrain.FLOOR, (x: number) => {
+    if (x > 0.2) {
+      return Terrain.GRASS_TALL;
+    } else if (x > 0) {
+      return Terrain.GRASS;
+    } else {
+      return Terrain.FLOOR;
+    }
+  });
 
   const playerPos = findFloor(map, w, h);
   mobs.push(new Mob('player', MobType.HUMAN, playerPos));
@@ -82,4 +93,22 @@ function applyCA(
       return Terrain.WALL;
     }
   });
+}
+
+function translateWithNoise(
+  map: Terrain[][],
+  w: number,
+  h: number,
+  from: Terrain,
+  to: (x: number) => Terrain
+): void {
+  const noise = new tumult.Perlin2(""+Math.random());
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (map[y][x] === from) {
+        map[y][x] = to(noise.gen(4*x/w, 4*y/h));
+      }
+    }
+  }
 }
