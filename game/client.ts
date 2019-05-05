@@ -22,7 +22,7 @@ export class Client {
     this.world = world;
     this.player = this.world.mobs.find(mob => mob.id === playerId)!;
 
-    this.distanceMap = new DistanceMap(this.canPlayerPath.bind(this), this.world.mapW, this.world.mapH);
+    this.distanceMap = new DistanceMap(this.mapFunc.bind(this), this.world.mapW, this.world.mapH);
     this.distanceMap.update(this.player.pos.x, this.player.pos.y);
 
     this.memory = makeEmptyGrid(this.world.mapW, this.world.mapH, false);
@@ -97,23 +97,23 @@ export class Client {
     );
   }
 
-  canPlayerPath(x: number, y: number): boolean {
+  mapFunc(x: number, y: number): number | null {
     if (!this.world.inBounds(x, y)) {
-      return false;
+      return null;
     }
 
     if (!this.memory[y][x]) {
-      return false;
+      return null;
     }
 
     if (this.canSee(x, y)) {
       const mob = this.world.findMob(x, y);
       if (mob && mob.id !== this.player.id) {
-        return false;
+        return null;
       }
     }
 
-    return Terrain.pathThrough(this.world.map[y][x]);
+    return Terrain.pathThrough(this.world.map[y][x]) ? 0 : null;
   }
 
   canSee(x: number, y: number): boolean {

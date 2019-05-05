@@ -31,12 +31,12 @@ export class DistanceMap {
   readonly data: DistanceCell[][];
   readonly w: number;
   readonly h: number;
-  readonly mapFunc: MapFunc<boolean>;
+  readonly mapFunc: MapFunc<number | null>;
   readonly maxDist: number;
   xc: number;
   yc: number;
 
-  constructor(mapFunc: MapFunc<boolean>, w: number, h: number, maxDist = MAX_DIST) {
+  constructor(mapFunc: MapFunc<number | null>, w: number, h: number, maxDist = MAX_DIST) {
     this.mapFunc = mapFunc;
     this.w = w;
     this.h = h;
@@ -102,12 +102,15 @@ export class DistanceMap {
         const x = pos.x + dx;
         const y = pos.y + dy;
 
-        if (!this.inBounds(x, y) ||
-            !(this.mapFunc(x, y) || (x === xGoal && y === yGoal)) ||
-            this.data[y][x].closed) {
+        if (!this.inBounds(x, y) || this.data[y][x].closed) {
           continue;
         }
-        const nextCost = cost + neighborCost;
+
+        const cellCost = this.mapFunc(x, y);
+        if (cellCost === null && !(x === xGoal && y === yGoal)) {
+          continue;
+        }
+        const nextCost = cost + (cellCost || 0) + neighborCost;
         if (this.data[y][x].open && this.data[y][x].cost <= nextCost) {
           continue;
         }
