@@ -1,9 +1,9 @@
 import { Pos } from "./types";
 import FastPriorityQueue from 'fastpriorityqueue';
 import { MapFunc } from "./global-map";
-import { makeGrid, simpleDistance } from "./utils";
+import { makeGrid, manhattanDistance } from "./utils";
 
-// Add a small penalty to bias against diagonals
+// Add a small penalty to bias against diagonals, and ensure stability.
 const eps = 1/16;
 
 const NEIGHBORS = [
@@ -85,7 +85,7 @@ export class DistanceMap {
     this.data[this.yc][this.xc].y = this.yc;
     this.data[this.yc][this.xc].cost = 0;
 
-    queue.add([simpleDistance(startPos, goalPos), startPos]);
+    queue.add([manhattanDistance(startPos, goalPos), startPos]);
     let next;
     while ((next = queue.poll())) {
       const [, pos] = next;
@@ -118,7 +118,7 @@ export class DistanceMap {
         this.data[y][x].y = pos.y;
 
         const nextPos = {x, y};
-        const nextPriority = nextCost + simpleDistance(nextPos, goalPos);
+        const nextPriority = nextCost + manhattanDistance(nextPos, goalPos);
         queue.add([nextPriority, nextPos]);
       }
     }
