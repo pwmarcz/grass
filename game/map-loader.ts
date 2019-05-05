@@ -30,8 +30,13 @@ function getTile(x: number, y: number, width: number, layer: number[]): string |
   return id === 0 ? null : TILES_BY_ID[id - 1];
 }
 
-export function loadMap(xml: string):
- { map: Terrain[][]; mobs: Mob[]; items: Item[] } {
+export interface MapData {
+  map: Terrain[][];
+  mobs: Mob[];
+  items: Item[];
+ };
+
+export function loadMap(xml: string): MapData {
   const { width, height, layers } = parseTmx(xml);
   const [terrainLayer, itemLayer, mobLayer] = layers;
 
@@ -69,4 +74,10 @@ export function loadMap(xml: string):
   }
 
   return { map, mobs, items };
+}
+
+export function fetchMap(url: string): Promise<MapData> {
+  return fetch(url)
+  .then(response => response.text())
+  .then(loadMap);
 }

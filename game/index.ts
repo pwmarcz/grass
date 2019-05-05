@@ -6,7 +6,7 @@ import mapFile1 from './maps/map1.xml';
 // @ts-ignore
 import mapFile2 from './maps/map2.xml';
 
-import { loadMap } from './map-loader';
+import { MapData, fetchMap } from './map-loader';
 import { View } from './ui/view';
 import { RawInput } from './ui/raw-input';
 import { World } from './world';
@@ -21,10 +21,18 @@ for (const link of Array.from(document.querySelectorAll("a[href*='index.html']")
   link.setAttribute('href', link.getAttribute('href')!.replace('index.html', ''));
 }
 
-let mapFile = mapFile1;
+let mapPromise: Promise<MapData>;
 
-if (DEBUG.mapName === '2') {
-  mapFile = mapFile2;
+switch (DEBUG.mapName) {
+  case '1':
+    mapPromise = fetchMap(mapFile1);
+    break;
+  case '2':
+    mapPromise = fetchMap(mapFile2);
+    break;
+  default:
+    mapPromise = fetchMap(mapFile1);
+    break;
 }
 
 if (DEBUG.fullScreen) {
@@ -37,13 +45,12 @@ if (!appElement || !infoElement) {
   throw 'app not found';
 }
 
-const mapPromise = fetch(mapFile).then(response => response.text());
 const loadPromise = loadTextures();
 
 Promise.all([mapPromise, loadPromise])
 .then(result => {
-  const [xml] = result;
-  const { map, mobs, items } = loadMap(xml);
+  const [mapData, ] = result;
+  const { map, mobs, items } = mapData;
   const world = new World(map, mobs, items);
   const client = new Client(world, 'player');
   const view = new View(world, client, appElement, infoElement);
