@@ -17,6 +17,9 @@ export function generateMap(w = 20, h = 20): MapData {
   map = applyCA(map, w, h, 5, 0);
   map = applyCA(map, w, h, 5, 0);
 
+  const components = findComponents(map, w, h);
+  console.log(components); // TODO connect
+
   translateWithNoise(map, w, h, Terrain.FLOOR, (x: number) => {
     if (x > 0.2) {
       return Terrain.GRASS_TALL;
@@ -111,4 +114,44 @@ function translateWithNoise(
       }
     }
   }
+}
+
+function findComponents(
+  map: Terrain[][],
+  w: number,
+  h: number,
+): Pos[][] {
+  const seen = makeEmptyGrid(w, h, false);
+  const components: Pos[][] = [];
+
+  function flood(x: number, y: number): Pos[] {
+    const result = [];
+    const stack: Pos[] = [{x, y}];
+    while (stack.length > 0) {
+      const pos = stack.pop()!;
+      if (!seen[pos.y][pos.x]) {
+        seen[pos.y][pos.x] = true;
+        result.push(pos);
+        for (let y1 = pos.y - 1; y1 <= pos.y + 1; y1++) {
+          for (let x1 = pos.x - 1; x1 <= pos.x + 1; x1++) {
+            if (0 <= x1 && x1 < w && 0 <= y1 && y1 <= h &&
+                map[y1][x1] === Terrain.FLOOR && !seen[y1][x1]) {
+              stack.push({x: x1, y: y1});
+            }
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (map[y][x] === Terrain.FLOOR && !seen[y][x]) {
+        components.push(flood(x, y));
+      }
+    }
+  }
+
+  return components;
 }
