@@ -4,6 +4,7 @@ import { DistanceMap } from "./path";
 import { makeEmptyGrid } from "./utils";
 import { Command } from "./types";
 import { Terrain } from "./terrain";
+import { DEBUG } from "./debug";
 
 // Display enemy for how long
 const ENEMY_TIME = 60 * 5;
@@ -25,7 +26,7 @@ export class Client {
     this.distanceMap = new DistanceMap(this.mapFunc.bind(this), this.world.mapW, this.world.mapH);
     this.distanceMap.update(this.player.pos.x, this.player.pos.y);
 
-    this.memory = makeEmptyGrid(this.world.mapW, this.world.mapH, false);
+    this.memory = makeEmptyGrid(this.world.mapW, this.world.mapH, DEBUG.fullMemory);
     this.updateMemory();
 
     this.enemy = null;

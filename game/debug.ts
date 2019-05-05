@@ -5,6 +5,7 @@ export interface DebugOptions {
   showDistance: boolean;
   showLos: boolean;
   pause: boolean;
+  fullMemory: boolean;
 }
 
 const params = new URL(window.location.href).searchParams;
@@ -16,4 +17,5 @@ export const DEBUG: DebugOptions = {
   showDistance: params.get('distance') !== null,
   showLos: params.get('los') !== null,
   pause: params.get('pause') !== null,
+  fullMemory: params.get('fullMemory') !== null,
 };

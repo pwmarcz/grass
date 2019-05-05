@@ -1,20 +1,23 @@
 import { MapData } from "./map-loader";
-import { makeEmptyGrid, makeGrid, simpleDistance } from "./utils";
+import { makeEmptyGrid, makeGrid, simpleDistance, randomChoice } from "./utils";
 import { Terrain } from "./terrain";
 import { Mob, MobType } from "./mob";
 import { Item } from "./item";
 import { Pos } from "./types";
 import * as tumult from 'tumult';
+import { DistanceMap } from "./path";
 
 export class MapGenerator {
   readonly w: number;
   readonly h: number;
+  readonly distanceMap: DistanceMap;
   map: Terrain[][];
 
   constructor(w = 20, h = 20) {
     this.w = w;
     this.h = h;
     this.map = makeEmptyGrid(w, h, Terrain.WALL);
+    this.distanceMap = new DistanceMap(this.mapFunc.bind(this), this.w, this.h);
   }
 
   generate(): MapData {
@@ -27,7 +30,7 @@ export class MapGenerator {
     this.applyCA(5, 0);
 
     const components = this.findComponents();
-    console.log(components); // TODO connect
+    this.connectComponents(components);
 
     this.translateWithNoise(Terrain.FLOOR, (x: number) => {
       if (x > 0.2) {
@@ -149,5 +152,30 @@ export class MapGenerator {
       }
     }
     return result;
+  }
+
+  connectComponents(components: Pos[][]): void {
+    for (let i = 1; i < components.length; i++) {
+      const pos0 = randomChoice(components[0]);
+      const pos1 = randomChoice(components[i]);
+      this.connect(pos0, pos1);
+    }
+  }
+
+  connect(pos0: Pos, pos1: Pos): void {
+    this.distanceMap.update(pos0.x, pos0.y);
+    const path = this.distanceMap.findPath(pos1.x, pos1.y);
+    for (const {x, y} of path!) {
+      if (!Terrain.passThrough(this.map[y][x])) {
+        this.map[y][x] = Terrain.FLOOR;
+      }
+    }
+  }
+
+  mapFunc(x: number, y: number): number | null {
+    if (x === 0 || x === this.w - 1 || y === 0 || y === this.h - 1) {
+      return null;
+    }
+    return Terrain.passThrough(this.map[y][x]) ? 0 : 10;
   }
 }

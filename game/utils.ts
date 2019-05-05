@@ -89,3 +89,8 @@ export function maxBy<T>(sequence: T[], key: (el: T) => number | null): T | null
     return val === null ? null : -val;
   });
 }
+
+export function randomChoice<T>(sequence: T[]): T {
+  const i = Math.floor(Math.random() * sequence.length);
+  return sequence[i];
+}
