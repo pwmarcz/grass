@@ -441,20 +441,15 @@ export class View {
   redrawDistance(): void {
     // Draw distance map
     const dm = this.client.distanceMap;
-    const textStyle = new PIXI.TextStyle({
-      fill: 0xffffff,
-      fontSize: 12,
-    });
     for (let y = 0; y < dm.h; y++) {
       for (let x = 0; x < dm.w; x++) {
-        const val = Math.floor(dm.get(x, y));
-        if (val !== -1) {
-          const t = this.frontLayer.make(`distance(${x},${y})`, PIXI.Text, t => {
-            t.x = x * TILE_SIZE + 10;
-            t.y = y * TILE_SIZE + 10;
-            t.style = textStyle;
-          });
-          t.text = `${val}`;
+        const prev = dm.data[y][x];
+        if (prev.closed) {
+          const g = this.frontLayer.make(`prev(${x},${y})`, PIXI.Graphics);
+          g.clear();
+          g.lineStyle(1, 0xffffff, 0.5, 0);
+          g.moveTo((x + 0.5) * TILE_SIZE, (y + 0.5) * TILE_SIZE);
+          g.lineTo((prev.x + 0.5) * TILE_SIZE, (prev.y + 0.5) * TILE_SIZE);
         }
       }
     }

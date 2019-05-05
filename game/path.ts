@@ -1,17 +1,16 @@
 import { Pos } from "./types";
 import FastPriorityQueue from 'fastpriorityqueue';
-import { MapFunc, GlobalMap } from "./global-map";
-import { minBy } from "./utils";
+import { MapFunc } from "./global-map";
+import { makeGrid, simpleDistance } from "./utils";
 
-const eps = 1 / 16;
+// Add a small penalty to bias against diagonals
+const eps = 1/16;
 
 const NEIGHBORS = [
-  // Prefer straight lines...
   [-1, 0, 1],
   [1, 0, 1],
   [0, -1, 1],
   [0, 1, 1],
-  // to diagonals
   [-1, -1, 1 + eps],
   [-1, 1, 1 + eps],
   [1, -1, 1 + eps],
@@ -20,25 +19,53 @@ const NEIGHBORS = [
 
 const MAX_DIST = 50;
 
-function distance(x0: number, y0: number, x1: number, y1: number): number {
-  return Math.max(Math.abs(x0-x1), Math.abs(y0-y1));
+interface DistanceCell {
+  x: number;
+  y: number;
+  cost: number;
+  open: boolean;
+  closed: boolean;
 }
 
-export class DistanceMap extends GlobalMap<number, boolean> {
-  maxDist: number;
+export class DistanceMap {
+  readonly data: DistanceCell[][];
+  readonly w: number;
+  readonly h: number;
+  readonly mapFunc: MapFunc<boolean>;
+  readonly maxDist: number;
   xc: number;
   yc: number;
 
   constructor(mapFunc: MapFunc<boolean>, w: number, h: number, maxDist = MAX_DIST) {
-    super(-1, mapFunc, w, h);
+    this.mapFunc = mapFunc;
+    this.w = w;
+    this.h = h;
     this.maxDist = maxDist;
     this.xc = 0;
     this.yc = 0;
+    this.data = makeGrid(w, h, (x, y) => ({
+      x: 0, y: 0,
+      cost: 0,
+      open: false, closed: false,
+    }));
   }
 
   update(xc: number, yc: number): void {
     this.xc = xc;
     this.yc = yc;
+  }
+
+  clear(): void {
+    for (let y = 0; y < this.h; y++) {
+      for (let x = 0; x < this.w; x++) {
+        this.data[y][x].open = false;
+        this.data[y][x].closed = false;
+      }
+    }
+  }
+
+  inBounds(x: number, y: number): boolean {
+    return (0 <= x && x < this.w && 0 <= y && y < this.h);
   }
 
   findPath(xGoal: number, yGoal: number): Pos[] | null {
@@ -50,35 +77,49 @@ export class DistanceMap extends GlobalMap<number, boolean> {
   }
 
   private fill(xGoal: number, yGoal: number): boolean {
-    const queue = new FastPriorityQueue((a: number[], b: number[]) => a[0] < b[0]);
-    queue.add([distance(this.xc, this.yc, xGoal, yGoal), 0, this.xc, this.yc]);
+    const queue = new FastPriorityQueue<[number, Pos]>((a, b) => a[0] < b[0]);
+    const startPos: Pos = {x: this.xc, y: this.yc};
+    const goalPos = {x: xGoal, y: yGoal};
+
+    this.data[this.yc][this.xc].x = this.xc;
+    this.data[this.yc][this.xc].y = this.yc;
+    this.data[this.yc][this.xc].cost = 0;
+
+    queue.add([simpleDistance(startPos, goalPos), startPos]);
     let next;
     while ((next = queue.poll())) {
-      const [, dist, x, y] = next;
+      const [, pos] = next;
 
-      if (this.get(x, y) !== -1) {
-        continue;
-      }
+      const cost = this.data[pos.y][pos.x].cost;
 
-      if (x === xGoal && y === yGoal) {
-        this.set(x, y, dist);
+      this.data[pos.y][pos.x].closed = true;
+
+      if (pos.x === xGoal && pos.y === yGoal) {
         return true;
       }
 
-      if (!this.mapFunc(x, y)) {
-        continue;
-      }
+      for (const [dx, dy, neighborCost] of NEIGHBORS) {
+        const x = pos.x + dx;
+        const y = pos.y + dy;
 
-      this.set(x, y, dist);
-
-      for (const [dx, dy, cost] of NEIGHBORS) {
-        const xNext = x + dx;
-        const yNext = y + dy;
-        if (this.inBounds(xNext, yNext)) {
-          const nextDist = dist + cost;
-          const nextPriority = nextDist + distance(xNext, yNext, xGoal, yGoal);
-          queue.add([nextPriority, nextDist, xNext, yNext]);
+        if (!this.inBounds(x, y) ||
+            !(this.mapFunc(x, y) || (x === xGoal && y === yGoal)) ||
+            this.data[y][x].closed) {
+          continue;
         }
+        const nextCost = cost + neighborCost;
+        if (this.data[y][x].open && this.data[y][x].cost <= nextCost) {
+          continue;
+        }
+
+        this.data[y][x].open = true;
+        this.data[y][x].cost = nextCost;
+        this.data[y][x].x = pos.x;
+        this.data[y][x].y = pos.y;
+
+        const nextPos = {x, y};
+        const nextPriority = nextCost + simpleDistance(nextPos, goalPos);
+        queue.add([nextPriority, nextPos]);
       }
     }
     return false;
@@ -90,18 +131,7 @@ export class DistanceMap extends GlobalMap<number, boolean> {
     let pos = {x: xGoal, y: yGoal};
     result.push(pos);
     while (pos.x !== this.xc || pos.y !== this.yc) {
-      const {x, y} = minBy(
-        NEIGHBORS.map(([dx, dy]) => ({x: pos.x + dx, y: pos.y + dy})),
-        ({x, y}) => {
-          if (this.inBounds(x, y)) {
-            const dist = this.get(x, y);
-            if (dist !== -1) {
-              return dist;
-            }
-          }
-          return null;
-        })!;
-
+      const {x, y} = this.data[pos.y][pos.x];
       pos = {x, y};
       result.push(pos);
     }

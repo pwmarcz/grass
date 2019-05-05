@@ -60,6 +60,13 @@ export function simpleDistance(a: Pos, b: Pos): number {
   return Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y));
 }
 
+
+export function euclidDistance(a: Pos, b: Pos): number {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
 export function minBy<T>(sequence: T[], key: (el: T) => number | null): T | null {
   let best = null;
   let bestVal = 0;
