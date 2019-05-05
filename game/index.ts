@@ -14,6 +14,7 @@ import { loadTextures } from './ui/textures';
 import { Client } from './client';
 import { DEBUG } from './debug';
 import { Input } from './ui/input';
+import { generateMap } from './map-gen';
 
 // Hack around Parcel's inability to recognize links without index.html.
 
@@ -29,6 +30,9 @@ switch (DEBUG.mapName) {
     break;
   case '2':
     mapPromise = fetchMap(mapFile2);
+    break;
+  case '3':
+    mapPromise = Promise.resolve(generateMap());
     break;
   default:
     mapPromise = fetchMap(mapFile1);
