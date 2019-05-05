@@ -1,6 +1,5 @@
-import { Pos } from "./types";
+import { Pos, MapFunc } from "./types";
 import FastPriorityQueue from 'fastpriorityqueue';
-import { MapFunc } from "./global-map";
 import { makeGrid, manhattanDistance } from "./utils";
 
 // Add a small penalty to bias against diagonals, and ensure stability.

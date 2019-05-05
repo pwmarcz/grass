@@ -1,9 +1,8 @@
 // Implementation from:
 // http://www.roguebasin.com/index.php?title=Improved_Shadowcasting_in_Java
 
-import { MapFunc } from "./global-map";
 import { makeEmptyGrid, maxBy } from "./utils";
-import { Pos } from "./types";
+import { Pos, MapFunc } from "./types";
 
 const FOV_RADIUS = 12;
 

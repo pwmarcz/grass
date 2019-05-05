@@ -56,3 +56,5 @@ interface Timed {
 }
 
 export type Action = Timed & Command;
+
+export type MapFunc<P> = (x: number, y: number) => P;
