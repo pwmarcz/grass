@@ -6,18 +6,16 @@ import { makeGrid, manhattanDistance } from "./utils";
 // Add a small penalty to bias against diagonals, and ensure stability.
 const eps = 1/16;
 
-const NEIGHBORS = [
+const NEIGHBORS: [number, number, number][] = [
   [-1, 0, 1],
   [1, 0, 1],
-  [0, -1, 1],
-  [0, 1, 1],
-  [-1, -1, 1 + eps],
-  [-1, 1, 1 + eps],
-  [1, -1, 1 + eps],
-  [1, 1, 1 + eps]
+  [0, -1, 1 + eps],
+  [0, 1, 1 + eps],
+  [-1, -1, 1 + 2 * eps],
+  [-1, 1, 1 + 2 * eps],
+  [1, -1, 1 + 2 * eps],
+  [1, 1, 1 + 2 * eps]
 ];
-
-const MAX_DIST = 50;
 
 interface DistanceCell {
   x: number;
@@ -32,15 +30,15 @@ export class DistanceMap {
   readonly w: number;
   readonly h: number;
   readonly mapFunc: MapFunc<number | null>;
-  readonly maxDist: number;
   xc: number;
   yc: number;
 
-  constructor(mapFunc: MapFunc<number | null>, w: number, h: number, maxDist = MAX_DIST) {
+  neighbors: [number, number, number][];
+
+  constructor(mapFunc: MapFunc<number | null>, w: number, h: number, useDiagonals = true) {
     this.mapFunc = mapFunc;
     this.w = w;
     this.h = h;
-    this.maxDist = maxDist;
     this.xc = 0;
     this.yc = 0;
     this.data = makeGrid(w, h, (x, y) => ({
@@ -48,6 +46,12 @@ export class DistanceMap {
       cost: 0,
       open: false, closed: false,
     }));
+
+    if (useDiagonals) {
+      this.neighbors = NEIGHBORS;
+    } else {
+      this.neighbors = NEIGHBORS.slice(0, 4);
+    }
   }
 
   update(xc: number, yc: number): void {
@@ -98,7 +102,7 @@ export class DistanceMap {
         return true;
       }
 
-      for (const [dx, dy, neighborCost] of NEIGHBORS) {
+      for (const [dx, dy, neighborCost] of this.neighbors) {
         const x = pos.x + dx;
         const y = pos.y + dy;
 

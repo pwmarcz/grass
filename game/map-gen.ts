@@ -13,11 +13,11 @@ export class MapGenerator {
   readonly distanceMap: DistanceMap;
   map: Terrain[][];
 
-  constructor(w = 20, h = 20) {
+  constructor(w = 50, h = 50) {
     this.w = w;
     this.h = h;
     this.map = makeEmptyGrid(w, h, Terrain.WALL);
-    this.distanceMap = new DistanceMap(this.mapFunc.bind(this), this.w, this.h);
+    this.distanceMap = new DistanceMap(this.mapFunc.bind(this), this.w, this.h, false);
   }
 
   generate(): MapData {
@@ -28,12 +28,15 @@ export class MapGenerator {
     this.applyCA(5, 5);
     this.applyCA(5, 0);
     this.applyCA(5, 0);
+    this.applyCA(5, 0);
 
     const components = this.findComponents();
     this.connectComponents(components);
 
     this.translateWithNoise(Terrain.FLOOR, (x: number) => {
-      if (x > 0.2) {
+      if (x > 0.6) {
+        return Terrain.WATER_SHALLOW;
+      } else if (x > 0.2) {
         return Terrain.GRASS_TALL;
       } else if (x > 0) {
         return Terrain.GRASS;
@@ -155,10 +158,14 @@ export class MapGenerator {
   }
 
   connectComponents(components: Pos[][]): void {
-    for (let i = 1; i < components.length; i++) {
-      const pos0 = randomChoice(components[0]);
-      const pos1 = randomChoice(components[i]);
-      this.connect(pos0, pos1);
+    // Connect every component to ever other, so that the result doesn't
+    // contain too long roundabout paths.
+    for (let i = 0; i < components.length-1; i++) {
+      for (let j = i+1; j < components.length; j++) {
+        const pos0 = randomChoice(components[i]);
+        const pos1 = randomChoice(components[j]);
+        this.connect(pos0, pos1);
+      }
     }
   }
 
@@ -176,6 +183,6 @@ export class MapGenerator {
     if (x === 0 || x === this.w - 1 || y === 0 || y === this.h - 1) {
       return null;
     }
-    return Terrain.passThrough(this.map[y][x]) ? 0 : 10;
+    return Terrain.passThrough(this.map[y][x]) ? 0 : 3;
   }
 }
