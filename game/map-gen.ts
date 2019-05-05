@@ -60,7 +60,7 @@ export class MapGenerator {
     do {
       x = Math.floor(Math.random() * this.w);
       y = Math.floor(Math.random() * this.h);
-    } while (this.map[y][x] !== Terrain.FLOOR); // TODO any passable terrain
+    } while (!Terrain.passThrough(this.map[y][x]));
 
     return { x, y };
   }
