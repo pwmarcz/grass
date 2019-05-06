@@ -1,6 +1,6 @@
 import { Pos, MapFunc } from "./types";
 import FastPriorityQueue from 'fastpriorityqueue';
-import { makeGrid, manhattanDistance } from "./utils";
+import { makeGrid, simpleDistance } from "./utils";
 
 // Add a small penalty to bias against diagonals, and ensure stability.
 const eps = 1/16;
@@ -88,7 +88,7 @@ export class DistanceMap {
     this.data[this.yc][this.xc].y = this.yc;
     this.data[this.yc][this.xc].cost = 0;
 
-    queue.add([manhattanDistance(startPos, goalPos), startPos]);
+    queue.add([0, startPos]);
     let next;
     while ((next = queue.poll())) {
       const [, pos] = next;
@@ -124,7 +124,7 @@ export class DistanceMap {
         this.data[y][x].y = pos.y;
 
         const nextPos = {x, y};
-        const nextPriority = nextCost + manhattanDistance(nextPos, goalPos);
+        const nextPriority = nextCost + simpleDistance(nextPos, goalPos);
         queue.add([nextPriority, nextPos]);
       }
     }
