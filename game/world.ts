@@ -4,6 +4,7 @@ import { Mob } from './mob';
 import { makeEmptyGrid, nextTo } from './utils';
 import { Terrain } from './terrain';
 import { VisibilityMap } from './fov';
+import { DEBUG } from './debug';
 
 
 export class World {
@@ -28,6 +29,10 @@ export class World {
     this.mapH = this.map.length;
     this.mapW = this.map[0].length;
     this.time = 0;
+
+    if (DEBUG.noEnemies) {
+      this.mobs = this.mobs.filter(mob => mob.id === 'player');
+    }
 
     this.mobMap = makeEmptyGrid(this.mapW, this.mapH, null);
     this.mobsById = {};
