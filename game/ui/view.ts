@@ -103,6 +103,9 @@ export class View {
       const targetMob = this.world.getTargetMob(mob);
       if (targetMob) {
         const desc = mobDescriptions[targetMob.id];
+        if (!desc) {
+          return;
+        }
         const targetPos = desc.getExactPos();
         const targetAlpha = desc.alpha;
         this.redrawShot(
@@ -116,11 +119,14 @@ export class View {
     }
 
     if (goalMob && goalMob.id === mob.id) {
+      const desc = mobDescriptions[mob.id];
+      if (!desc) {
+        return;
+      }
       const g = this.frontLayer.make('goalMob', PIXI.Graphics, g => {
         g.lineStyle(1, 0x6D5000, 1, 0);
         g.drawRect(0, 0, TILE_SIZE, TILE_SIZE);
       });
-      const desc = mobDescriptions[mob.id];
       const pos = desc.getExactPos();
       g.x = pos.x * TILE_SIZE;
       g.y = pos.y * TILE_SIZE;
@@ -365,7 +371,8 @@ export class View {
     if (target) {
       let targetPos: Pos;
       if (target instanceof Mob) {
-        targetPos = mobDescriptions[target.id].getExactPos();
+        const desc = mobDescriptions[target.id];
+        targetPos = desc ? desc.getExactPos() : target.pos;
       } else {
         targetPos = target;
       }
@@ -585,7 +592,7 @@ class MobDescription {
   }
 }
 
-type MobDescriptionMap = Record<string, MobDescription>;
+type MobDescriptionMap = Partial<Record<string, MobDescription>>;
 
 class AlphaMap {
   readonly visibilityMap: VisibilityMap;
