@@ -93,6 +93,11 @@ export class Input {
   getPlayerCommand(): Command | null {
     const player = this.client.player;
 
+    if (!player.alive) {
+      this.cancel();
+      return null;
+    }
+
     const dir = this.rawInput.getDirection();
     if (dir) {
       this.cancel();

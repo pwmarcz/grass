@@ -200,7 +200,7 @@ export class View {
       this.redrawAim(inputState.aimPos, mobDescriptions);
     }
     if (inputState.path) {
-      this.redrawPath(inputState.path);
+      this.redrawPath(inputState.path, movement);
     }
 
     if (DEBUG.showLos && inputState.highlightPos) {
@@ -429,12 +429,13 @@ export class View {
     this.sidebar.setState({ enemy });
   }
 
-  redrawPath(path: Pos[]): void {
+  redrawPath(path: Pos[], movement: Movement): void {
     const g = this.frontLayer.make('path', PIXI.Graphics);
     g.clear();
     g.lineStyle(5, 0xFFFFFF, 0.3, 0.5);
 
-    const {x: x0, y: y0} = this.mobLayer.get('player')!.position;
+    const x0 = lerp(movement.x0, movement.x1, movement.t) * TILE_SIZE;
+    const y0 = lerp(movement.y0, movement.y1, movement.t) * TILE_SIZE;
     g.moveTo(
       x0 + 0.5 * TILE_SIZE,
       y0 + 0.5 * TILE_SIZE
