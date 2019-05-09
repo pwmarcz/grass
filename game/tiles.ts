@@ -29,6 +29,7 @@ export const TILES: Record<string, TileMeta> = {
 
   HUMAN: { id: 10 },
   GOBLIN: { id: 1 },
+  GOBLIN_ARCHER: { id: 1, tint: 0x66ff66 },
 
   GOLD: { id: 0 },
   KEY: { id: 50 },

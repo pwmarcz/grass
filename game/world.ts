@@ -383,6 +383,13 @@ export class World {
         mob.pos.x, mob.pos.y,
         player.pos.x, player.pos.y
       )) {
+        if (mob.shoots && this.hasClearShot(mob.pos, player)) {
+          return {
+            type: ActionType.SHOOT_MOB,
+            targetMob: player
+          };
+        }
+
         const line = this.visibilityMap.line(
           mob.pos.x, mob.pos.y, player.pos.x, player.pos.y,
           this.canMove.bind(this)

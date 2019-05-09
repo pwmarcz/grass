@@ -12,16 +12,17 @@ export class MapGenerator {
   readonly h: number;
   readonly distanceMap: DistanceMap;
   map: Terrain[][];
+  mobs: Mob[];
 
   constructor(w = 50, h = 50) {
     this.w = w;
     this.h = h;
     this.map = makeEmptyGrid(w, h, Terrain.WALL);
     this.distanceMap = new DistanceMap(this.mapFunc.bind(this), this.w, this.h, false);
+    this.mobs = [];
   }
 
   generate(): MapData {
-    const mobs: Mob[] = [];
     const items: Item[] = [];
 
     this.fillRandomly(0.5, Terrain.FLOOR);
@@ -46,8 +47,15 @@ export class MapGenerator {
     });
 
     const playerPos = this.findFloor();
-    mobs.push(new Mob('player', MobType.HUMAN, playerPos));
-    return { map: this.map, mobs, items };
+    this.mobs.push(new Mob('player', MobType.HUMAN, playerPos));
+
+    for (let i = 0; i < 10; i++) {
+      const pos = this.findFloor();
+      const type = Math.random() > 0.5 ? MobType.GOBLIN : MobType.GOBLIN_ARCHER;
+      this.mobs.push(new Mob(`mob${i}`, type, pos));
+    }
+
+    return { map: this.map, mobs: this.mobs, items };
   }
 
   fillRandomly(amount: number, terrain: Terrain): void {

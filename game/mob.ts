@@ -3,6 +3,7 @@ import { Pos, Action } from "./types";
 
 export enum MobType {
   GOBLIN = 'GOBLIN',
+  GOBLIN_ARCHER = 'GOBLIN_ARCHER',
   HUMAN = 'HUMAN',
 }
 
@@ -12,6 +13,7 @@ interface MobMeta {
   damage: number;
   regenRate: number;
   team: string;
+  shoots?: boolean;
 };
 
 const MOB_META: Record<MobType, MobMeta> = {
@@ -21,6 +23,14 @@ const MOB_META: Record<MobType, MobMeta> = {
     damage: 3,
     regenRate: 120,
     team: 'goblins',
+  },
+  [MobType.GOBLIN_ARCHER]: {
+    movementTime: 20,
+    maxHealth: 10,
+    damage: 2,
+    regenRate: 120,
+    team: 'goblins',
+    shoots: true,
   },
   [MobType.HUMAN]: {
     movementTime: 10,
@@ -71,6 +81,10 @@ export class Mob {
 
   get team(): string {
     return MOB_META[this.type].team;
+  }
+
+  get shoots(): boolean {
+    return !!MOB_META[this.type].shoots;
   }
 
   getActionTime(time: number): number {
