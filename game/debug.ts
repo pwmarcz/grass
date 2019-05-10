@@ -6,6 +6,7 @@ export interface DebugOptions {
   showLos: boolean;
   pause: boolean;
   fullMemory: boolean;
+  fullVision: boolean;
   noEnemies: boolean;
 }
 
@@ -19,5 +20,6 @@ export const DEBUG: DebugOptions = {
   showLos: params.get('los') !== null,
   pause: params.get('pause') !== null,
   fullMemory: params.get('fullMemory') !== null,
+  fullVision: params.get('fullVision') !== null,
   noEnemies: params.get('noEnemies') !== null,
 };

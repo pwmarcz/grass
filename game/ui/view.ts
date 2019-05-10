@@ -303,24 +303,6 @@ export class View {
     return {x0, y0, x1, y1, t};
   }
 
-  getVisibilityMultiplier(
-    x: number, y: number, {x0, y0, x1, y1, t}: Movement,
-    darkAlpha = DARK_ALPHA
-  ): number {
-    const visible = this.world.visibilityMap.visible(
-      x0, y0, x, y);
-    const remembered = this.client.memory[y][x];
-    const multiplier = visible ? 1 : remembered ? darkAlpha : 0;
-
-    if (t === 0) {
-      return multiplier;
-    }
-
-    const nextVisible = this.world.visibilityMap.visible(x1, y1, x, y);
-    const nextMultiplier = nextVisible ? 1 : remembered ? darkAlpha : 0;
-    return lerp(multiplier, nextMultiplier, t);
-  }
-
   redrawHighlight(highlightPos: Pos): void {
     const g = this.backLayer.make('highlight', PIXI.Graphics, g => {
       g.lineStyle(1, 0x444444, 1, 0);
@@ -614,6 +596,10 @@ class AlphaMap {
   }
 
   private getAlpha(x: number, y: number, darkAlpha: number): number {
+    if (DEBUG.fullVision) {
+      return this.visibilityMap.visibleFromAnywhere(x, y) ? 1 : 0;
+    }
+
     const {x0, y0, x1, y1, t} = this.movement;
 
     const visible = this.visibilityMap.visible(x0, y0, x, y);

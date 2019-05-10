@@ -54,6 +54,19 @@ export class VisibilityMap {
     return field[yField * this.fieldWidth + xField] <= this.radius;
   }
 
+  visibleFromAnywhere(x0: number, y0: number): boolean {
+    for (let y = y0 - 1; y <= y0 + 1; y++) {
+      for (let x = x0 - 1; x <= x0 + 1; x++) {
+        if (0 <= x && x < this.width && 0 <= y && y < this.height) {
+          if (this.mapFunc(x, y)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   forEach(x0: number, y0: number, f: (x: number, y: number) => void): void {
     const field = this.getField(x0, y0);
     for (let y = 0; y < this.fieldWidth; y++) {
