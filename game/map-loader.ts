@@ -22,7 +22,9 @@ function parseTmx(xml: string): { width: number; height: number; layers: number[
 const TILES_BY_ID: Record<number, string> = {};
 
 for (const tile in TILES) {
-  TILES_BY_ID[TILES[tile].id] = tile;
+  if (!TILES[tile].tint) {
+    TILES_BY_ID[TILES[tile].id] = tile;
+  }
 }
 
 function getTile(x: number, y: number, width: number, layer: number[]): string | null {
