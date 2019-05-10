@@ -26,7 +26,15 @@ export class Client {
     this.distanceMap = new DistanceMap(this.mapFunc.bind(this), this.world.mapW, this.world.mapH);
     this.distanceMap.update(this.player.pos.x, this.player.pos.y);
 
-    this.memory = makeEmptyGrid(this.world.mapW, this.world.mapH, DEBUG.fullMemory);
+    this.memory = makeEmptyGrid(this.world.mapW, this.world.mapH, false);
+    if (DEBUG.fullMemory || DEBUG.fullVision) {
+      for (let y = 0; y < this.world.mapH; y++) {
+        for (let x = 0; x < this.world.mapW; x++) {
+          this.memory[y][x] = this.world.visibilityMap.visibleFromAnywhere(x, y);
+        }
+      }
+    }
+
     this.updateMemory();
 
     this.enemy = null;
