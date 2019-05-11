@@ -1,11 +1,12 @@
 // @ts-ignore
 import tilesetNormalImage from '../tileset.auto.svg';
-
 // @ts-ignore
 import tilesetWhiteImage from '../tileset-white.auto.svg';
+// @ts-ignore
+import tilesetGrayImage from '../tileset-gray.auto.svg';
 
 import * as PIXI from 'pixi.js';
-import { TILES } from '../tiles';
+import { TILES, Tile } from '../tiles';
 
 export const TILE_SIZE = 32;
 export const RESOLUTION = (function() {
@@ -20,12 +21,9 @@ export const RESOLUTION = (function() {
 
 export const TEXTURE_SIZE = TILE_SIZE * RESOLUTION;
 
-interface TileTexture {
-  readonly texture: PIXI.Texture;
-  readonly tint: number;
-}
-
-export const TILE_TEXTURES: Record<string, TileTexture> = {};
+const TEXTURES_NORMAL: PIXI.Texture[] = new Array(100);
+const TEXTURES_WHITE: PIXI.Texture[] = new Array(100);
+const TEXTURES_GRAY: PIXI.Texture[] = new Array(100);
 
 const TEXTURE_TIMEOUT = 5*1000;
 
@@ -52,21 +50,35 @@ export function loadTextures(): Promise<void> {
   const whiteTexture = PIXI.BaseTexture.fromImage(
     tilesetWhiteImage, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
   );
+  const grayTexture = PIXI.BaseTexture.fromImage(
+    tilesetGrayImage, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
+  );
 
-  return Promise.all([waitUntilLoaded(normalTexture), waitUntilLoaded(whiteTexture)])
+  return Promise.all([
+    waitUntilLoaded(normalTexture),
+    waitUntilLoaded(whiteTexture),
+    waitUntilLoaded(grayTexture),
+  ])
   .then(() => {
     for (const tile in TILES) {
       const id = TILES[tile].id;
       const x = id % 10, y = Math.floor(id / 10);
       const frame = new PIXI.Rectangle(TEXTURE_SIZE * x, TEXTURE_SIZE * y, TEXTURE_SIZE, TEXTURE_SIZE);
 
-      const tint = TILES[tile].tint || 0xFFFFFF;
-      const texture = new PIXI.Texture(
-        tint === 0xFFFFFF ? normalTexture : whiteTexture,
-        frame
-      );
-
-      TILE_TEXTURES[tile] = {texture, tint};
+      TEXTURES_NORMAL[id] = new PIXI.Texture(normalTexture, frame);
+      TEXTURES_WHITE[id] = new PIXI.Texture(whiteTexture, frame);
+      TEXTURES_GRAY[id] = new PIXI.Texture(grayTexture, frame);
     }
   });
+}
+
+export function setTexture(sprite: PIXI.Sprite, tile: Tile): void {
+  const { id, tint } = TILES[tile];
+  if (tint === undefined) {
+    sprite.texture = TEXTURES_NORMAL[id];
+    sprite.tint = 0xffffff;
+  } else {
+    sprite.texture = TEXTURES_WHITE[id];
+    sprite.tint = tint;
+  }
 }

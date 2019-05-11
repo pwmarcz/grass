@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { TILE_SIZE, TILE_TEXTURES, RESOLUTION } from './textures';
+import { TILE_SIZE, RESOLUTION, setTexture } from './textures';
 import { World } from '../world';
 import { ActionType, Pos } from '../types';
 import { renderWithRef } from '../utils';
@@ -277,8 +277,7 @@ export class View {
           });
 
           sprite.alpha = alpha;
-          sprite.texture = TILE_TEXTURES[tile].texture;
-          sprite.tint = TILE_TEXTURES[tile].tint;
+          setTexture(sprite, tile);
         }
       }
     }
@@ -550,8 +549,7 @@ class MobDescription {
     const sprite = mobLayer.make(this.id, PIXI.Sprite, sprite => {
       sprite.width = TILE_SIZE;
       sprite.height = TILE_SIZE;
-      sprite.texture = TILE_TEXTURES[this.tile].texture;
-      sprite.tint = TILE_TEXTURES[this.tile].tint;
+      setTexture(sprite, this.tile);
     });
 
     const {x, y} = this.getExactPos();

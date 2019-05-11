@@ -5,7 +5,7 @@ TS_FILES = $(shell find game/ -name '*.ts' -or -name '*.tsx')
 
 ICONS = game/icon-16.auto.png game/icon-32.auto.png game/icon-96.auto.png
 
-TILESETS = game/tileset.auto.svg game/tileset-white.auto.svg
+TILESETS = game/tileset.auto.svg game/tileset-white.auto.svg game/tileset-gray.auto.svg
 
 .PHONY: files
 files: $(ICONS) $(TILESETS)
@@ -36,4 +36,7 @@ game/tileset.auto.svg: game/tileset.svg
 	./node_modules/.bin/svgo --multipass $@
 
 game/tileset-white.auto.svg: game/tileset.auto.svg
-	sed 's/"#[0-9a-f]\+"/"#fff"/g' $< > $@
+	node convert.js white < $< > $@
+
+game/tileset-gray.auto.svg: game/tileset.auto.svg
+	node convert.js gray < $< > $@
