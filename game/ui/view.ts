@@ -66,7 +66,7 @@ export class View {
       width: this.width,
       height: this.height,
       resolution: RESOLUTION,
-      autoResize: true,
+      autoDensity: true,
     });
 
     this.backLayer = new StringRenderer(this.app.stage);

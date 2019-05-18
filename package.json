@@ -7,7 +7,6 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "@types/node": "^11.13.5",
-    "@types/pixi.js": "^4.8.7",
     "@typescript-eslint/eslint-plugin": "^1.6.0",
     "@typescript-eslint/parser": "^1.6.0",
     "eslint": "^5.16.0",
@@ -18,7 +17,7 @@
   "dependencies": {
     "denque": "^1.4.1",
     "fastpriorityqueue": "^0.6.1",
-    "pixi.js": "^4.8.7",
+    "pixi.js": "^5.0.2",
     "preact": "^8.4.2",
     "svgo": "^1.2.2",
     "tumult": "^3.0.11"

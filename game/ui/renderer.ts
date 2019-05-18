@@ -14,12 +14,13 @@ abstract class Renderer<Key> {
 
   make<T extends PIXI.DisplayObject>(
     key: Key,
-    construct: new () => T,
+    construct: (new () => T) | typeof PIXI.Sprite,
     init?: (obj: T) => void
   ): T {
     let obj = this.get(key) as T | undefined;
     if (!obj) {
-      obj = new construct();
+      const _construct = construct as new () => T;
+      obj = new _construct();
       this.container.addChild(obj);
       this.set(key, obj);
       if (init) {
@@ -29,6 +30,20 @@ abstract class Renderer<Key> {
     this.seen.add(key);
     return obj;
   }
+
+  // makeSprite(
+  //   key: Key,
+  //   init?: (obj: PIXI.Sprite) => void
+  // ): PIXI.Sprite {
+  //   return this.make(key, () => new PIXI.Sprite(null!), init);
+  // }
+
+  // makeGraphics(
+  //   key: Key,
+  //   init?: (obj: PIXI.Graphics) => void
+  // ): PIXI.Graphics {
+  //   return this.make(key, () => new PIXI.Graphics)
+  // }
 
   flush(): void {
     for (const key of this.keys()) {

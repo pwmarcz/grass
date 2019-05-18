@@ -38,30 +38,20 @@ function waitUntilLoaded(t: PIXI.BaseTexture): Promise<PIXI.BaseTexture> {
 }
 
 export function loadTextures(): Promise<void> {
-  const normalTexture = PIXI.BaseTexture.fromImage(
-    tilesetImages.normal, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
-  );
-  const whiteTexture = PIXI.BaseTexture.fromImage(
-    tilesetImages.white, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
-  );
-  const grayTexture = PIXI.BaseTexture.fromImage(
-    tilesetImages.gray, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
-  );
-
   return Promise.all([
-    waitUntilLoaded(normalTexture),
-    waitUntilLoaded(whiteTexture),
-    waitUntilLoaded(grayTexture),
+    load(tilesetImages.normal),
+    load(tilesetImages.white),
+    load(tilesetImages.gray),
   ])
-  .then(() => {
+  .then(([normal, white, gray]) => {
     for (const tile in TILES) {
       const id = TILES[tile].id;
       const x = id % 10, y = Math.floor(id / 10);
       const frame = new PIXI.Rectangle(TEXTURE_SIZE * x, TEXTURE_SIZE * y, TEXTURE_SIZE, TEXTURE_SIZE);
 
-      TEXTURES_NORMAL[id] = new PIXI.Texture(normalTexture, frame);
-      TEXTURES_WHITE[id] = new PIXI.Texture(whiteTexture, frame);
-      TEXTURES_GRAY[id] = new PIXI.Texture(grayTexture, frame);
+      TEXTURES_NORMAL[id] = new PIXI.Texture(normal, frame);
+      TEXTURES_WHITE[id] = new PIXI.Texture(white, frame);
+      TEXTURES_GRAY[id] = new PIXI.Texture(gray, frame);
     }
   });
 }
@@ -75,4 +65,24 @@ export function setTexture(sprite: PIXI.Sprite, tile: Tile): void {
     sprite.texture = TEXTURES_WHITE[id];
     sprite.tint = tint;
   }
+}
+
+function load(url: string): Promise<PIXI.BaseTexture> {
+  console.log(`Loading ${url}`);
+  return fetch(url)
+  .then(resp => resp.text())
+  .then(text => {
+    const dataUri = 'data:image/svg+xml,' + text.replace(/#/g, '');
+    const image = new Image();
+    image.src = dataUri;
+
+    const texture = PIXI.BaseTexture.from(
+      dataUri,
+      {
+        scaleMode: PIXI.SCALE_MODES.LINEAR,
+        width: 320 * RESOLUTION,
+        height: 320 * RESOLUTION,
+    });
+    return waitUntilLoaded(texture);
+  });
 }
