@@ -1,11 +1,3 @@
-import './lib/normalize.css';
-import './style.css';
-
-// @ts-ignore
-import mapFile1 from './maps/map1.xml';
-// @ts-ignore
-import mapFile2 from './maps/map2.xml';
-
 import { MapData, fetchMap } from './map-loader';
 import { View } from './ui/view';
 import { RawInput } from './ui/raw-input';
@@ -15,6 +7,7 @@ import { Client } from './client';
 import { DEBUG } from './debug';
 import { Input } from './ui/input';
 import { MapGenerator } from './map-gen';
+import { mapFiles } from './assets';
 
 // Hack around Parcel's inability to recognize links without index.html.
 
@@ -26,16 +19,16 @@ let mapPromise: Promise<MapData>;
 
 switch (DEBUG.mapName) {
   case '1':
-    mapPromise = fetchMap(mapFile1);
+    mapPromise = fetchMap(mapFiles[0]);
     break;
   case '2':
-    mapPromise = fetchMap(mapFile2);
+    mapPromise = fetchMap(mapFiles[1]);
     break;
   case '3':
     mapPromise = Promise.resolve(new MapGenerator().generate());
     break;
   default:
-    mapPromise = fetchMap(mapFile1);
+    mapPromise = fetchMap(mapFiles[0]);
     break;
 }
 

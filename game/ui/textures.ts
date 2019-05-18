@@ -1,10 +1,4 @@
-// @ts-ignore
-import tilesetNormalImage from '../tileset.auto.svg';
-// @ts-ignore
-import tilesetWhiteImage from '../tileset-white.auto.svg';
-// @ts-ignore
-import tilesetGrayImage from '../tileset-gray.auto.svg';
-
+import { tilesetImages } from '../assets';
 import * as PIXI from 'pixi.js';
 import { TILES, Tile } from '../tiles';
 
@@ -45,13 +39,13 @@ function waitUntilLoaded(t: PIXI.BaseTexture): Promise<PIXI.BaseTexture> {
 
 export function loadTextures(): Promise<void> {
   const normalTexture = PIXI.BaseTexture.fromImage(
-    tilesetNormalImage, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
+    tilesetImages.normal, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
   );
   const whiteTexture = PIXI.BaseTexture.fromImage(
-    tilesetWhiteImage, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
+    tilesetImages.white, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
   );
   const grayTexture = PIXI.BaseTexture.fromImage(
-    tilesetGrayImage, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
+    tilesetImages.gray, false, PIXI.SCALE_MODES.LINEAR, RESOLUTION
   );
 
   return Promise.all([
