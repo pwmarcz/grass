@@ -28,8 +28,11 @@ function waitUntilLoaded(t: PIXI.BaseTexture): Promise<PIXI.BaseTexture> {
       rejected = true;
       reject(`Error loading texture: ${t.imageUrl}`);
     }, TEXTURE_TIMEOUT);
-    t.on('loaded', () => {
-      if (!rejected) {
+
+    // For some reason, t.valid is true even before the texture is actually
+    // loaded, so we always wait for an event.
+    t.on('update', () => {
+      if (t.valid && !rejected) {
         clearTimeout(timeoutId);
         resolve(t);
       }
@@ -69,20 +72,12 @@ export function setTexture(sprite: PIXI.Sprite, tile: Tile): void {
 
 function load(url: string): Promise<PIXI.BaseTexture> {
   console.log(`Loading ${url}`);
-  return fetch(url)
-  .then(resp => resp.text())
-  .then(text => {
-    const dataUri = 'data:image/svg+xml,' + text.replace(/#/g, '');
-    const image = new Image();
-    image.src = dataUri;
-
-    const texture = PIXI.BaseTexture.from(
-      dataUri,
-      {
-        scaleMode: PIXI.SCALE_MODES.LINEAR,
-        width: 320 * RESOLUTION,
-        height: 320 * RESOLUTION,
-    });
-    return waitUntilLoaded(texture);
+  const texture = PIXI.BaseTexture.from(
+    url,
+    {
+      scaleMode: PIXI.SCALE_MODES.LINEAR,
+      width: 320 * RESOLUTION,
+      height: 320 * RESOLUTION,
   });
+  return waitUntilLoaded(texture);
 }
