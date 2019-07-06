@@ -31,20 +31,6 @@ abstract class Renderer<Key> {
     return obj;
   }
 
-  // makeSprite(
-  //   key: Key,
-  //   init?: (obj: PIXI.Sprite) => void
-  // ): PIXI.Sprite {
-  //   return this.make(key, () => new PIXI.Sprite(null!), init);
-  // }
-
-  // makeGraphics(
-  //   key: Key,
-  //   init?: (obj: PIXI.Graphics) => void
-  // ): PIXI.Graphics {
-  //   return this.make(key, () => new PIXI.Graphics)
-  // }
-
   flush(): void {
     for (const key of this.keys()) {
       if (!this.seen.has(key)) {
