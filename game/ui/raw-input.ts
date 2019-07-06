@@ -48,9 +48,8 @@ export class RawInput {
     document.addEventListener('keydown', this.keyDown.bind(this));
     document.addEventListener('keyup', this.keyUp.bind(this));
 
-    this.stage.on('mouseenter', this.mouseMove.bind(this));
     this.stage.on('mousemove', this.mouseMove.bind(this));
-    this.stage.on('mouseleave', this.mouseMove.bind(this));
+    this.stage.on('mouseout', this.mouseMove.bind(this));
     this.stage.on('pointertap', this.click.bind(this));
     this.stage.on('rightclick', this.rightClick.bind(this));
     this.appElement.addEventListener('contextmenu', (e) => e.preventDefault());
