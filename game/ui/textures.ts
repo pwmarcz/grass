@@ -71,7 +71,6 @@ export function setTexture(sprite: PIXI.Sprite, tile: Tile): void {
 }
 
 function load(url: string): Promise<PIXI.BaseTexture> {
-  console.log(`Loading ${url}`);
   const texture = PIXI.BaseTexture.from(
     url,
     {
