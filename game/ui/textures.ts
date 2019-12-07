@@ -26,7 +26,7 @@ function waitUntilLoaded(t: PIXI.BaseTexture): Promise<PIXI.BaseTexture> {
     let rejected = false;
     const timeoutId = setTimeout(() => {
       rejected = true;
-      reject(`Error loading texture: ${t.imageUrl}`);
+      reject(`Error loading texture`);
     }, TEXTURE_TIMEOUT);
 
     // For some reason, t.valid is true even before the texture is actually
@@ -71,12 +71,18 @@ export function setTexture(sprite: PIXI.Sprite, tile: Tile): void {
 }
 
 function load(url: string): Promise<PIXI.BaseTexture> {
-  const texture = PIXI.BaseTexture.from(
-    url,
-    {
-      scaleMode: PIXI.SCALE_MODES.LINEAR,
-      width: 320 * RESOLUTION,
-      height: 320 * RESOLUTION,
+  /*
+    This used PIXI.BaseTexture.from(...) before but that apparently doesn't
+    support scaling in PIXI v5:
+
+    https://github.com/pixijs/pixi.js/issues/6113
+
+  */
+
+  const resource = new PIXI.resources.SVGResource(url, {
+    scale: RESOLUTION,
   });
+
+  const texture = new PIXI.BaseTexture(resource);
   return waitUntilLoaded(texture);
 }
